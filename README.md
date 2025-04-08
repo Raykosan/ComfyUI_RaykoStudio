@@ -73,8 +73,8 @@ git clone [https://github.com/Raykosan/ComfyUI_RaykoStudio.git](https://github.c
 После установки найдите ноду в ComfyUI под названием 🦊 RS_RusTextOverlay (категория: 🦊 RaykoStudio/Image).  
 Подключите входные данные (image и mask) и настройте параметры.  
 Пример рабочего процесса можно найти в папке examples:  
-    example workflow.json: Пример рабочего процесса для ComfyUI.  
-    example.png: Скриншот результата.  
+- example workflow.json: Пример рабочего процесса для ComfyUI.  
+- example.png: Скриншот результата.  
 
 
 ## 🤝 Сообщение об ошибках (Issues)  
@@ -83,9 +83,9 @@ git clone [https://github.com/Raykosan/ComfyUI_RaykoStudio.git](https://github.c
 
 Проверьте раздел Issues на GitHub, возможно, проблема уже известна.  
 Если проблема новая, создайте новый Issue, описав:  
-        Версию ComfyUI и Python.  
-        Описание проблемы и шаги для ее воспроизведения.  
-        Скриншоты или логи ошибок (если есть).  
+- Версию ComfyUI и Python.  
+- Описание проблемы и шаги для ее воспроизведения.  
+- Скриншоты или логи ошибок (если есть).  
 
 ## 📜 Лицензия  
 

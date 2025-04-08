@@ -1,0 +1,15 @@
+[project]
+name = "raykostudio"
+description = "A node for ComfyUI that allows you to overlay text on an image in an area defined by a mask, with support for text rotation, custom fonts, line breaks and transparency."
+version = "1.0.0"
+license = {file = "LICENSE"}
+dependencies = ["torch>=2.0.0", "Pillow>=8.0.0", "numpy>=1.19.0", "opencv-python-headless>=4.2.0"]
+
+[project.urls]
+Repository = "https://github.com/Raykosan/ComfyUI_RaykoStudio"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI_RaykoStudio"
+Icon = ""

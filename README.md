@@ -1,96 +1,98 @@
-## 🦊 ComfyUI_RaykoStudio  
-ComfyUI_RaykoStudio — это набор кастомных нод для ComfyUI, предоставляющий дополнительные возможности для работы с изображениями  
+# 🦊 ComfyUI_RaykoStudio  
+ComfyUI_RaykoStudio — a set of custom nodes for ComfyUI providing additional image processing capabilities  
 
 ![Demo](web/preview.png)  
 
-## 🦊 RS_RusTextOverlay Node  
+# 🦊 RS_RusTextOverlay Node  
 
-## 🔥 Описание  
+## 🔥 Description  
 
-`RS_RusTextOverlay` позволяет накладывать текст на изображение в области, заданной маской. Нода поддерживает поворот текста в соответствии с углом наклона маски, автоматический подбор размера шрифта, кастомные шрифты, перенос строк и настройку прозрачности текста.  
+`RS_RusTextOverlay` allows overlaying text on an image within an area defined by a mask. The node supports text rotation according to the mask's tilt angle, automatic font size adjustment, custom fonts, line breaks, and text transparency settings.  
 
-### Возможности  
+### Features  
 
-- Наложение текста на изображение в области, заданной маской.  
-- Автоматический поворот текста в соответствии с углом наклона маски (опционально).  
-- Поддержка кастомных шрифтов (`.ttf` или `.otf`), загружаемых из папки `fonts`.  
-- Автоматический подбор размера шрифта для вписывания текста в область маски.  
-- Настройка цвета текста и прозрачности (от 0 до 100%).  
-- Настройка выравнивания текста (вертикальное: top/center/bottom, горизонтальное: left/center/right).  
-- Настройка отступов (padding) вокруг текста.  
+- Overlaying text on an image within a mask-defined area  
+- Automatic text rotation according to the mask's tilt angle (optional)  
+- Support for custom fonts (`.ttf` or `.otf`) loaded from the `fonts` folder  
+- Automatic font size adjustment to fit text within the mask area  
+- Text color and transparency settings (0 to 100%)  
+- Text alignment settings (vertical: top/center/bottom, horizontal: left/center/right)  
+- Padding settings around text  
 
-### Входы  
+### Inputs  
 
-- `image`: Изображение (тензор формата RGB).  
-- `mask`: Маска (тензор формата L), определяющая область для текста.  
+- `image`: Image (RGB tensor)  
+- `mask`: Mask (L tensor) defining the text area  
 
-### Выходы  
+### Outputs  
 
-- `IMAGE`: Изображение с наложенным текстом (тензор формата RGB).  
+- `IMAGE`: Image with overlaid text (RGB tensor)  
 
-## ⚙️ Параметры  
+## ⚙️ Parameters  
 
-- `text`: Текст для наложения. Поддерживает перенос строк.  
-- `font_name`: Выберите шрифт из списка доступных в папке `fonts` (или используйте `default`).  
-- `text_color`: Цвет текста (в формате HEX, например `#FFFFFF`).  
-- `text_opacity`: Прозрачность текста (0–100%, где 0 — полностью прозрачный, 100 — полностью непрозрачный).  
-- `min_font_size`: Минимальный размер шрифта (если текст не помещается, используется шрифт по умолчанию).  
-- `padding`: Отступы вокруг текста внутри маски.  
-- `vertical_align`: Вертикальное выравнивание текста (top/center/bottom).  
-- `horizontal_align`: Горизонтальное выравнивание текста (left/center/right). 
-- `rotate_with_mask`: Включить/выключить поворот текста в соответствии с углом наклона маски.  
+- `text`: Text to overlay (supports line breaks)  
+- `font_name`: Select font from available in `fonts` folder (or use `default`)  
+- `text_color`: Text color (HEX format, e.g. `#FFFFFF`)  
+- `text_opacity`: Text transparency (0-100%, where 0 - fully transparent, 100 - fully opaque)  
+- `min_font_size`: Minimum font size (if text doesn't fit, default font is used)  
+- `padding`: Padding around text within mask  
+- `vertical_align`: Vertical text alignment (top/center/bottom)  
+- `horizontal_align`: Horizontal text alignment (left/center/right)  
+- `rotate_with_mask`: Enable/disable text rotation according to mask's tilt angle  
 
-## 🛠 Установка  
+## 🛠 Installation  
 
-1. Клонируйте репозиторий в папку `ComfyUI/custom_nodes/`:
+- Clone repository to `ComfyUI/custom_nodes/` folder:
+```
+git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
+```
+Restart ComfyUI  
 
-git clone [https://github.com/Raykosan/ComfyUI_RaykoStudio.git](https://github.com/Raykosan/ComfyUI_RaykoStudio)  
+OR  
 
-Перезагрузите ComfyU  
+Copy RaykoStudio_Nodes folder to: ComfyUI/custom_nodes/  
+Restart ComfyUI  
 
-или  
+- Ensure fonts folder contains fonts (.ttf or .otf). You can add your fonts to this folder. If folder is empty or missing, default font will be used.  
 
-скопируйте папку RaykoStudio_Nodes в папку: ComfyUI/custom_nodes/  
+- Install required dependencies from requirements.txt:
+```
+pip install -r requirements.txt
+```
+Restart ComfyUI for node to become available.  
 
-Перезагрузите ComfyU  
+## ⛓️ Dependencies  
 
-3. Убедитесь, что папка `fonts` содержит шрифты (`.ttf` или `.otf`). Вы можете добавить свои шрифты в эту папку. Если папка пуста или отсутствует, будет использоваться шрифт по умолчанию.  
+Required libraries (specified in requirements.txt):  
+```
+torch>=1.7.0  
+numpy>=1.19.0  
+Pillow>=8.0.0  
+opencv-python>=4.5.0  
+```
+## 🎛 Usage  
 
-4. Установите необходимые зависимости, указанные в `requirements.txt`: pip install -r requirements.txt  
-  Перезапустите ComfyUI, чтобы нода стала доступна.  
+After installation find node in ComfyUI under name 🦊 RS_RusTextOverlay (category: 🦊 RaykoStudio/Image).  
+Connect inputs (image and mask) and adjust parameters.  
+Example workflow can be found in examples folder:  
+example workflow.json: example ComfyUI workflow  
+example.png: Result screenshot  
 
-## ⛓️‍💥 Зависимости  
+## 🤝 Bug Reporting  
 
-Для работы ноды требуются следующие библиотеки (указаны в requirements.txt):  
+If you encounter an issue or find a bug:  
 
-    torch>=1.7.0  
-    numpy>=1.19.0  
-    Pillow>=8.0.0  
-    opencv-python>=4.5.0  
+Check Issues section on GitHub, maybe problem is already known.  
+If new problem, create new Issue describing:  
 
-## 🎛 Использование  
+- ComfyUI and Python versions  
+- Problem description and reproduction steps  
+- Screenshots or error logs (if available)  
 
-После установки найдите ноду в ComfyUI под названием 🦊 RS_RusTextOverlay (категория: 🦊 RaykoStudio/Image).  
-Подключите входные данные (image и mask) и настройте параметры.  
-Пример рабочего процесса можно найти в папке examples:  
-- example workflow.json: Пример рабочего процесса для ComfyUI.  
-- example.png: Скриншот результата.  
+## 📜 License  
 
+MIT License. Use node at your own risk without any warranties.  
 
-## 🤝 Сообщение об ошибках (Issues)  
+## ❤️ Acknowledgments  
 
-Если вы столкнулись с проблемой или нашли баг:  
-
-Проверьте раздел Issues на GitHub, возможно, проблема уже известна.  
-Если проблема новая, создайте новый Issue, описав:  
-- Версию ComfyUI и Python.  
-- Описание проблемы и шаги для ее воспроизведения.  
-- Скриншоты или логи ошибок (если есть).  
-
-## 📜 Лицензия  
-
-MIT License. Используйте ноду на свое усмотрение, но без каких-либо гарантий.  
-
-## ❤️ Благодарности  
-
-Спасибо сообществу ComfyUI за вдохновение и поддержку! Если вам понравилась эта нода, не забудьте поставить звездочку на GitHub!  
+Thanks to ComfyUI community for inspiration and support! If you like this node, don't forget to star on GitHub!

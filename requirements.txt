@@ -1,4 +1,0 @@
-torch>=2.0.0
-Pillow>=8.0.0
-numpy>=1.19.0
-opencv-python-headless>=4.2.0

@@ -5,10 +5,12 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 import cv2
 
-class RS_RusTextOverlay:
-    def __init__(self):
-        print("\033[93m🦊\033[0m \033[93mRaykoStudio - Russian Text Overlay Node \033[92mLOADED\033[0m")
+# Сообщение ДО класса (без отступов)
+print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS RusTextOverlay \033[92mLOADED\033[0m")
 
+class RS_RusTextOverlay:
+    """Класс для наложения русского текста на изображения"""
+    
     @classmethod
     def INPUT_TYPES(cls):
         current_dir = os.path.dirname(os.path.abspath(__file__))

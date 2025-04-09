@@ -17,7 +17,8 @@ ComfyUI_RaykoStudio — a set of custom nodes for ComfyUI providing additional i
 - Automatic font size adjustment to fit text within the mask area  
 - Text color and transparency settings (0 to 100%)  
 - Text alignment settings (vertical: top/center/bottom, horizontal: left/center/right)  
-- Padding settings around text  
+- Padding settings around text
+- Line spacing (0.5 to 3.0)  
 
 ### Inputs  
 
@@ -38,7 +39,8 @@ ComfyUI_RaykoStudio — a set of custom nodes for ComfyUI providing additional i
 - `padding`: Padding around text within mask  
 - `vertical_align`: Vertical text alignment (top/center/bottom)  
 - `horizontal_align`: Horizontal text alignment (left/center/right)  
-- `rotate_with_mask`: Enable/disable text rotation according to mask's tilt angle  
+- `rotate_with_mask`: Enable/disable text rotation according to mask's tilt angle
+- `line_spacing`: Adjusts the line spacing from 0.5 to 3.0
 
 ## 🛠 Installation  
 

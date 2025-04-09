@@ -1,11 +1,9 @@
-# nodes/russian_text.py
 import os
 import torch
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 import cv2
 
-# Сообщение ДО класса (без отступов)
 print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS RusTextOverlay \033[92mLOADED\033[0m")
 
 class RS_RusTextOverlay:
@@ -42,6 +40,7 @@ class RS_RusTextOverlay:
                 "vertical_align": (["top", "center", "bottom"], {"default": "center"}),
                 "horizontal_align": (["left", "center", "right"], {"default": "center"}),
                 "rotate_with_mask": ("BOOLEAN", {"default": True}),
+                "line_spacing": ("FLOAT", {"default": 1.0, "min": 0.5, "max": 3.0, "step": 0.1}),
             },
         }
 
@@ -49,13 +48,11 @@ class RS_RusTextOverlay:
     FUNCTION = "apply_text"
     CATEGORY = "🦊 RaykoStudio/Image"
 
-    def apply_text(self, image, mask, text, font_name, text_color, text_opacity, min_font_size, padding, vertical_align, horizontal_align, rotate_with_mask):
+    def apply_text(self, image, mask, text, font_name, text_color, text_opacity, min_font_size, padding, vertical_align, horizontal_align, rotate_with_mask, line_spacing):
         try:
-            # Конвертация tensor -> PIL
             image_pil = Image.fromarray((image[0].cpu().numpy() * 255).astype(np.uint8), 'RGB')
             mask_pil = Image.fromarray((mask[0].cpu().numpy() * 255).astype(np.uint8), 'L')
             
-            # Получаем область маски
             bbox = mask_pil.getbbox()
             if not bbox:
                 return (image,)
@@ -64,19 +61,12 @@ class RS_RusTextOverlay:
             mask_width = x2 - x1 - 2*padding
             mask_height = y2 - y1 - 2*padding
 
-            # Загрузка шрифта
             if font_name != "default":
-                font_path = os.path.join(
-                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                    "fonts",
-                    font_name
-                )
-
+                font_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fonts", font_name)
                 font = self.find_optimal_font(font_path, text, mask_width, mask_height, min_font_size)
             else:
                 font = ImageFont.load_default()
 
-            # Преобразуем прозрачность (0-100%) в альфа-канал (0-255)
             alpha = int((text_opacity / 100.0) * 255)
             if text_color.startswith('#'):
                 text_color = text_color[1:]
@@ -85,11 +75,9 @@ class RS_RusTextOverlay:
             b = int(text_color[4:6], 16)
             text_color_rgba = (r, g, b, alpha)
 
-            # Создаем текстовый слой
             text_layer = Image.new("RGBA", image_pil.size, (0, 0, 0, 0))
             draw = ImageDraw.Draw(text_layer)
             
-            # Разбиваем текст на строки
             lines = text.split('\n')
             line_heights = []
             line_widths = []
@@ -97,7 +85,7 @@ class RS_RusTextOverlay:
                 line = line.replace('\t', '    ')
                 text_bbox = draw.textbbox((0, 0), line, font=font)
                 line_widths.append(text_bbox[2] - text_bbox[0])
-                line_heights.append(text_bbox[3] - text_bbox[1])
+                line_heights.append(int((text_bbox[3] - text_bbox[1]) * line_spacing))
             
             total_text_height = sum(line_heights)
             max_text_width = max(line_widths)
@@ -135,43 +123,23 @@ class RS_RusTextOverlay:
                     temp_draw = ImageDraw.Draw(temp_text)
 
                     center_x, center_y = temp_size // 2, temp_size // 2
-
                     current_y = center_y - total_text_height // 2
                     for line, line_height, line_width in zip(lines, line_heights, line_widths):
                         line = line.replace('\t', '    ')
                         pos_x = center_x - line_width // 2
-                        temp_draw.text(
-                            (pos_x, current_y),
-                            line,
-                            font=font,
-                            fill=text_color_rgba,
-                            anchor="lt"
-                        )
+                        temp_draw.text((pos_x, current_y), line, font=font, fill=text_color_rgba, anchor="lt")
                         current_y += line_height
 
-                    rotated_text = temp_text.rotate(
-                        angle,
-                        center=(center_x, center_y),
-                        resample=Image.BICUBIC,
-                        expand=False
-                    )
-
+                    rotated_text = temp_text.rotate(angle, center=(center_x, center_y), resample=Image.BICUBIC, expand=False)
                     rot_bbox = rotated_text.getbbox()
                     if rot_bbox:
                         rot_width = rot_bbox[2] - rot_bbox[0]
                         rot_height = rot_bbox[3] - rot_bbox[1]
-
                         mask_center_x = (x1 + x2) / 2
                         mask_center_y = (y1 + y2) / 2
-
                         paste_x = int(mask_center_x - rot_width / 2)
                         paste_y = int(mask_center_y - rot_height / 2)
-
-                        text_layer.paste(
-                            rotated_text.crop(rot_bbox),
-                            (paste_x, paste_y),
-                            rotated_text.crop(rot_bbox)
-                        )
+                        text_layer.paste(rotated_text.crop(rot_bbox), (paste_x, paste_y), rotated_text.crop(rot_bbox))
                     else:
                         print("Ошибка: не удалось определить bounding box повернутого текста")
             else:
@@ -184,25 +152,11 @@ class RS_RusTextOverlay:
 
                 for line, line_height, line_width in zip(lines, line_heights, line_widths):
                     line = line.replace('\t', '    ')
-                    pos_x = {
-                        "left": x1 + padding,
-                        "right": x2 - line_width - padding,
-                        "center": x1 + (mask_width - line_width) // 2 + padding
-                    }[horizontal_align]
-                    draw.text(
-                        (pos_x, current_y),
-                        line,
-                        font=font,
-                        fill=text_color_rgba,
-                        anchor="lt"
-                    )
+                    pos_x = {"left": x1 + padding, "right": x2 - line_width - padding, "center": x1 + (mask_width - line_width) // 2 + padding}[horizontal_align]
+                    draw.text((pos_x, current_y), line, font=font, fill=text_color_rgba, anchor="lt")
                     current_y += line_height
             
-            result = Image.alpha_composite(
-                image_pil.convert("RGBA"),
-                text_layer
-            ).convert("RGB")
-            
+            result = Image.alpha_composite(image_pil.convert("RGBA"), text_layer).convert("RGB")
             return (torch.from_numpy(np.array(result).astype(np.float32) / 255.0).unsqueeze(0),)
             
         except Exception as e:
@@ -233,7 +187,7 @@ class RS_RusTextOverlay:
                 if fits and total_height <= max_height:
                     return font
             except Exception as e:
-                print(f"RS_RusTextOverlay: Failed to load font {font_path} with size {size}: {str(e)}")  # Отладка: ошибка загрузки шрифта
+                print(f"RS_RusTextOverlay: Failed to load font {font_path} with size {size}: {str(e)}")
                 continue
         return ImageFont.load_default()
 

@@ -96,7 +96,8 @@ example.png: Result screenshot
 
 ## ✔️ Note  
 
-Warning: the correct placement of text depends on the fonts used. Try to use standard Windows fonts, working with custom fonts does not guarantee the correct placement of text on the image.  
+- Warning: the correct placement of text depends on the fonts used. Try to use standard Windows fonts, working with custom fonts does not guarantee the correct placement of text on the image.  
+- The mask should not touch the edge of the image.  
 
 ## ⚠️ Known issues  
 

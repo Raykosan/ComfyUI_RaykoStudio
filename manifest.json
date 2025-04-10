@@ -1,10 +1,10 @@
 {
     "name": "🦊 RS_RusTextOverlay",
     "author": "RaykoStudio",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "comfyui": "0.3.27",
     "description": "A node for ComfyUI that allows you to overlay text on an image in an area defined by a mask, with support for text rotation, custom fonts, line breaks and transparency.",
     "node_classes": ["RS_RusTextOverlay"],
     "tags": ["image", "mask", "text", "overlay", "adjustment"],
-    "requirements": ["torch>=2.5.0"]
+    "requirements": ["torch>=1.7.0"]
 }

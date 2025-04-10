@@ -1,7 +1,7 @@
 {
   "name": "comfyui-rs-text-overlay-node",
-  "version": "1.0.0",
-  "description": "A node for ComfyUI that allows you to overlay text on an image in an area defined by a mask, with support for text rotation, custom fonts, line breaks and transparency.",
+  "version": "2.0.0",
+  "description": "A node for ComfyUI that allows you to overlay text on an image in an area defined by a mask, with support for text rotation, custom fonts, line breaks, transparency.",
   "author": "Raykosan",
   "license": "MIT",
   "repository": {

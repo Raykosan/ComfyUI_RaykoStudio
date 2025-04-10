@@ -35,18 +35,19 @@ ComfyUI_RaykoStudio — a set of custom nodes for ComfyUI providing additional i
 
 - `text`: Text to overlay (supports line breaks)  
 - `font_name`: Select font from available in `fonts` folder (or use `default`)  
-- `use_gradient`: Use gradient text filling  
 - `text_color`: Text color (HEX format, e.g. `#FFFFFF`)  
-- `gradient_start_color`: Start gradient color  
-- `gradient_end_color`: Finish gradient color  
-- `text_opacity`: Text transparency (0-100%, where 0 - fully transparent, 100 - fully opaque)  
-- `outline_color`: Color of stroke  
+- `use_gradient`: Use gradient text filling  
+- `directiont`: Gradient direction 
+- `start_color`: Start gradient color  
+- `end_color`: Finish gradient color  
 - `outline_thickness`: Border Thickness  
+- `outline_color`: Color of stroke  
+- `rotate_with_mask`: Enable/disable text rotation according to mask's tilt angle  
+- `text_opacity`: Text transparency (0-100%, where 0 - fully transparent, 100 - fully opaque)  
 - `min_font_size`: Minimum font size (if text doesn't fit, default font is used)  
 - `padding`: Padding around text within mask  
 - `vertical_align`: Vertical text alignment (top/center/bottom)  
 - `horizontal_align`: Horizontal text alignment (left/center/right)  
-- `rotate_with_mask`: Enable/disable text rotation according to mask's tilt angle  
 - `line_spacing`: Adjusts the line spacing from 0.5 to 3.0  
 - `letter_spacing`: Adjusts the letter spacing from -5.0 to 20.0  
 

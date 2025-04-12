@@ -60,21 +60,13 @@ ComfyUI_RaykoStudio — a set of custom nodes for ComfyUI providing additional i
 git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git  
 
 ```
-Restart ComfyUI  
-
-OR  
-
-Copy RaykoStudio_Nodes folder to: ComfyUI/custom_nodes/  
-
-Restart ComfyUI  
-
+- Copy RaykoStudio_Nodes folder to: ComfyUI/custom_nodes/  
+- You can install this node using the ComfyUI_Manager  
 - Ensure fonts folder contains fonts (.ttf or .otf). You can add your fonts to this folder. If folder is empty or missing, default font will be used.  
-
 - Install required dependencies from requirements.txt:  
 ```
 pip install -r requirements.txt  
 ```
-Restart ComfyUI for node to become available.  
 
 ## ⛓️ Dependencies  
 

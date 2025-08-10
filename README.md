@@ -50,7 +50,7 @@ ComfyUI_RaykoStudio — a set of custom nodes for ComfyUI providing additional i
 - `vertical_align`: Vertical text alignment (top/center/bottom)  
 - `horizontal_align`: Horizontal text alignment (left/center/right)  
 - `line_spacing`: Adjusts the line spacing from 0.5 to 3.0  
-- `letter_spacing`: Adjusts the letter spacing from -5.0 to 20.0
+- `letter_spacing`: Adjusts the letter spacing from -5.0 to 100.0
 - `Text Orientention`: Switch between horizontal and vertical text orientation
 
 ![Demo](examples/example.png)  ![Demo](examples/Example2.png)

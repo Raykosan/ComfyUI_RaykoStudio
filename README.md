@@ -17,7 +17,7 @@ ComfyUI_RaykoStudio — a set of custom nodes for ComfyUI providing additional i
 - Automatic font size adjustment for text placement in the mask area  
 - Text color and transparency settings (from 0 to 100%)  
 - Text gradient (horizontal, vertical, diagonal)  
-- Text stroke with color and thickness adjustment  
+- Text stroke with color and thickness adjustment(from 0 to 50)  
 - Text alignment settings (vertically: top/center/down, horizontally: left/center/right)  
 - Line spacing (from 0.5 to 3.0)  
 - Letter spacing (from -5 to 100)  

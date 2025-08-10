@@ -20,7 +20,8 @@ ComfyUI_RaykoStudio — a set of custom nodes for ComfyUI providing additional i
 - Text stroke with color and thickness adjustment  
 - Text alignment settings (vertically: top/center/down, horizontally: left/center/right)  
 - Line spacing (from 0.5 to 3.0)  
-- Letter spacing (from -5 to 20)  
+- Letter spacing (from -5 to 100)  
+- Vertical text 
 
 ### Inputs  
 

@@ -38,7 +38,7 @@ class RS_RusTextOverlay:
                 "direction": (["horizontal", "vertical", "diagonal"], {"default": "horizontal"}),
                 "start_color": ("COLOR", {"default": "#FFFFFF"}),
                 "end_color": ("COLOR", {"default": "#000000"}),
-                "outline_thickness": ("INT", {"default": 0, "min": 0, "max": 10}),
+                "outline_thickness": ("INT", {"default": 0, "min": 0, "max": 50}),
                 "outline_color": ("COLOR", {"default": "#000000"}),
                 "rotate_with_mask": ("BOOLEAN", {"default": True}),
                 "text_opacity": ("INT", {"default": 100, "min": 0, "max": 100}),
@@ -47,7 +47,8 @@ class RS_RusTextOverlay:
                 "vertical_align": (["top", "center", "bottom"], {"default": "center"}),
                 "horizontal_align": (["left", "center", "right"], {"default": "center"}),
                 "line_spacing": ("FLOAT", {"default": 1.0, "min": 0.5, "max": 3.0, "step": 0.1}),
-                "letter_spacing": ("FLOAT", {"default": 0.0, "min": -20.0, "max": 20.0, "step": 0.5}),
+                "letter_spacing": ("FLOAT", {"default": 0.0, "min": -20.0, "max": 100.0, "step": 0.5}),
+                "text_orientation": (["horizontal", "vertical"], {"default": "horizontal"}),
             },
         }
 
@@ -64,70 +65,115 @@ class RS_RusTextOverlay:
         return (r, g, b, alpha)
 
     def draw_text_with_outline(self, draw, position, text, font, text_color, start_color, end_color, outline_color, thickness, 
-                              letter_spacing, use_gradient, direction, total_width, total_height, current_y_offset, angle):
+                              letter_spacing, use_gradient, direction, total_width, total_height, current_y_offset, angle, text_orientation):
         x, y = position
         if thickness > 0:
             for dx in range(-thickness, thickness + 1):
                 for dy in range(-thickness, thickness + 1):
                     if dx != 0 or dy != 0:
-                        current_x = x + dx
-                        for char in text:
-                            draw.text((current_x, y + dy), char, font=font, fill=outline_color)
-                            char_width = draw.textlength(char, font=font)
-                            current_x += char_width + letter_spacing
+                        if text_orientation == "horizontal":
+                            current_x = x + dx
+                            for char in text:
+                                draw.text((current_x, y + dy), char, font=font, fill=outline_color)
+                                char_width = draw.textlength(char, font=font)
+                                current_x += char_width + letter_spacing
+                        else:  # vertical
+                            current_y = y + dy
+                            for char in text:
+                                draw.text((x + dx, current_y), char, font=font, fill=outline_color)
+                                char_bbox = draw.textbbox((x, current_y), char, font=font)
+                                char_height = char_bbox[3] - char_bbox[1]
+                                current_y += char_height + letter_spacing
 
-        current_x = x
-        if use_gradient and text:
-            text_width = draw.textlength(text, font=font) + letter_spacing * max(0, len(text) - 1)
-            text_bbox = draw.textbbox((x, y), text, font=font)
-            text_height = text_bbox[3] - text_bbox[1]
+        if text_orientation == "horizontal":
+            current_x = x
+            if use_gradient and text:
+                text_width = draw.textlength(text, font=font) + letter_spacing * max(0, len(text) - 1)
+                text_bbox = draw.textbbox((x, y), text, font=font)
+                text_height = text_bbox[3] - text_bbox[1]
 
-            angle_rad = math.radians(angle)
+                angle_rad = math.radians(angle)
 
-            base_y = y - current_y_offset if current_y_offset == 0 else y
+                for i, char in enumerate(text):
+                    char_width = draw.textlength(char, font=font)
+                    char_bbox = draw.textbbox((current_x, y), char, font=font)
+                    char_height = char_bbox[3] - char_bbox[1]
+                    char_top = char_bbox[1]
 
-            for i, char in enumerate(text):
-                char_width = draw.textlength(char, font=font)
-                char_bbox = draw.textbbox((current_x, y), char, font=font)
-                char_height = char_bbox[3] - char_bbox[1]
-                char_top = char_bbox[1]
-                char_bottom = char_bbox[3]
+                    rel_x = (current_x - x) + char_width / 2 - text_width / 2
+                    rel_y = current_y_offset + (char_top + char_height / 2 - text_bbox[1]) - total_height / 2
 
-                rel_x = (current_x - x) + char_width / 2
-                rel_y = current_y_offset + (char_top + char_height / 2 - text_bbox[1])
+                    rotated_x = rel_x * math.cos(angle_rad) + rel_y * math.sin(angle_rad)
+                    rotated_y = -rel_x * math.sin(angle_rad) + rel_y * math.cos(angle_rad)
 
-                rotated_x = rel_x * math.cos(angle_rad) + rel_y * math.sin(angle_rad)
-                rotated_y = -rel_x * math.sin(angle_rad) + rel_y * math.cos(angle_rad)
-
-                if direction == "horizontal":
-                    t = rotated_x / text_width if text_width > 0 else 0
-                elif direction == "vertical":
-                    if angle == 0:
-                        t = (current_y_offset + (char_top - base_y)) / total_height if total_height > 0 else 0
-                    else:
+                    if direction == "horizontal":
+                        t = (rotated_x + text_width / 2) / text_width if text_width > 0 else 0
+                    elif direction == "vertical":
                         t = (rotated_y + total_height / 2) / total_height if total_height > 0 else 0
-                else:  # diagonal
-                    t_h = rotated_x / text_width if text_width > 0 else 0
-                    if angle == 0:
-                        t_v = (current_y_offset + (char_top - base_y)) / total_height if total_height > 0 else 0
-                    else:
+                    else:  # diagonal
+                        t_h = (rotated_x + text_width / 2) / text_width if text_width > 0 else 0
                         t_v = (rotated_y + total_height / 2) / total_height if total_height > 0 else 0
-                    t = (t_h + t_v) / 2
+                        t = (t_h + t_v) / 2
 
-                t = max(0, min(1, t))
-                r = int(start_color[0] + (end_color[0] - start_color[0]) * t)
-                g = int(start_color[1] + (end_color[1] - start_color[1]) * t)
-                b = int(start_color[2] + (end_color[2] - start_color[2]) * t)
-                a = start_color[3]
-                char_color = (r, g, b, a)
-                draw.text((current_x, y), char, font=font, fill=char_color)
-                current_x += char_width + letter_spacing
-        else:
-            draw.text((current_x, y), text, font=font, fill=text_color)
+                    t = max(0, min(1, t))
+                    r = int(start_color[0] + (end_color[0] - start_color[0]) * t)
+                    g = int(start_color[1] + (end_color[1] - start_color[1]) * t)
+                    b = int(start_color[2] + (end_color[2] - start_color[2]) * t)
+                    a = start_color[3]
+                    char_color = (r, g, b, a)
+                    draw.text((current_x, y), char, font=font, fill=char_color)
+                    current_x += char_width + letter_spacing
+            else:
+                draw.text((current_x, y), text, font=font, fill=text_color)
+        else:  # vertical
+            current_y = y
+            if use_gradient and text:
+                text_bbox = draw.textbbox((x, y), text[0], font=font)
+                char_height = text_bbox[3] - text_bbox[1]
+                text_height = (char_height + letter_spacing) * len(text)
+                text_width = draw.textlength(text[0], font=font)
+
+                angle_rad = math.radians(angle)
+
+                for i, char in enumerate(text):
+                    char_bbox = draw.textbbox((x, current_y), char, font=font)
+                    char_width = draw.textlength(char, font=font)
+                    char_height = char_bbox[3] - char_bbox[1]
+                    char_left = char_bbox[0]
+
+                    rel_y = (current_y - y) + char_height / 2 - text_height / 2
+                    rel_x = (char_left + char_width / 2 - x) - text_width / 2
+
+                    rotated_x = rel_x * math.cos(angle_rad) + rel_y * math.sin(angle_rad)
+                    rotated_y = -rel_x * math.sin(angle_rad) + rel_y * math.cos(angle_rad)
+
+                    if direction == "horizontal":
+                        t = (rotated_x + text_width / 2) / text_width if text_width > 0 else 0
+                    elif direction == "vertical":
+                        t = (rotated_y + text_height / 2) / text_height if text_height > 0 else 0
+                    else:  # diagonal
+                        t_h = (rotated_x + text_width / 2) / text_width if text_width > 0 else 0
+                        t_v = (rotated_y + text_height / 2) / text_height if text_height > 0 else 0
+                        t = (t_h + t_v) / 2
+
+                    t = max(0, min(1, t))
+                    r = int(start_color[0] + (end_color[0] - start_color[0]) * t)
+                    g = int(start_color[1] + (end_color[1] - start_color[1]) * t)
+                    b = int(start_color[2] + (end_color[2] - start_color[2]) * t)
+                    a = start_color[3]
+                    char_color = (r, g, b, a)
+                    draw.text((x, current_y), char, font=font, fill=char_color)
+                    current_y += char_height + letter_spacing
+            else:
+                for char in text:
+                    draw.text((x, current_y), char, font=font, fill=text_color)
+                    char_bbox = draw.textbbox((x, current_y), char, font=font)
+                    char_height = char_bbox[3] - char_bbox[1]
+                    current_y += char_height + letter_spacing
 
     def apply_text(self, image, mask, text, font_name, use_gradient, text_color, text_opacity, start_color, end_color, 
                    direction, outline_color, outline_thickness, min_font_size, padding, 
-                   vertical_align, horizontal_align, rotate_with_mask, line_spacing, letter_spacing):
+                   vertical_align, horizontal_align, rotate_with_mask, line_spacing, letter_spacing, text_orientation):
         try:
             print("Converting image and mask to PIL format...")
             image_pil = Image.fromarray((image[0].cpu().numpy() * 255).astype(np.uint8), 'RGB')
@@ -147,7 +193,7 @@ class RS_RusTextOverlay:
             if font_name != "default":
                 font_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fonts", font_name)
                 print(f"Loading font from {font_path}")
-                font = self.find_optimal_font(font_path, text, mask_width, mask_height, min_font_size, letter_spacing, line_spacing, outline_thickness)
+                font = self.find_optimal_font(font_path, text, mask_width, mask_height, min_font_size, letter_spacing, line_spacing, outline_thickness, text_orientation)
             else:
                 print("Using default font")
                 font = ImageFont.load_default()
@@ -162,16 +208,26 @@ class RS_RusTextOverlay:
             text_layer = Image.new("RGBA", image_pil.size, (0, 0, 0, 0))
             draw = ImageDraw.Draw(text_layer)
             
-            lines = text.split('\n')
+            if text_orientation == "horizontal":
+                lines = text.split('\n')
+            else:
+                lines = ["".join(text.split('\n'))]  # Combine all text into one line for vertical mode
             line_heights = []
             line_widths = []
             for line in lines:
                 line = line.replace('\t', '    ')
-                text_bbox = draw.textbbox((0, 0), line, font=font)
-                char_count = len(line)
-                line_width = draw.textlength(line, font=font) + letter_spacing * max(0, char_count - 1) + outline_thickness * 2
+                if text_orientation == "horizontal":
+                    text_bbox = draw.textbbox((0, 0), line, font=font)
+                    char_count = len(line)
+                    line_width = draw.textlength(line, font=font) + letter_spacing * max(0, char_count - 1) + outline_thickness * 2
+                    line_heights.append(int((text_bbox[3] - text_bbox[1]) * line_spacing + outline_thickness * 2))
+                else:
+                    char_count = len(line)
+                    text_bbox = draw.textbbox((0, 0), line[0] if line else " ", font=font)
+                    char_height = text_bbox[3] - text_bbox[1]
+                    line_width = draw.textlength(line[0] if line else " ", font=font) + outline_thickness * 2
+                    line_heights.append((char_height + letter_spacing) * char_count + outline_thickness * 2)
                 line_widths.append(line_width)
-                line_heights.append(int((text_bbox[3] - text_bbox[1]) * line_spacing + outline_thickness * 2))
             
             total_text_height = sum(line_heights)
             max_text_width = max(line_widths)
@@ -179,16 +235,23 @@ class RS_RusTextOverlay:
 
             if max_text_width > mask_width or total_text_height > mask_height:
                 print("Text exceeds mask boundaries, adjusting font size...")
-                font = self.find_optimal_font(font_path, text, mask_width, mask_height, min_font_size, letter_spacing, line_spacing, outline_thickness)
+                font = self.find_optimal_font(font_path, text, mask_width, mask_height, min_font_size, letter_spacing, line_spacing, outline_thickness, text_orientation)
                 line_heights = []
                 line_widths = []
                 for line in lines:
                     line = line.replace('\t', '    ')
-                    text_bbox = draw.textbbox((0, 0), line, font=font)
-                    char_count = len(line)
-                    line_width = draw.textlength(line, font=font) + letter_spacing * max(0, char_count - 1) + outline_thickness * 2
+                    if text_orientation == "horizontal":
+                        text_bbox = draw.textbbox((0, 0), line, font=font)
+                        char_count = len(line)
+                        line_width = draw.textlength(line, font=font) + letter_spacing * max(0, char_count - 1) + outline_thickness * 2
+                        line_heights.append(int((text_bbox[3] - text_bbox[1]) * line_spacing + outline_thickness * 2))
+                    else:
+                        char_count = len(line)
+                        text_bbox = draw.textbbox((0, 0), line[0] if line else " ", font=font)
+                        char_height = text_bbox[3] - text_bbox[1]
+                        line_width = draw.textlength(line[0] if line else " ", font=font) + outline_thickness * 2
+                        line_heights.append((char_height + letter_spacing) * char_count + outline_thickness * 2)
                     line_widths.append(line_width)
-                    line_heights.append(int((text_bbox[3] - text_bbox[1]) * line_spacing + outline_thickness * 2))
                 total_text_height = sum(line_heights)
                 max_text_width = max(line_widths)
                 print(f"Adjusted text dimensions: width={max_text_width}, height={total_text_height}")
@@ -241,7 +304,7 @@ class RS_RusTextOverlay:
                                           text_color_rgba, start_color, end_color, outline_color_rgba, outline_thickness, 
                                           letter_spacing, use_gradient, direction, 
                                           total_width=max_text_width, total_height=total_text_height, 
-                                          current_y_offset=y_offset, angle=angle)
+                                          current_y_offset=y_offset, angle=angle, text_orientation=text_orientation)
                 current_y += line_height
                 y_offset += line_height
 
@@ -284,11 +347,14 @@ class RS_RusTextOverlay:
             print(f"Error in RS_RusTextOverlay: {str(e)}")
             return (image,)
 
-    def find_optimal_font(self, font_path, text, max_width, max_height, min_size, letter_spacing, line_spacing, outline_thickness):
+    def find_optimal_font(self, font_path, text, max_width, max_height, min_size, letter_spacing, line_spacing, outline_thickness, text_orientation):
         temp_img = Image.new("RGB", (max_width, max_height))
         draw = ImageDraw.Draw(temp_img)
         
-        lines = text.split('\n')
+        if text_orientation == "horizontal":
+            lines = text.split('\n')
+        else:
+            lines = ["".join(text.split('\n'))]
         for size in range(500, min_size - 1, -1):
             try:
                 font = ImageFont.truetype(font_path, size)
@@ -297,10 +363,17 @@ class RS_RusTextOverlay:
                 max_line_width = 0
                 for line in lines:
                     line = line.replace('\t', '    ')
-                    bbox = draw.textbbox((0, 0), line, font=font)
-                    char_count = len(line)
-                    line_width = draw.textlength(line, font=font) + letter_spacing * max(0, char_count - 1) + outline_thickness * 2
-                    line_height = (bbox[3] - bbox[0]) * line_spacing + outline_thickness * 2
+                    if text_orientation == "horizontal":
+                        text_bbox = draw.textbbox((0, 0), line, font=font)
+                        char_count = len(line)
+                        line_width = draw.textlength(line, font=font) + letter_spacing * max(0, char_count - 1) + outline_thickness * 2
+                        line_height = (text_bbox[3] - text_bbox[1]) * line_spacing + outline_thickness * 2
+                    else:
+                        char_count = len(line)
+                        text_bbox = draw.textbbox((0, 0), line[0] if line else " ", font=font)
+                        char_height = text_bbox[3] - text_bbox[1]
+                        line_width = draw.textlength(line[0] if line else " ", font=font) + outline_thickness * 2
+                        line_height = (char_height + letter_spacing) * char_count + outline_thickness * 2
                     total_height += line_height
                     max_line_width = max(max_line_width, line_width)
                     if line_width > max_width:

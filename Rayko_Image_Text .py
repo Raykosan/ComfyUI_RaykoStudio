@@ -1,0 +1,126 @@
+import os
+import torch
+import numpy as np
+from PIL import Image, PngImagePlugin
+import folder_paths
+
+print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Image-Text  \033[92mLOADED\033[0m")
+
+def get_image_files():
+    """Возвращает список файлов изображений в папке input."""
+    input_dir = folder_paths.get_input_directory()
+    files = []
+    for f in os.listdir(input_dir):
+        if os.path.isfile(os.path.join(input_dir, f)) and f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.bmp')):
+            files.append(f)
+    files.sort()
+    return files
+
+class LoadImageWithText:
+    """
+    Загружает изображение через стандартный виджет Load Image,
+    читает/записывает текст в чанк tEXt (ключ 'Description').
+    - Режим read: извлекает текст, возвращает тензор и текст.
+    - Режим write: добавляет текст, сохраняет копию в output с префиксом,
+      возвращает тензор и записанный текст.
+    """
+    @classmethod
+    def INPUT_TYPES(cls):
+        files = get_image_files()
+        return {
+            "required": {
+                "mode": (["read", "write"], {"default": "read"}),
+                "filename_prefix": ("STRING", {"default": "ComfyUI", "tooltip": "Префикс для сохранения в output (только write)"}),
+                "text_input": ("STRING", {"default": "", "multiline": True, "tooltip": "Текст для записи (только в write)"}),
+                "image": (files, {"image_upload": True}),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE", "STRING")
+    RETURN_NAMES = ("image", "text")
+    FUNCTION = "process"
+    CATEGORY = "🦊 RaykoStudio/Image"
+    OUTPUT_NODE = True
+
+    def process(self, mode, image, text_input="", filename_prefix="ComfyUI"):
+        try:
+            input_path = folder_paths.get_annotated_filepath(image)
+            if not os.path.exists(input_path):
+                raise FileNotFoundError(f"Файл не найден: {input_path}")
+
+            if mode == "write":
+                return self.write_mode(input_path, text_input, filename_prefix)
+            else:
+                return self.read_mode(input_path)
+        except Exception as e:
+            print(f"Ошибка в process: {e}")
+            import traceback
+            traceback.print_exc()
+            dummy_img = torch.zeros((1, 64, 64, 3), dtype=torch.float32)
+            return (dummy_img, "")
+
+    def read_mode(self, input_path):
+        pil_img = Image.open(input_path)
+        text = pil_img.info.get("Description", "")
+        image_tensor = self.pil_to_tensor(pil_img)
+        print(f"[READ] Текст: '{text}'")
+        return (image_tensor, text)
+
+    def write_mode(self, input_path, text, filename_prefix):
+        pil_img = Image.open(input_path)
+        image_tensor = self.pil_to_tensor(pil_img)
+
+        # Подготовка метаданных
+        pnginfo = PngImagePlugin.PngInfo()
+        if text:
+            pnginfo.add_text("Description", text)
+            print(f"[WRITE] Записывается текст: '{text}'")
+
+        # Генерация имени для сохранения в output
+        output_dir = folder_paths.get_output_directory()
+        
+        # Получаем следующий доступный номер для файла
+        counter = 1
+        while True:
+            # Формируем имя файла с номером
+            output_filename = f"{filename_prefix}_{counter:05}.png"
+            output_path = os.path.join(output_dir, output_filename)
+            
+            # Если файл не существует, используем это имя
+            if not os.path.exists(output_path):
+                break
+            counter += 1
+        
+        print(f"[WRITE] Сохраняется в: {output_path}")
+
+        # Принудительно конвертируем в RGB, если нужно (для надежности)
+        if pil_img.mode not in ('RGB', 'RGBA'):
+            pil_img = pil_img.convert('RGB')
+        
+        # Сохраняем
+        pil_img.save(output_path, format="PNG", pnginfo=pnginfo)
+        print(f"[WRITE] Файл сохранён: {os.path.exists(output_path)}")
+
+        # Проверка записи
+        try:
+            check_img = Image.open(output_path)
+            saved_text = check_img.info.get("Description", "")
+            print(f"[CHECK] Текст в сохранённом файле: '{saved_text}'")
+        except Exception as e:
+            print(f"[CHECK] Ошибка проверки: {e}")
+
+        return (image_tensor, text)
+
+    def pil_to_tensor(self, pil_img):
+        if pil_img.mode == "RGBA":
+            img_np = np.array(pil_img).astype(np.float32) / 255.0
+        else:
+            img_np = np.array(pil_img.convert("RGB")).astype(np.float32) / 255.0
+        return torch.from_numpy(img_np)[None, ...]
+
+NODE_CLASS_MAPPINGS = {
+    "LoadImageWithText": LoadImageWithText,
+}
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "LoadImageWithText": "🦊 RS Image-Text ",
+}

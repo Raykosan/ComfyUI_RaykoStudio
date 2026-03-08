@@ -46,6 +46,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - **Поддерживается**: Windows/Linux · Python 3.11+ · PyTorch 2.0+    
 
 ### 🪛 Usage (Использование)  
+![RS Safe Saturation](https://github.com/user-attachments/assets/a46ad5c2-2a79-4f2a-bd8f-1f4dcec5084b)
+
   
 | Range      | Processing Type               | Use Case                    |
 |------------|-------------------------------|-----------------------------|

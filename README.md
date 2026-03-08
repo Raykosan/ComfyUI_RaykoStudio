@@ -79,7 +79,7 @@ Auto highlight recovery
 ---
 	
 ## 🦊 RS Save Image Pair node  
-![Save Image Pair](https://github.com/user-attachments/assets/43fb95d6-3213-4c31-bb09-a722b463c62b)  
+![RS Save Image Pair](https://github.com/user-attachments/assets/e8a46837-d57b-465c-a4fc-d12ab9dd0116)
 
 ---
 
@@ -100,7 +100,7 @@ It is better to choose horizontal saving for portraits, and vertical saving for 
 ---
 
 ## 🦊 RS Image-Text   
-![Screenshot_4](https://github.com/user-attachments/assets/0403a04c-df9e-4433-9239-c4b72fc893b5)  
+![RS Image-Text ](https://github.com/user-attachments/assets/c8b119bb-c695-4500-8cc1-0a3c0d96e299)
 
 ---
 

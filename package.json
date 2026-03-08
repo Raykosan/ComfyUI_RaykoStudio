@@ -1,7 +1,7 @@
 {
-  "name": "comfyui-rs-text-overlay-node",
-  "version": "2.0.0",
-  "description": "A node for ComfyUI that allows you to overlay text on an image in an area defined by a mask, with support for text rotation, custom fonts, line breaks, transparency.",
+  "name": "ComfyUI_RaykoStudio",
+  "version": "3.0.0",
+  "description": "small custom nodes for ComfyUI",
   "author": "Raykosan",
   "license": "MIT",
   "repository": {
@@ -10,7 +10,9 @@
   },
   "comfyui": {
     "nodes": [
-      "nodes/russian_text.py"
+      "Rayko_Image_Text.py"
+      "Rayko_Save_Image_Pair.py"
+      "RS_Saturation_switch.py"
     ]
   }
 }

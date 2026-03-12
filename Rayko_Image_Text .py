@@ -7,7 +7,6 @@ import folder_paths
 print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Image-Text  \033[92mLOADED\033[0m")
 
 def get_image_files():
-    """Возвращает список файлов изображений в папке input."""
     input_dir = folder_paths.get_input_directory()
     files = []
     for f in os.listdir(input_dir):
@@ -17,13 +16,6 @@ def get_image_files():
     return files
 
 class LoadImageWithText:
-    """
-    Загружает изображение через стандартный виджет Load Image,
-    читает/записывает текст в чанк tEXt (ключ 'Description').
-    - Режим read: извлекает текст, возвращает тензор и текст.
-    - Режим write: добавляет текст, сохраняет копию в output с префиксом,
-      возвращает тензор и записанный текст.
-    """
     @classmethod
     def INPUT_TYPES(cls):
         files = get_image_files()
@@ -70,38 +62,30 @@ class LoadImageWithText:
         pil_img = Image.open(input_path)
         image_tensor = self.pil_to_tensor(pil_img)
 
-        # Подготовка метаданных
         pnginfo = PngImagePlugin.PngInfo()
         if text:
             pnginfo.add_text("Description", text)
             print(f"[WRITE] Записывается текст: '{text}'")
 
-        # Генерация имени для сохранения в output
         output_dir = folder_paths.get_output_directory()
         
-        # Получаем следующий доступный номер для файла
         counter = 1
         while True:
-            # Формируем имя файла с номером
             output_filename = f"{filename_prefix}_{counter:05}.png"
             output_path = os.path.join(output_dir, output_filename)
             
-            # Если файл не существует, используем это имя
             if not os.path.exists(output_path):
                 break
             counter += 1
         
         print(f"[WRITE] Сохраняется в: {output_path}")
 
-        # Принудительно конвертируем в RGB, если нужно (для надежности)
         if pil_img.mode not in ('RGB', 'RGBA'):
             pil_img = pil_img.convert('RGB')
         
-        # Сохраняем
         pil_img.save(output_path, format="PNG", pnginfo=pnginfo)
         print(f"[WRITE] Файл сохранён: {os.path.exists(output_path)}")
 
-        # Проверка записи
         try:
             check_img = Image.open(output_path)
             saved_text = check_img.info.get("Description", "")

@@ -13,7 +13,7 @@ class RS_SaturationSwitch:
                     "default": 1.0,
                     "min": 0.0,
                     "max": 3.0,
-                    "step": 0.05,  # Шаг изменения 0.05
+                    "step": 0.05,
                     "display_name": "Intensity",
                     "description": "0.0=Grayscale, 1.0=Original, 1.5=Subtle Boost"
                 }),
@@ -29,32 +29,25 @@ class RS_SaturationSwitch:
         if intensity == 1.0:
             return (image,)
             
-        # Создаем копию с явным указанием размерности
-        img = image.clone().float()  # Конвертируем в float32 для точности
+        img = image.clone().float()
         
-        # Рассчитываем luminance (яркость)
         r, g, b = img[..., 0], img[..., 1], img[..., 2]
         l = 0.299 * r + 0.587 * g + 0.114 * b
-        l = l.unsqueeze(-1)  # Добавляем размерность канала
+        l = l.unsqueeze(-1)
         
-        # Безопасное изменение насыщенности
         if intensity < 1.0:
-            # Для уменьшения насыщенности - линейная интерполяция
             result = l + intensity * (img - l)
         else:
-            # Для увеличения - нелинейное усиление с защитой
-            boost = 1.0 + (intensity - 1.0) * 0.7  # Мягкое усиление
+            boost = 1.0 + (intensity - 1.0) * 0.7
             delta = img - l
             result = l + boost * delta
             
-            # Ограничение для предотвращения артефактов
             result = torch.where(
                 (result < 0) | (result > 1),
-                l + 0.9 * delta,  # Безопасный коэффициент
+                l + 0.9 * delta,
                 result
             )
         
-        # Корректное восстановление размерности
         if result.dim() == 3:
             result = result.unsqueeze(0)
             

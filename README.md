@@ -81,16 +81,18 @@ Auto highlight recovery
 ---
 	
 ## 🦊 RS Save Image Pair node  
-![RS Save Image Pair](https://github.com/user-attachments/assets/e8a46837-d57b-465c-a4fc-d12ab9dd0116)
+![Screenshot_1](https://github.com/user-attachments/assets/c0ae91a2-dbc4-4e03-be4a-ad8fefeb6140)
 
 ---
 
 ### 🔥 Features  (Особенности)  
 **(EN)**  
-The node is used to save the source and destination images in a single image while preserving the workflow within the image. It is convenient for visual understanding of the workflow contained in the image.  
+The node is used to save the source and final images in a single image while maintaining the workflow within the image. You can add explanatory text to any image with a choice of background size, theme, font and size font. A reverse upscale from 1 to 0 is provided to reduce the saved image (if it is used as a sketch with a workflow inside).  
+The node is convenient for visual understanding of the workflow contained in the image.
 
 **(RU)**  
-Нода используется для сохранения исходного и конечного изображения в одном изображении с сохранением рабочего процесса внутри изображения. Удобно для визуального понимания содержащегося в изображении воркфлоу.   
+Нода используется для сохранения исходного и конечного изображения в одном изображении с сохранением рабочего процесса внутри изображения. Вы можете добавить пояснительный текст к любому изображению с выбором размера подложки, темы, шрифта и его размера. Предусмотрен обратный апскейл от 1 до 0 для уменьшения сохраняемого изображения (если оно используется, как эскиз с воркфлоу внутри).  
+Удобно для визуального понимания содержащегося в изображении воркфлоу.  
 
 ### 🪛 Usage (Использование)  
 **(EN)**  

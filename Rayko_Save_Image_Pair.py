@@ -11,7 +11,7 @@ print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Save Image Pair \033[92mLOAD
 def get_font_list(font_dir):
     if not os.path.isdir(font_dir):
         return []
-    return [f for f in os.listdir(font_dir) if f.lower().endswith('.ttf', '.otf')]
+    return [f for f in os.listdir(font_dir) if f.lower().endswith(('.ttf', '.otf'))]
 
 def create_text_panel(width, height, text, font_path, font_size, text_color, bg_color):
     panel = Image.new('RGB', (width, height), color=bg_color)

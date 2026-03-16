@@ -78,6 +78,20 @@ Auto highlight recovery
 
 Автоматическое восстановление подсветки
 
+---  
+
+## 🦊 RS Save Image node  
+![Screenshot_1](https://github.com/user-attachments/assets/db6d8553-6122-40c7-93c2-7deb596b98f1)
+
+---
+
+### 🔥 Features  (Особенности)  
+**(EN)**  
+The node is used to save the image while preserving the workflow inside the image. You can add explanatory text to an image with a choice of background size, theme, font and its size. It is possible to add your own fonts (to the fonts folder). Use ttf and otf fonts.  
+
+**(RU)**  
+Нода используется для сохранения изображения с сохранением рабочего процесса внутри изображения. Вы можете добавить пояснительный текст к изображению с выбором размера подложки, темы, шрифта и его размера. Имеется возможность добавлять свои шрифты (в папку fonts). Используйте шрифты формата ttf и otf.  
+
 ---
 	
 ## 🦊 RS Save Image Pair node  
@@ -96,10 +110,16 @@ The node is convenient for visual understanding of the workflow contained in the
 
 ### 🪛 Usage (Использование)  
 **(EN)**  
-It is better to choose horizontal saving for portraits, and vertical saving for landscapes. The color is made to fill the empty space that is formed with different sizes of images.  
+It is better to choose horizontal saving for portraits, and vertical saving for landscapes.  
+Themes:  
+light - white background, black text.  
+dark - black background, white text.
 
 **(RU)**
-Для портретов лучше выбирать горизонтальное сохранение, для лэндскейпов - вертикальное. Цвет сделан для заполнения пустующего места, которое образуется при разных размерах картинок.  
+Для портретов лучше выбирать горизонтальное сохранение, для лэндскейпов - вертикальное.  
+Темы:  
+светлая - белая подложка, черный текст.  
+темная - черная подложка, белый текст.  
 
 ---
 

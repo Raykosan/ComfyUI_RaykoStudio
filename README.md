@@ -20,9 +20,11 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git  
 ```
 - Вы можете вручную скопировать папку ComfyUI_RaykoStudio в папку: ComfyUI/custom_nodes/  
-- Вы можете установить этот узел с помощью ComfyUI_Manager  
+- Вы можете установить этот узел с помощью ComfyUI_Manager   
 
-## 🦊 RS Safe Saturation node  
+---
+
+# 🦊 RS Safe Saturation node  
 **Professional image saturation control with artifact and highlight protection.**  
 **Профессиональный контроль насыщенности с защитой от артефактов и бликов.**    
 
@@ -80,7 +82,7 @@ Auto highlight recovery
 
 ---  
 
-## 🦊 RS Save Image node  
+# 🦊 RS Save Image node  
 ![Screenshot_1](https://github.com/user-attachments/assets/db6d8553-6122-40c7-93c2-7deb596b98f1)
 
 ---
@@ -96,7 +98,7 @@ If the label is not needed, leave the text field blank and the image is saved as
 
 ---
 	
-## 🦊 RS Save Image Pair node  
+# 🦊 RS Save Image Pair node  
 ![Screenshot_1](https://github.com/user-attachments/assets/c0ae91a2-dbc4-4e03-be4a-ad8fefeb6140)
 
 ---
@@ -104,11 +106,15 @@ If the label is not needed, leave the text field blank and the image is saved as
 ### 🔥 Features  (Особенности)  
 **(EN)**  
 The node is used to save the source and final images in a single image while maintaining the workflow within the image. You can add explanatory text to any image with a choice of background size, theme, font and size font. A reverse upscale from 1 to 0 is provided to reduce the saved image (if it is used as a sketch with a workflow inside).  
-The node is convenient for visual understanding of the workflow contained in the image.
+It is possible to add your own fonts (to the fonts folder). Use ttf and otf fonts.  
+If the label is not needed, leave the text field blank and the image is saved as usual.  
+The node is convenient for visual understanding of the workflow contained in the image.  
 
 **(RU)**  
 Нода используется для сохранения исходного и конечного изображения в одном изображении с сохранением рабочего процесса внутри изображения. Вы можете добавить пояснительный текст к любому изображению с выбором размера подложки, темы, шрифта и его размера. Предусмотрен обратный апскейл от 1 до 0 для уменьшения сохраняемого изображения (если оно используется, как эскиз с воркфлоу внутри).  
-Удобно для визуального понимания содержащегося в изображении воркфлоу.  
+Имеется возможность добавлять свои шрифты (в папку fonts). Используйте шрифты формата ttf и otf.  
+Если надпись не нужна - оставляете поле текста пустым и изображение сохраняется как обычно.  
+Удобно для визуального понимания содержащегося в изображении воркфлоу. 
 
 ### 🪛 Usage (Использование)  
 **(EN)**  
@@ -125,7 +131,7 @@ dark - black background, white text.
 
 ---
 
-## 🦊 RS Image-Text   
+# 🦊 RS Image-Text   
 ![RS Image-Text ](https://github.com/user-attachments/assets/c8b119bb-c695-4500-8cc1-0a3c0d96e299)
 
 ---

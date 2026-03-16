@@ -88,9 +88,11 @@ Auto highlight recovery
 ### 🔥 Features  (Особенности)  
 **(EN)**  
 The node is used to save the image while preserving the workflow inside the image. You can add explanatory text to an image with a choice of background size, theme, font and its size. It is possible to add your own fonts (to the fonts folder). Use ttf and otf fonts.  
+If the label is not needed, leave the text field blank and the image is saved as usual.  
 
 **(RU)**  
 Нода используется для сохранения изображения с сохранением рабочего процесса внутри изображения. Вы можете добавить пояснительный текст к изображению с выбором размера подложки, темы, шрифта и его размера. Имеется возможность добавлять свои шрифты (в папку fonts). Используйте шрифты формата ttf и otf.  
+Если надпись не нужна - оставляете поле текста пустым и изображение сохраняется как обычно.  
 
 ---
 	

@@ -91,7 +91,7 @@ class RSSaveImage:
         return {
             "required": {
                 "images": ("IMAGE",),
-                "filename_prefix": ("STRING", {"default": "RS_SaveImage/img"}),
+                "filename_prefix": ("STRING", {"default": "ComfyUI"}),
             },
             "optional": {
                 "text": ("STRING", {"multiline": True, "default": ""}),

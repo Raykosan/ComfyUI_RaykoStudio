@@ -24,7 +24,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 
 ---
 
-# 🦊 RS Safe Saturation node  
+# 🦊 RS Saturation node  
 **Professional image saturation control with artifact and highlight protection.**  
 **Профессиональный контроль насыщенности с защитой от артефактов и бликов.**    
 

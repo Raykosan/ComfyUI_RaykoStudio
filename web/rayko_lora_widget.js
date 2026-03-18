@@ -30,21 +30,30 @@ app.registerExtension({
 
                 this.setSize([this.targetWidth, this.size[1]]);
 
+                // === ИСПРАВЛЕНО: Кнопка обновления НЕ трогает loraRows ===
                 this.addWidget("button", "✔️ Update LoRA list", "", async () => {
                     await this.loadLoraList();
-                    this.updateUI();
+                    // Не вызываем updateUI() чтобы не сбросить loraRows
+                    this.graph.setDirtyCanvas(true, true);
+                    console.log("[Rayko] Список LoRA обновлён (rows сохранены)");
                 });
 
                 this.addWidget("button", "➕ Add LoRA", "", () => {
                     this.showLoraTreeSelector();
                 });
 
+                // Загружаем список и восстанавливаем сохранённые LoRA
                 this.loadLoraList().then(() => {
                     if (this.hiddenWidget && this.hiddenWidget.value) {
                         try {
                             const saved = JSON.parse(this.hiddenWidget.value);
-                            if (Array.isArray(saved)) this.loraRows = saved;
-                        } catch (e) {}
+                            if (Array.isArray(saved) && saved.length > 0) {
+                                this.loraRows = saved;
+                                console.log("[Rayko] Восстановлено LoRA:", this.loraRows.length);
+                            }
+                        } catch (e) {
+                            console.error("[Rayko] Ошибка восстановления:", e);
+                        }
                     }
                     this.updateUI();
                 });
@@ -95,8 +104,7 @@ app.registerExtension({
                 const startY = lastWidget.y + lastWidget.height + 15;
                 const padding = 10;
 
-                // === ИСПРАВЛЕНО: Фиксированная ширина для правой панели управления ===
-                const rightPanelWidth = 180; // Стрелки + поле + корзина
+                const rightPanelWidth = 180;
                 const toggleWidth = 30;
                 
                 for (let i = 0; i < this.loraRows.length; i++) {
@@ -104,11 +112,9 @@ app.registerExtension({
                     const y = startY + (i * this.rowHeight);
                     const h = this.rowHeight - 2;
 
-                    // Фон
                     ctx.fillStyle = i % 2 === 0 ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.15)";
                     ctx.fillRect(padding, y, this.size[0] - (padding * 2), h);
 
-                    // Переключатель
                     const toggleX = padding + 5;
                     const toggleY = y + h/2;
                     ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
@@ -117,15 +123,12 @@ app.registerExtension({
                     ctx.fill();
                     this.clickZones.push({ type: "toggle", index: i, x: toggleX, y: y, w: 24, h: h });
 
-                    // === ИСПРАВЛЕНО: Динамическая ширина названия ===
                     const nameX = toggleX + toggleWidth;
-                    // Вычисляем доступную ширину: ширина ноды - отступы - правая панель
                     const nameW = this.size[0] - (padding * 2) - toggleWidth - rightPanelWidth - 20;
                     
                     ctx.fillStyle = row.enabled ? "#fff" : "#777";
                     ctx.font = "12px sans-serif";
                     
-                    // Обрезаем название если не влезает
                     let displayName = row.name;
                     if (ctx.measureText(displayName).width > nameW) {
                         while (ctx.measureText(displayName + "...").width > nameW && displayName.length > 0) {
@@ -137,7 +140,6 @@ app.registerExtension({
                     ctx.fillText(displayName, nameX, toggleY + 4);
                     this.clickZones.push({ type: "name", index: i, x: nameX, y: y, w: nameW, h: h });
 
-                    // Стрелка влево
                     const arrowLX = this.size[0] - rightPanelWidth + 10;
                     const arrowW = 28;
                     ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
@@ -148,7 +150,6 @@ app.registerExtension({
                     ctx.fill();
                     this.clickZones.push({ type: "left", index: i, x: arrowLX, y: y, w: arrowW, h: h });
 
-                    // Поле ввода силы (МЕЖДУ стрелками)
                     const strInputX = arrowLX + arrowW + 5;
                     const strInputW = 55;
                     ctx.fillStyle = "#222";
@@ -161,7 +162,6 @@ app.registerExtension({
                     ctx.textAlign = "left";
                     this.clickZones.push({ type: "strength_input", index: i, x: strInputX, y: y, w: strInputW, h: h });
 
-                    // Стрелка вправо
                     const arrowRX = strInputX + strInputW + 5;
                     ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
                     ctx.beginPath();
@@ -171,7 +171,6 @@ app.registerExtension({
                     ctx.fill();
                     this.clickZones.push({ type: "right", index: i, x: arrowRX, y: y, w: arrowW, h: h });
 
-                    // Корзина
                     const delX = arrowRX + arrowW + 15;
                     const delW = 30;
                     ctx.fillStyle = "#f44336";

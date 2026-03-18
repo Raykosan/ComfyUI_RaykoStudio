@@ -24,12 +24,12 @@ class RaykoModelsLoader:
         device_opts = ["default", "cpu", "cuda"]
 
         required = {
-            "unet_name": (unet_files, {"tooltip": "Модель диффузии (UNET)"}),
+            "unet_name": (unet_files, {"tooltip": "Diffusion model (UNET)"}),
             "weight_dtype": (weight_dtype_opts, {"default": "default"}),
-            "clip_name": (clip_files, {"tooltip": "CLIP модель"}),
+            "clip_name": (clip_files, {"tooltip": "model CLIP"}),
             "clip_type": (clip_type_opts, {"default": "stable_diffusion"}),
             "clip_device": (device_opts, {"default": "default"}),
-            "vae_name": (vae_files, {"tooltip": "VAE модель"}),
+            "vae_name": (vae_files, {"tooltip": "model VAE"}),
             "lora_data": ("STRING", {"default": "[]", "multiline": False, "forceInput": False}),
         }
         return {"required": required}
@@ -45,7 +45,7 @@ class RaykoModelsLoader:
         return hashlib.md5(lora_data.encode()).hexdigest()
 
     def load_models(self, unet_name, weight_dtype, clip_name, clip_type, clip_device, vae_name, lora_data="[]"):
-        print(f"\n[Rayko] === ЗАПУСК load_models ===")
+        print(f"\n[Rayko] === Start load_models ===")
         print(f"[Rayko] lora_data RAW: {lora_data}")
         
         wd = None if weight_dtype == "default" else weight_dtype
@@ -95,7 +95,7 @@ class RaykoModelsLoader:
                 else:
                     print(f"[Rayko] ✗ LoRA file not found: {lora_relative_path}")
 
-        print(f"[Rayko] === ЗАВЕРШЕНО ===\n")
+        print(f"[Rayko] === load_models completed successfully ===\n")
         return (model, clip, vae)
 
 NODE_CLASS_MAPPINGS = {"RaykoModelsLoader": RaykoModelsLoader}

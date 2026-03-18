@@ -5,7 +5,7 @@ app.registerExtension({
     name: "RaykoLoraWidget",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
         if (nodeData.name === "RaykoModelsLoader") {
-            console.log("[Rayko] JS загружен");
+            console.log("[Rayko] JS loaded");
             
             const onNodeCreated = nodeType.prototype.onNodeCreated;
             
@@ -30,29 +30,27 @@ app.registerExtension({
 
                 this.setSize([this.targetWidth, this.size[1]]);
 
-                // === ИСПРАВЛЕНО: Кнопка обновления НЕ трогает loraRows ===
                 this.addWidget("button", "✔️ Update LoRA list", "", async () => {
                     await this.loadLoraList();
-                    // Не вызываем updateUI() чтобы не сбросить loraRows
+
                     this.graph.setDirtyCanvas(true, true);
-                    console.log("[Rayko] Список LoRA обновлён (rows сохранены)");
+                    console.log("[Rayko] LoRA list updated (rows saved)");
                 });
 
                 this.addWidget("button", "➕ Add LoRA", "", () => {
                     this.showLoraTreeSelector();
                 });
 
-                // Загружаем список и восстанавливаем сохранённые LoRA
                 this.loadLoraList().then(() => {
                     if (this.hiddenWidget && this.hiddenWidget.value) {
                         try {
                             const saved = JSON.parse(this.hiddenWidget.value);
                             if (Array.isArray(saved) && saved.length > 0) {
                                 this.loraRows = saved;
-                                console.log("[Rayko] Восстановлено LoRA:", this.loraRows.length);
+                                console.log("[Rayko] LoRA restored:", this.loraRows.length);
                             }
                         } catch (e) {
-                            console.error("[Rayko] Ошибка восстановления:", e);
+                            console.error("[Rayko] Recovery error:", e);
                         }
                     }
                     this.updateUI();
@@ -67,9 +65,9 @@ app.registerExtension({
                     const data = await response.json();
                     this.loraOptions = data.filter(l => l !== "None" && l !== null && l !== undefined);
                     this.loraTree = this.buildLoraTree(this.loraOptions);
-                    console.log("[Rayko] LoRA найдено:", this.loraOptions.length);
+                    console.log("[Rayko] LoRA found:", this.loraOptions.length);
                 } catch (e) {
-                    console.error("[Rayko] Ошибка:", e);
+                    console.error("[Rayko] ERROR:", e);
                     this.loraOptions = [];
                     this.loraTree = {};
                 }
@@ -174,7 +172,7 @@ app.registerExtension({
                     const delX = arrowRX + arrowW + 15;
                     const delW = 30;
                     ctx.fillStyle = "#f44336";
-                    ctx.fillText("🗑️", delX, toggleY + 4);
+                    ctx.fillText("❌️", delX, toggleY + 4);
                     this.clickZones.push({ type: "delete", index: i, x: delX, y: y, w: delW, h: h });
                 }
 
@@ -209,7 +207,7 @@ app.registerExtension({
                         }
                         else if (zone.type === "strength_input") {
                             const currentValue = this.loraRows[zone.index].strength_model;
-                            const newValue = prompt("Введите силу LoRA:", currentValue.toFixed(2));
+                            const newValue = prompt("Enter strenght LoRA:", currentValue.toFixed(2));
                             if (newValue !== null) {
                                 const parsed = parseFloat(newValue);
                                 if (!isNaN(parsed) && parsed >= -10 && parsed <= 10) {
@@ -217,7 +215,7 @@ app.registerExtension({
                                     this.syncData();
                                     this.graph.setDirtyCanvas(true, true);
                                 } else {
-                                    alert("Пожалуйста, введите число от -10 до 10");
+                                    alert("Enter a number from -10 to 10");
                                 }
                             }
                             return true;
@@ -258,7 +256,7 @@ app.registerExtension({
                 `;
 
                 const header = document.createElement("div");
-                header.textContent = "📁 Выберите LoRA";
+                header.textContent = "📁 Choose LoRA";
                 header.style.cssText = `
                     padding: 10px 12px; color: #fff; font-weight: bold;
                     border-bottom: 1px solid #333; background: #252525;
@@ -267,7 +265,7 @@ app.registerExtension({
 
                 if (Object.keys(this.loraTree).length === 0) {
                     const emptyMsg = document.createElement("div");
-                    emptyMsg.textContent = "⚠️ Список пуст";
+                    emptyMsg.textContent = "⚠️ List is empty";
                     emptyMsg.style.cssText = `padding: 20px; color: #f44336; text-align: center;`;
                     menu.appendChild(emptyMsg);
                 } else {

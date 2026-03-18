@@ -113,8 +113,8 @@ If new problem, create new Issue describing:
 
 MIT License. Use node at your own risk without any warranties.  
 
-## ❤️ Acknowledgments  
-
 ---
+
+## ❤️ Acknowledgments  
 
 Thanks to ComfyUI community for inspiration and support! If you like this node, don't forget to star on GitHub!

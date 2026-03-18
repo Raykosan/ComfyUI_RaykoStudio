@@ -30,7 +30,7 @@ app.registerExtension({
 
                 this.setSize([this.targetWidth, this.size[1]]);
 
-                this.addWidget("button", "🔄 Update the LoRA list", "", async () => {
+                this.addWidget("button", "✔️ Update LoRA list", "", async () => {
                     await this.loadLoraList();
                     this.updateUI();
                 });

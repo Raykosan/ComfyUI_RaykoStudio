@@ -20,6 +20,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 The node combines the loaders of the model, clip, vae and lore.
 If you have downloaded a new node, then you do not need to update the comfi or the page - there is a button to update the LoRA list.  
 
+Link to the video: https://youtu.be/LxhVk5C_oas
+
 ---
 
 # 🦊 RS Saturation node  
@@ -92,6 +94,7 @@ The node writes any hidden text to any png and jpeg file (jpeg is converted to p
 Two modes:  
 Write - writes text to the uploaded image and saves it to the output folder with the prefix you specified.  
 Read - reads the text you wrote earlier in the uploaded image, sends the text and images further according to the scheme.  
+
 Link to the video: https://youtu.be/1s26hUcVXX4  
 
 ---

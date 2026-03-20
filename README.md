@@ -12,6 +12,21 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - You can install this node using the ComfyUI_Manager   
 
 ---
+---
+
+# 🦊 RS Spline Mask   
+![Screenshot_1](https://github.com/user-attachments/assets/33544b90-d83c-4b9a-90e8-f94207aff158)
+
+### 🔥 Features  
+The node is designed to create masks without using the ComfyUI native editor. More accurate selection based on the principle of the Lasso tool from Photoshop.  
+
+### 🪛 Usage  
+The node is ready to use immediately after adding it. You can scale the node to a convenient size to more accurately place spline points. Incorrectly placed points can be removed by right-clicking. To remove all points from the preview area, click the ❌ Clear Points button. 
+
+Link to the video: https://youtu.be/AqNLmLzSunU
+
+---
+---
 
 # 🦊 RS Models Loader   
 ![Screenshot_1](https://github.com/user-attachments/assets/07fc6e91-1cfd-47ff-804c-6befc3198234)
@@ -22,6 +37,7 @@ If you have downloaded a new node, then you do not need to update the comfi or t
 
 Link to the video: https://youtu.be/LxhVk5C_oas
 
+---
 ---
 
 # 🦊 RS Saturation node  
@@ -56,7 +72,8 @@ Values <1.0: Linear interpolation
 Values >1.0: Adaptive S-curve  
 Auto highlight recovery  
 
----  
+--- 
+---
 
 # 🦊 RS Save Image node  
 ![Screenshot_1](https://github.com/user-attachments/assets/db6d8553-6122-40c7-93c2-7deb596b98f1)
@@ -65,6 +82,7 @@ Auto highlight recovery
 The node is used to save the image while preserving the workflow inside the image. You can add explanatory text to an image with a choice of background size, theme, font and its size. It is possible to add your own fonts (to the fonts folder). Use ttf and otf fonts.  
 If the label is not needed, leave the text field blank and the image is saved as usual.  
 
+---
 ---
 	
 # 🦊 RS Save Image Pair node  
@@ -83,6 +101,7 @@ light - white background, black text.
 dark - black background, white text.  
 
 ---
+---
 
 # 🦊 RS Image-Text   
 ![RS Image-Text ](https://github.com/user-attachments/assets/c8b119bb-c695-4500-8cc1-0a3c0d96e299)
@@ -97,6 +116,7 @@ Read - reads the text you wrote earlier in the uploaded image, sends the text an
 
 Link to the video: https://youtu.be/1s26hUcVXX4  
 
+---
 ---
 
 ## 🤝 Bug Reporting  

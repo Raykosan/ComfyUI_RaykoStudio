@@ -1,7 +1,13 @@
 # 🦊 ComfyUI_RaykoStudio  
 Set of custom nodes for ComfyUI providing additional image processing capabilities  
 ---  
-
+Nodes do not require the installation of additional Python packages.  
+Performance has been tested for:  
+- ComfyUI 0.15*-0.17*  
+- Python 3.10-3.13  
+- Torch 2.8-2.10 
+- Cuda 12.4-13.0  
+---  
 ### 🛠 Installation  
 Set of nodes can be installed in several ways:  
 - Clone repository to `ComfyUI/custom_nodes/` folder:  

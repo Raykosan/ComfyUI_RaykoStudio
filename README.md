@@ -15,6 +15,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 ---
 
 # 🦊 RS Spline Mask   
+**Node for creating a spline mask** 
+
 ![Screenshot_1](https://github.com/user-attachments/assets/33544b90-d83c-4b9a-90e8-f94207aff158)
 
 ### 🔥 Features  
@@ -29,6 +31,8 @@ Link to the video: https://youtu.be/AqNLmLzSunU
 ---
 
 # 🦊 RS Models Loader   
+**Combined node for loading models**  
+
 ![Screenshot_1](https://github.com/user-attachments/assets/fdca35c0-6554-4cfd-9ddf-805aebbdb2cd)
 
 
@@ -43,6 +47,7 @@ Link to the video: https://youtu.be/LxhVk5C_oas
 
 # 🦊 RS Saturation node  
 **Professional image saturation control with artifact and highlight protection.**  
+
 <img width="1024" height="742" alt="134" src="https://github.com/user-attachments/assets/e4266ff4-29e7-44bb-b7c3-67a1a895ec56" />
 
 ### 🔥 Features  
@@ -76,6 +81,8 @@ Auto highlight recovery
 ---
 
 # 🦊 RS Save Image node  
+**Node for adding explanatory text to an image**  
+
 ![Screenshot_1](https://github.com/user-attachments/assets/db6d8553-6122-40c7-93c2-7deb596b98f1)
 
 ### 🔥 Features  
@@ -86,6 +93,8 @@ If the label is not needed, leave the text field blank and the image is saved as
 ---
 	
 # 🦊 RS Save Image Pair node  
+**The node is used to save the original and final images in a single image, while maintaining the workflow within the image**  
+
 ![Screenshot_1](https://github.com/user-attachments/assets/c0ae91a2-dbc4-4e03-be4a-ad8fefeb6140)
 
 ### 🔥 Features  
@@ -103,7 +112,9 @@ dark - black background, white text.
 ---
 ---
 
-# 🦊 RS Image-Text   
+# 🦊 RS Image-Text  
+**Node embeds any hidden text into the image that can be used later**  
+
 ![RS Image-Text ](https://github.com/user-attachments/assets/c8b119bb-c695-4500-8cc1-0a3c0d96e299)
 
 ### 🔥 Features  

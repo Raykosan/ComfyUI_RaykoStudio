@@ -43,8 +43,7 @@ Link to the video: https://youtu.be/LxhVk5C_oas
 
 # 🦊 RS Saturation node  
 **Professional image saturation control with artifact and highlight protection.**  
-
-<img width="1024" height="742" alt="RS-SaturationNode" src="https://github.com/user-attachments/assets/ac9cb838-fe67-4707-bdd4-38fab85eca2c" />
+<img width="1024" height="742" alt="134" src="https://github.com/user-attachments/assets/e4266ff4-29e7-44bb-b7c3-67a1a895ec56" />
 
 ### 🔥 Features  
 - **Smooth adjustment** with 0.05 steps  

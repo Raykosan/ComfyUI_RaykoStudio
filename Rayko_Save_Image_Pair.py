@@ -113,7 +113,7 @@ class SaveImagePair:
     RETURN_TYPES = ()
     FUNCTION = "save_images_pair"
     OUTPUT_NODE = True
-    CATEGORY = "🦊 RaykoStudio/Image"
+    CATEGORY = "🦊 RaykoStudio"
 
     def save_images_pair(self, reference, final, filename_prefix="ThumbnailPair/img", concat_type="horizontal",
                          text1="", text2="", footer_height=100, font_name=None, font_size=50,

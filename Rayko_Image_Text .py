@@ -31,7 +31,7 @@ class LoadImageWithText:
     RETURN_TYPES = ("IMAGE", "STRING")
     RETURN_NAMES = ("image", "text")
     FUNCTION = "process"
-    CATEGORY = "🦊 RaykoStudio/Image"
+    CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
 
     def process(self, mode, image, text_input="", filename_prefix="ComfyUI"):

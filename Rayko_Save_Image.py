@@ -109,7 +109,7 @@ class RSSaveImage:
     RETURN_TYPES = ()
     FUNCTION = "save_images"
     OUTPUT_NODE = True
-    CATEGORY = "🦊 RaykoStudio/Image"
+    CATEGORY = "🦊 RaykoStudio"
 
     def save_images(self, images, filename_prefix="RS_SaveImage/img",
                     text="", footer_height=100, font_name=None, font_size=50,

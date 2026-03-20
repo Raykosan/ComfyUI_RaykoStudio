@@ -37,7 +37,7 @@ class RaykoModelsLoader:
     RETURN_TYPES = ("MODEL", "CLIP", "VAE")
     RETURN_NAMES = ("MODEL", "CLIP", "VAE")
     FUNCTION = "load_models"
-    CATEGORY = "🦊 RaykoStudio/Loaders"
+    CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = "The node combines the loaders of the model, clip, vae and lore."
 
     @classmethod

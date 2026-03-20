@@ -22,7 +22,7 @@ class RS_SaturationSwitch:
     
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "apply_saturation"
-    CATEGORY = "🦊 RaykoStudio/Image"
+    CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = "Artifact-free saturation control with proper tensor handling"
 
     def apply_saturation(self, image, intensity):

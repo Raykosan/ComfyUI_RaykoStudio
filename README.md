@@ -21,7 +21,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 The node is designed to create masks without using the ComfyUI native editor. More accurate selection based on the principle of the Lasso tool from Photoshop.  
 
 ### 🪛 Usage  
-The node is ready to use immediately after adding it. You can scale the node to a convenient size to more accurately place spline points. Incorrectly placed points can be removed by right-clicking. To remove all points from the preview area, click the ❌ Clear Points button. 
+The node is ready to use immediately after adding it. You can scale the node to a convenient size to more accurately place spline points. Incorrectly placed points can be removed by right-clicking. To remove all points from the preview area, click the ❌ Clear Points button. For convenience, a green frame has been made that shows the area where you can put dots. The frame is slightly larger than the preview size so that the dots can be placed outside the preview, which guarantees that the mask completely covers the edge of the image.  
 
 Link to the video: https://youtu.be/AqNLmLzSunU
 

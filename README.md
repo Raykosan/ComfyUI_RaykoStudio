@@ -29,7 +29,8 @@ Link to the video: https://youtu.be/AqNLmLzSunU
 ---
 
 # 🦊 RS Models Loader   
-![Screenshot_1](https://github.com/user-attachments/assets/07fc6e91-1cfd-47ff-804c-6befc3198234)
+![Screenshot_1](https://github.com/user-attachments/assets/fdca35c0-6554-4cfd-9ddf-805aebbdb2cd)
+
 
 ### 🔥 Features  
 The node combines the loaders of the Model, Clip,VAE and LoRA.

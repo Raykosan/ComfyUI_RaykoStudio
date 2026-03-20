@@ -55,7 +55,6 @@ Link to the video: https://youtu.be/LxhVk5C_oas
 - **Smart boosting** without overexposure  
 - **Artifact protection** even at extreme values  
 - **Batch processing** optimized  
-- **Supports**: Windows/Linux · Python 3.11+ · PyTorch 2.0+    
 
 ### 🪛 Usage  
 ![RS Safe Saturation](https://github.com/user-attachments/assets/a46ad5c2-2a79-4f2a-bd8f-1f4dcec5084b)

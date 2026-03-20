@@ -21,7 +21,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 The node is designed to create masks without using the ComfyUI native editor. More accurate selection based on the principle of the Lasso tool from Photoshop.  
 
 ### 🪛 Usage  
-The node is ready to use immediately after adding it. You can scale the node to a convenient size to more accurately place spline points. Incorrectly placed dots can be deleted by right-clicking on them. To remove all points from the preview area, click the ❌ Clear Points button. For convenience, a green frame has been made that shows the area where you can put dots. The frame is slightly larger than the preview size so that the dots can be placed outside the preview, which guarantees that the mask completely covers the edge of the image.  
+The node is ready to use immediately after adding it. You can scale the node to a convenient size to more accurately place spline points. Incorrectly placed dots can be deleted by right-clicking on them. To remove all points from the preview area, click the "❌ Clear Points" button. For convenience, a green frame has been made that shows the area where you can put dots. The frame is slightly larger than the preview size so that the dots can be placed outside the preview, which guarantees that the mask completely covers the edge of the image.  
 
 Link to the video: https://youtu.be/AqNLmLzSunU
 
@@ -32,8 +32,8 @@ Link to the video: https://youtu.be/AqNLmLzSunU
 ![Screenshot_1](https://github.com/user-attachments/assets/07fc6e91-1cfd-47ff-804c-6befc3198234)
 
 ### 🔥 Features  
-The node combines the loaders of the model, clip, vae and lore.
-If you have downloaded a new node, then you do not need to update the comfi or the page - there is a button to update the LoRA list.  
+The node combines the loaders of the Model, Clip,VAE and LoRA.
+If you have downloaded a new LoRA, then you do not need to update the ComfyUI or the page - there is a button to update the LoRA list.  
 
 Link to the video: https://youtu.be/LxhVk5C_oas
 

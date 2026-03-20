@@ -14,7 +14,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 ---
 ---
 
-# 🦊 RS Spline Mask   
+# 🦊 RS Spline Mask node  
 **Node for creating a spline mask** 
 
 ![Screenshot_1](https://github.com/user-attachments/assets/33544b90-d83c-4b9a-90e8-f94207aff158)
@@ -30,7 +30,7 @@ Link to the video: https://youtu.be/AqNLmLzSunU
 ---
 ---
 
-# 🦊 RS Models Loader   
+# 🦊 RS Models Loader node  
 **Combined node for loading models**  
 
 ![Screenshot_1](https://github.com/user-attachments/assets/fdca35c0-6554-4cfd-9ddf-805aebbdb2cd)
@@ -111,7 +111,7 @@ dark - black background, white text.
 ---
 ---
 
-# 🦊 RS Image-Text  
+# 🦊 RS Image-Text node  
 **Node embeds any hidden text into the image that can be used later**  
 
 ![RS Image-Text ](https://github.com/user-attachments/assets/c8b119bb-c695-4500-8cc1-0a3c0d96e299)

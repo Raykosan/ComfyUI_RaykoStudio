@@ -5,7 +5,7 @@ import json
 from PIL import Image, ImageDraw
 import folder_paths
 
-print("🦊 RS Spline Mask LOADED")
+print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Spline Mask  \033[92mLOADED\033[0m")
 
 class RaykoSplineMask:
     @classmethod
@@ -33,8 +33,6 @@ class RaykoSplineMask:
     CATEGORY = "🦊 RaykoStudio"
 
     def create_mask(self, image, coordinates="[]"):
-        print(f"[SPLINE] Received coordinates: {coordinates}")
-        print(f"[SPLINE] Type: {type(coordinates)}")
         
         if not image or image == "no_images_found":
             h, w = 512, 512

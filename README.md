@@ -46,7 +46,10 @@ Node allows you to pause the workflow at the image processing stage, manually se
 
 ### 🪛 Usage  
 When this node is reached, pipeline execution is automatically suspended. A preview of the input image is displayed in the node's interface. The user can left-click to add polygon points and right-click or Ctrl-click to delete the last points.  
-The ACCEPT button confirms the created mask, after which the node completes processing and transmits the data further according to the scheme. The CLEAR POINTS button clears all the drawn points for redrawing. It is important that after using this button, you do not need to press the Prompt Queue again, just draw a new mask and press ACCEPT. The CANCEL button completely interrupts the process and resets the node status.
+The ACCEPT button confirms the created mask, after which the node completes processing and transmits the data further according to the scheme. The CLEAR POINTS button clears all the drawn points for redrawing. It is important that after using this button, you do not need to press the Prompt Queue again, just draw a new mask and press ACCEPT. The CANCEL button completely interrupts the process and resets the node status.  
+
+### ↔️ Inputs and Outputs:
+The IMAGE input accepts an image from any previous node. The IMAGE output returns the original image unchanged. The MASK output returns a black and white mask where the white area corresponds to the drawn polygon.  
 
 ---
 ---

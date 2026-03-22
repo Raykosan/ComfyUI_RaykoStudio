@@ -100,7 +100,6 @@ app.registerExtension({
                     }
                 };
                 
-                // 🔥 РАСЧЁТ ВЫСОТЫ ЗАГОЛОВКА
                 const getHeaderHeight = () => {
                     let lastWidgetBottom = 0;
                     
@@ -123,7 +122,6 @@ app.registerExtension({
                     return lastWidgetBottom - 32;
                 };
                 
-                // 🔥 РАСЧЁТ КООРДИНАТ ОВЕРЛЕЯ
                 const calculateImageRect = () => {
                     if (!_imagePreview || !app.canvas) return null;
                     
@@ -136,7 +134,6 @@ app.registerExtension({
                     
                     const canvasRect = canvasEl.getBoundingClientRect();
                     
-                    // 🔥 ПРАВИЛЬНАЯ ФОРМУЛА: (graph + offset) * scale
                     const nodeScreenX = canvasRect.left + ((graphX + ds.offset[0]) * scale);
                     const nodeScreenY = canvasRect.top + ((graphY + ds.offset[1]) * scale);
                     
@@ -162,7 +159,6 @@ app.registerExtension({
                     const drawX = nodeScreenX + nodePadding + (previewWidth - drawW) / 2;
                     const drawY = nodeScreenY + scaledHeaderHeight + nodePadding + (previewHeight - drawH) / 2;
                     
-                    // 🔥 КОРРЕКЦИЯ РАЗМЕРОВ ОВЕРЛЕЯ
                     const overlayExpandX = 2 * scale;
                     const overlayExpandTop = 2 * scale;
                     const overlayShrinkBottom = 4 * scale;
@@ -181,7 +177,6 @@ app.registerExtension({
                     };
                 };
                 
-                // 🔥 НЕПРЕРЫВНЫЙ ЦИКЛ СИНХРОНИЗАЦИИ (60 FPS)
                 const startSyncLoop = () => {
                     if (_syncRunning) return;
                     _syncRunning = true;
@@ -232,7 +227,6 @@ app.registerExtension({
                     if (_overlayCanvas) return;
                     
                     _overlayCanvas = document.createElement("canvas");
-                    // 🔥 ЧИСТЫЙ СТИЛЬ: прозрачный фон, зелёная рамка
                     _overlayCanvas.style.cssText = `
                         position: fixed !important;
                         z-index: 1000 !important;
@@ -286,7 +280,6 @@ app.registerExtension({
                     startSyncLoop();
                 };
                 
-                // 🔥 ОТРИСОВКА ПРЕВЬЮ
                 node.onDrawForeground = function(ctx) {
                     const headerHeightGraph = getHeaderHeight();
                     

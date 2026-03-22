@@ -22,8 +22,8 @@ class LoadImageWithText:
         return {
             "required": {
                 "mode": (["read", "write"], {"default": "read"}),
-                "filename_prefix": ("STRING", {"default": "ComfyUI", "tooltip": "Префикс для сохранения в output (только write)"}),
-                "text_input": ("STRING", {"default": "", "multiline": True, "tooltip": "Текст для записи (только в write)"}),
+                "filename_prefix": ("STRING", {"default": "ComfyUI", "tooltip": "Prefix to save to output (write only)"}),
+                "text_input": ("STRING", {"default": "", "multiline": True, "tooltip": "Text to write (write only)"}),
                 "image": (files, {"image_upload": True}),
             }
         }
@@ -38,14 +38,14 @@ class LoadImageWithText:
         try:
             input_path = folder_paths.get_annotated_filepath(image)
             if not os.path.exists(input_path):
-                raise FileNotFoundError(f"Файл не найден: {input_path}")
+                raise FileNotFoundError(f"File not found: {input_path}")
 
             if mode == "write":
                 return self.write_mode(input_path, text_input, filename_prefix)
             else:
                 return self.read_mode(input_path)
         except Exception as e:
-            print(f"Ошибка в process: {e}")
+            print(f"Error in process: {e}")
             import traceback
             traceback.print_exc()
             dummy_img = torch.zeros((1, 64, 64, 3), dtype=torch.float32)
@@ -55,7 +55,7 @@ class LoadImageWithText:
         pil_img = Image.open(input_path)
         text = pil_img.info.get("Description", "")
         image_tensor = self.pil_to_tensor(pil_img)
-        print(f"[READ] Текст: '{text}'")
+        print(f"[READ] Text: '{text}'")
         return (image_tensor, text)
 
     def write_mode(self, input_path, text, filename_prefix):
@@ -65,7 +65,7 @@ class LoadImageWithText:
         pnginfo = PngImagePlugin.PngInfo()
         if text:
             pnginfo.add_text("Description", text)
-            print(f"[WRITE] Записывается текст: '{text}'")
+            print(f"[WRITE] Text is recorded: '{text}'")
 
         output_dir = folder_paths.get_output_directory()
         
@@ -78,20 +78,20 @@ class LoadImageWithText:
                 break
             counter += 1
         
-        print(f"[WRITE] Сохраняется в: {output_path}")
+        print(f"[WRITE] Saved in: {output_path}")
 
         if pil_img.mode not in ('RGB', 'RGBA'):
             pil_img = pil_img.convert('RGB')
         
         pil_img.save(output_path, format="PNG", pnginfo=pnginfo)
-        print(f"[WRITE] Файл сохранён: {os.path.exists(output_path)}")
+        print(f"[WRITE] File saved: {os.path.exists(output_path)}")
 
         try:
             check_img = Image.open(output_path)
             saved_text = check_img.info.get("Description", "")
-            print(f"[CHECK] Текст в сохранённом файле: '{saved_text}'")
+            print(f"[CHECK] Text in the saved file: '{saved_text}'")
         except Exception as e:
-            print(f"[CHECK] Ошибка проверки: {e}")
+            print(f"[CHECK] Verification error: {e}")
 
         return (image_tensor, text)
 

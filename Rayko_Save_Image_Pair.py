@@ -120,15 +120,13 @@ class SaveImagePair:
                          theme="light", scale_factor=1.0, prompt=None, extra_pnginfo=None):
         filename_prefix += self.prefix_append
 
-        # Определяем цвета в зависимости от темы
         if theme == "dark":
-            text_color_rgb = (255, 255, 255)  # белый текст
-            bg_color_rgb = (0, 0, 0)          # чёрный фон
+            text_color_rgb = (255, 255, 255)
+            bg_color_rgb = (0, 0, 0)
         else:  # light
-            text_color_rgb = (0, 0, 0)        # чёрный текст
-            bg_color_rgb = (255, 255, 255)    # белый фон
+            text_color_rgb = (0, 0, 0)
+            bg_color_rgb = (255, 255, 255)
 
-        # Проверка батчей
         batch_ref = reference.shape[0]
         batch_fin = final.shape[0]
         if batch_ref != batch_fin:
@@ -178,7 +176,6 @@ class SaveImagePair:
             else:
                 combined_img = combine_images_pil([ref_block, fin_block], 'vertical')
 
-            # Масштабирование по самой длинной стороне
             if scale_factor < 1.0:
                 old_width, old_height = combined_img.size
                 max_side = max(old_width, old_height)

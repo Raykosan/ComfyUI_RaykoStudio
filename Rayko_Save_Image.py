@@ -116,13 +116,12 @@ class RSSaveImage:
                     theme="light", prompt=None, extra_pnginfo=None):
         filename_prefix += self.prefix_append
 
-        # Определяем цвета в зависимости от темы
         if theme == "dark":
-            text_color_rgb = (255, 255, 255)  # белый текст
-            bg_color_rgb = (0, 0, 0)          # чёрный фон
+            text_color_rgb = (255, 255, 255)
+            bg_color_rgb = (0, 0, 0)
         else:  # light
-            text_color_rgb = (0, 0, 0)        # чёрный текст
-            bg_color_rgb = (255, 255, 255)    # белый фон
+            text_color_rgb = (0, 0, 0)
+            bg_color_rgb = (255, 255, 255)
 
         batch_size = images.shape[0]
 

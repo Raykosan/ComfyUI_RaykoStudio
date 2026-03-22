@@ -36,6 +36,21 @@ Link to the video: https://youtu.be/AqNLmLzSunU
 ---
 ---
 
+# 🦊 RS Intermediate Spline Mask node  
+**An interactive node for creating intermediate spline masks** 
+
+![Screenshot_6](https://github.com/user-attachments/assets/c97fb1b8-5b1e-4c6b-bd49-af155e6f4d91)
+
+### 🔥 Features  
+Node allows you to pause the workflow at the image processing stage, manually select the desired area and continue generation without completely restarting the process. More accurate selection based on the principle of the Lasso tool from Photoshop.  
+
+### 🪛 Usage  
+When this node is reached, pipeline execution is automatically suspended. A preview of the input image is displayed in the node's interface. The user can left-click to add polygon points and right-click or Ctrl-click to delete the last points.  
+The ACCEPT button confirms the created mask, after which the node completes processing and transmits the data further according to the scheme. The CLEAR POINTS button clears all the drawn points for redrawing. It is important that after using this button, you do not need to press the Prompt Queue again, just draw a new mask and press ACCEPT. The CANCEL button completely interrupts the process and resets the node status.
+
+---
+---
+
 # 🦊 RS Models Loader node  
 **Combined node for loading models**  
 

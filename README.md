@@ -64,8 +64,62 @@ The IMAGE input accepts an image from any previous node. The IMAGE output return
 The node combines the loaders of the Model, Clip,VAE and LoRA.
 If you have downloaded a new LoRA, then you do not need to update the ComfyUI or the page - there is a button to update the LoRA list.  
 
-Link to the video: https://youtu.be/LxhVk5C_oas
+Link to the video: https://youtu.be/LxhVk5C_oas  
 
+---
+---
+
+# 🦊 RS Text Overlay node  
+**Node allows you to overlay text on images using masks**  
+
+![Screenshot_1](https://github.com/user-attachments/assets/96cdfb99-93fb-45d3-bb8a-f15db00bbb3f)
+
+
+### 🔥 Features  
+- **Automatic font size selection** — the text always fits perfectly into the mask area  
+- **Text rotation by mask** — the text is automatically aligned to the angle of the mask  
+- **Multiline text support** — automatic line splitting  
+- **Vertical and horizontal text orientation**  
+- **Adjusting the letter and line spacing**  
+- **Text outline** — customizable thickness and color  
+- **Shadow** — adjustable displacement, blurring and transparency  
+- **Text color** — HEX format support (#RRGGBB or #RRGGBBAA)  
+- **Text transparency** — independent of stroke and shadow  
+- **Supersampling** — rendering text in increased resolution followed by compression for perfect smoothing  
+- **Edge Smoothing** — additional smoothing of text edges  
+- **High-quality interpolation** - Lanczos filter when zooming  
+- **Caching** — fonts, colors, sizes, and rendered layers  
+- **LRU cache** — automatic memory management  
+- **Optimized outline rendering** — 8-direction algorithms  
+
+### 🔤 Installing Fonts
+
+Place the font files in the fonts folder (.ttf, .otf, .ttc)  
+Restart ComfyUI  
+
+### 🪛 Usage  
+  
+| Parameter          | Description                          | Range                 |
+|--------------------|--------------------------------------|-----------------------|
+| TEXT               | Text to display (supports multiline) |                       |
+| FONT               | List of available fonts              |                       |
+| TEXT COLOR         | Color text in HEX format             | #000000 - #FFFFFF     |
+| OUTLINE THICK      | Outline thickness                    | 0-50                  |
+| OUTLINE COLOR      | Outline color in HEX format          | #000000 - #FFFFFF     |
+| ROTATE WITH MASK   | Rotate text by the angle of mask     | ON/OFF                |
+| TEXT OPACITY       | Text transparency                    | #000000 - #FFFFFF     |
+| LINE SPACING       | Line spacing                         | 0.5-3.0               |
+| LETTER SPACING     | Letter spacing                       | -20 - +100            |
+| ORIENTATION        | Text orientation                     | horizontal / vertical |
+| ENABLE SHADOW      | Enable shadow                        | ON/OFF                |
+| SHADOW COLOR       | Shadow color in HEX format           | #000000 - #FFFFFF     |
+| SHADOW OFFSET X/Y  | Shifting the shadow                  | -50 - +50             |
+| SHADOW BLUR        | Blurring the shadow                  | 0.0-1.0               |
+| SHADOW OPACITY     | Shadow transparency                  | 0.0-1.0               |
+| SUPERSAMPLING      | Enable supersampling                 | ON/OFF                |
+| SUPERSAMPLE FACTOR | Magnification factor                 | 2-4                   |
+| EDGE SMOOTHING     | Smoothing the edges                  | ON/OFF                |
+ 
 ---
 ---
 

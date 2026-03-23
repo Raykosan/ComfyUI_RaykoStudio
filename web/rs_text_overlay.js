@@ -1,15 +1,18 @@
 import { app } from "../../scripts/app.js";
+
 app.registerExtension({
     name: "RaykoTextOverlay",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
         if (nodeData.name === "RS_TextOverlay") {
             console.log("🦊 [RS_TextOverlay] JS loaded!");
+            
             const onNodeCreated = nodeType.prototype.onNodeCreated;
             nodeType.prototype.onNodeCreated = function() {
                 const result = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
+                
                 this.data = {
                     text: "Текст",
-                    font_name: "Arial.ttf",
+                    font_name: "default",
                     text_color: "#FFFFFF",
                     outline_thickness: 0,
                     outline_color: "#808080",
@@ -24,14 +27,19 @@ app.registerExtension({
                     shadow_offset_y: 2,
                     shadow_blur: 0.0,
                     shadow_opacity: 0.8,
-                    font_list: ["default"]
+                    font_list: ["default"],
+                    use_supersampling: false,
+                    use_edge_smoothing: true,
+                    supersampling_factor: 2
                 };
+                
                 this.rowHeight = 28;
                 this.padding = 10;
                 this.labelWidth = 120;
                 this.targetWidth = 350;
                 this.clickZones = [];
                 this.widgetYPositions = {};
+                
                 this.hiddenWidget = this.widgets.find(w => w.name === "node_data");
                 if (this.hiddenWidget) {
                     this.hiddenWidget.hidden = true;
@@ -48,10 +56,12 @@ app.registerExtension({
                         console.error("🦊 [RS_TextOverlay] Error loading saved ", e);
                     }
                 }
+                
                 if (this.widgets) {
                     this.widgets.forEach(w => w.hidden = true);
                 }
-                this.setSize([this.targetWidth, 650]);
+                
+                this.setSize([this.targetWidth, 750]);
                 const self = this;
 
                 this.drawSeparator = function(ctx, text, x, y, w, h) {
@@ -77,23 +87,24 @@ app.registerExtension({
                     this.drawLabel(ctx, "TEXT", pad, y, labelW, rowH * 2);
                     this.drawMultilineField(ctx, this.data.text, pad + labelW, y, inputW, rowH * 2);
                     this.clickZones.push({ type: "text", x: pad + labelW, y: y, w: inputW, h: rowH * 2 });
+                    this.widgetYPositions["text"] = y;
                     y += rowH * 2 + 5;
 
-                    // === FONT_NAME ===
+                    // === FONT NAME ===
                     this.drawLabel(ctx, "FONT", pad, y, labelW, rowH);
                     this.drawComboField(ctx, this.data.font_name, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["font_name"] = y;
                     this.clickZones.push({ type: "combo", field: "font_name", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === TEXT_COLOR ===
+                    // === TEXT COLOR ===
                     this.drawLabel(ctx, "TEXT COLOR", pad, y, labelW, rowH);
                     this.drawColorField(ctx, this.data.text_color, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["text_color"] = y;
                     this.clickZones.push({ type: "color", field: "text_color", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === OUTLINE_THICKNESS ===
+                    // === OUTLINE THICKNESS ===
                     this.drawLabel(ctx, "OUTLINE THICK", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.outline_thickness, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["outline_thickness"] = y;
@@ -102,25 +113,25 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "outline_thickness", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 0, max: 50, step: 1 });
                     y += rowH + 5;
 
-                    // === OUTLINE_COLOR ===
+                    // === OUTLINE COLOR ===
                     this.drawLabel(ctx, "OUTLINE COLOR", pad, y, labelW, rowH);
                     this.drawColorField(ctx, this.data.outline_color, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["outline_color"] = y;
                     this.clickZones.push({ type: "color", field: "outline_color", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === FORMATTING TEXT ===
+                    // === FORMATTING TEXT SEPARATOR ===
                     this.drawSeparator(ctx, "FORMATTING TEXT", pad, y, inputW + labelW, rowH);
                     y += rowH + 5;
 
-                    // === ROTATE_WITH_MASK ===
+                    // === ROTATE WITH MASK ===
                     this.drawLabel(ctx, "ROTATE WITH MASK", pad, y, labelW, rowH);
                     this.drawBooleanField(ctx, this.data.rotate_with_mask, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["rotate_with_mask"] = y;
                     this.clickZones.push({ type: "boolean", field: "rotate_with_mask", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === TEXT_OPACITY ===
+                    // === TEXT OPACITY ===
                     this.drawLabel(ctx, "TEXT OPACITY", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.text_opacity, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["text_opacity"] = y;
@@ -129,7 +140,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "text_opacity", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 0, max: 1, step: 0.05, float: true });
                     y += rowH + 5;
 
-                    // === LINE_SPACING ===
+                    // === LINE SPACING ===
                     this.drawLabel(ctx, "LINE SPACING", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.line_spacing, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["line_spacing"] = y;
@@ -138,7 +149,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "line_spacing", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 0.5, max: 3, step: 0.1, float: true });
                     y += rowH + 5;
 
-                    // === LETTER_SPACING ===
+                    // === LETTER SPACING ===
                     this.drawLabel(ctx, "LETTER SPACING", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.letter_spacing, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["letter_spacing"] = y;
@@ -147,32 +158,32 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "letter_spacing", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: -20, max: 100, step: 0.5, float: true });
                     y += rowH + 5;
 
-                    // === TEXT_ORIENTATION ===
+                    // === TEXT ORIENTATION ===
                     this.drawLabel(ctx, "ORIENTATION", pad, y, labelW, rowH);
                     this.drawComboField(ctx, this.data.text_orientation, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["text_orientation"] = y;
                     this.clickZones.push({ type: "combo", field: "text_orientation", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === SETTING SHADOW ===
-                    this.drawSeparator(ctx, "SETTING SHADOW", pad, y, inputW + labelW, rowH);
+                    // === SHADOW SETTINGS SEPARATOR ===
+                    this.drawSeparator(ctx, "SHADOW SETTINGS", pad, y, inputW + labelW, rowH);
                     y += rowH + 5;
 
-                    // === ENABLE_SHADOW ===
+                    // === ENABLE SHADOW ===
                     this.drawLabel(ctx, "ENABLE SHADOW", pad, y, labelW, rowH);
                     this.drawBooleanField(ctx, this.data.enable_shadow, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["enable_shadow"] = y;
                     this.clickZones.push({ type: "boolean", field: "enable_shadow", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === SHADOW_COLOR ===
+                    // === SHADOW COLOR ===
                     this.drawLabel(ctx, "SHADOW COLOR", pad, y, labelW, rowH);
                     this.drawColorField(ctx, this.data.shadow_color, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["shadow_color"] = y;
                     this.clickZones.push({ type: "color", field: "shadow_color", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === SHADOW_OFFSET_X ===
+                    // === SHADOW OFFSET X ===
                     this.drawLabel(ctx, "SHADOW OFFSET X", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.shadow_offset_x, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["shadow_offset_x"] = y;
@@ -181,7 +192,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "shadow_offset_x", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: -50, max: 50, step: 1 });
                     y += rowH + 5;
 
-                    // === SHADOW_OFFSET_Y ===
+                    // === SHADOW OFFSET Y ===
                     this.drawLabel(ctx, "SHADOW OFFSET Y", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.shadow_offset_y, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["shadow_offset_y"] = y;
@@ -190,7 +201,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "shadow_offset_y", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: -50, max: 50, step: 1 });
                     y += rowH + 5;
 
-                    // === SHADOW_BLUR ===
+                    // === SHADOW BLUR ===
                     this.drawLabel(ctx, "SHADOW BLUR", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.shadow_blur, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["shadow_blur"] = y;
@@ -199,14 +210,43 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "shadow_blur", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 0, max: 1, step: 0.05, float: true });
                     y += rowH + 5;
 
-                    // === SHADOW_OPACITY ===
+                    // === SHADOW OPACITY ===
                     this.drawLabel(ctx, "SHADOW OPACITY", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.shadow_opacity, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["shadow_opacity"] = y;
                     this.clickZones.push({ type: "number", field: "shadow_opacity", x: pad + labelW + arrowW, y: y, w: inputW - arrowW*2, h: rowH, min: 0, max: 1, float: true });
                     this.clickZones.push({ type: "arrow_left", field: "shadow_opacity", x: pad + labelW, y: y, w: arrowW, h: rowH, min: 0, max: 1, step: 0.05, float: true });
                     this.clickZones.push({ type: "arrow_right", field: "shadow_opacity", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 0, max: 1, step: 0.05, float: true });
-                    y += rowH + 15;
+                    y += rowH + 5;
+
+                    // === QUALITY SETTINGS SEPARATOR ===
+                    this.drawSeparator(ctx, "QUALITY SETTINGS", pad, y, inputW + labelW, rowH);
+                    y += rowH + 5;
+
+                    // === USE SUPERSAMPLING ===
+                    this.drawLabel(ctx, "SUPERSAMPLING", pad, y, labelW, rowH);
+                    this.drawBooleanField(ctx, this.data.use_supersampling, pad + labelW, y, inputW, rowH);
+                    this.widgetYPositions["use_supersampling"] = y;
+                    this.clickZones.push({ type: "boolean", field: "use_supersampling", x: pad + labelW, y: y, w: inputW, h: rowH });
+                    y += rowH + 5;
+
+                    // === SUPERSAMPLING FACTOR ===
+                    if (this.data.use_supersampling) {
+                        this.drawLabel(ctx, "SUPERSAMPLE FACTOR", pad, y, labelW, rowH);
+                        this.drawNumberFieldWithArrows(ctx, this.data.supersampling_factor, pad + labelW, y, inputW, rowH, arrowW);
+                        this.widgetYPositions["supersampling_factor"] = y;
+                        this.clickZones.push({ type: "number", field: "supersampling_factor", x: pad + labelW + arrowW, y: y, w: inputW - arrowW*2, h: rowH, min: 2, max: 4 });
+                        this.clickZones.push({ type: "arrow_left", field: "supersampling_factor", x: pad + labelW, y: y, w: arrowW, h: rowH, min: 2, max: 4, step: 1 });
+                        this.clickZones.push({ type: "arrow_right", field: "supersampling_factor", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 2, max: 4, step: 1 });
+                        y += rowH + 5;
+                    }
+
+                    // === USE EDGE SMOOTHING ===
+                    this.drawLabel(ctx, "EDGE SMOOTHING", pad, y, labelW, rowH);
+                    this.drawBooleanField(ctx, this.data.use_edge_smoothing, pad + labelW, y, inputW, rowH);
+                    this.widgetYPositions["use_edge_smoothing"] = y;
+                    this.clickZones.push({ type: "boolean", field: "use_edge_smoothing", x: pad + labelW, y: y, w: inputW, h: rowH });
+                    y += rowH + 5;
 
                     const totalH = y + 10;
                     if (this.size[1] < totalH) {
@@ -375,12 +415,12 @@ app.registerExtension({
                 this.showComboSelector = function(fieldName) {
                     const options = {
                         font_name: self.data.font_list || ["default"],
-                        vertical_align: ["top", "center", "bottom"],
-                        horizontal_align: ["left", "center", "right"],
                         text_orientation: ["horizontal", "vertical"]
                     };
-                    const list = options[fieldName] || [];
+                    
+                    let list = options[fieldName] || [];
                     if (!list.length) return;
+                    
                     const menu = document.createElement("div");
                     menu.style.cssText = `
                         position: fixed;
@@ -393,6 +433,7 @@ app.registerExtension({
                         box-shadow: 0 4px 20px rgba(0,0,0,0.5);
                         min-width: 150px;
                     `;
+                    
                     list.forEach(opt => {
                         const item = document.createElement("div");
                         item.textContent = opt;
@@ -415,9 +456,11 @@ app.registerExtension({
                         };
                         menu.appendChild(item);
                     });
+                    
                     const widgetY = self.widgetYPositions[fieldName] || 200;
                     const canvasRect = document.querySelector("#graph-canvas")?.getBoundingClientRect() ||
                         document.querySelector("canvas")?.getBoundingClientRect();
+                    
                     if (canvasRect && self.pos) {
                         const menuX = canvasRect.left + self.pos[0] + self.padding + self.labelWidth;
                         const menuY = canvasRect.top + self.pos[1] + widgetY + self.rowHeight;
@@ -427,7 +470,9 @@ app.registerExtension({
                         menu.style.left = "250px";
                         menu.style.top = "200px";
                     }
+                    
                     document.body.appendChild(menu);
+                    
                     setTimeout(() => {
                         const closeHandler = (e) => {
                             if (!menu.contains(e.target)) {
@@ -470,7 +515,7 @@ app.registerExtension({
                     `;
                     
                     const saveBtn = document.createElement('button');
-                    saveBtn.textContent = '✅';
+                    saveBtn.textContent = '✅ SAVE';
                     saveBtn.style.cssText = `
                         background: #4CAF50;
                         color: #fff;
@@ -524,9 +569,11 @@ app.registerExtension({
                         console.log("🎨 Color changed:", newColor);
                         self.updateUI();
                     }, { once: false });
+                    
                     const widgetY = self.widgetYPositions[fieldName] || 200;
                     const canvasRect = document.querySelector("#graph-canvas")?.getBoundingClientRect() ||
                         document.querySelector("canvas")?.getBoundingClientRect();
+                    
                     if (canvasRect && self.pos) {
                         const pickerX = canvasRect.left + self.pos[0] + self.padding + self.labelWidth;
                         const pickerY = canvasRect.top + self.pos[1] + widgetY;
@@ -558,6 +605,7 @@ app.registerExtension({
                             }
                         });
                     }
+                    
                     const clickOutsideHandler = (e) => {
                         if (e.target !== colorInput) {
                             colorInput.remove();
@@ -600,4 +648,5 @@ app.registerExtension({
         }
     }
 });
+
 console.log("🦊 [RS_TextOverlay] Extension initialized");

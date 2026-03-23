@@ -54,8 +54,6 @@ class RaykoIntermediateSplineMask:
             else:
                 PENDING_DECISIONS[unique_id]["coordinates"] = coordinates
             
-            print(f"[InSPLINE 🦊] Node {unique_id} waiting for approval...")
-
             if prompt_id is None:
                 import uuid
                 prompt_id = str(uuid.uuid4())
@@ -84,14 +82,12 @@ class RaykoIntermediateSplineMask:
                 current_coordinates = state.get("coordinates", coordinates)
                 
                 if current_status == "approved":
-                    print(f"[InSPLINE 🦊] Node {unique_id} APPROVED!")
                     coordinates = current_coordinates
                     if unique_id in PENDING_DECISIONS:
                         del PENDING_DECISIONS[unique_id]
                     break
                 
                 if current_status == "cancelled":
-                    print(f"[InSPLINE 🦊] Node {unique_id} CANCELLED!")
                     if unique_id in PENDING_DECISIONS:
                         del PENDING_DECISIONS[unique_id]
                     break
@@ -105,14 +101,11 @@ class RaykoIntermediateSplineMask:
                 if current_status == "rejected":
                     PENDING_DECISIONS[unique_id]["status"] = "pending"
                     coordinates = current_coordinates
-                    print(f"[InSPLINE 🦊] Node {unique_id} rejected, waiting for new points...")
                 
                 time.sleep(0.3)
         else:
             print("[InSPLINE 🦊] Server not available, skipping pause logic.")
 
-        print(f"[InSPLINE 🦊] Processing mask with coordinates: {coordinates[:80]}...")
-        
         if image is None or len(image) == 0:
             h, w = 512, 512
             return (torch.zeros((1, h, w, 3)), torch.zeros((1, h, w)))
@@ -134,11 +127,11 @@ class RaykoIntermediateSplineMask:
                 draw.polygon(pts, fill=255)
                 mask_np = np.array(pil_mask).astype(np.float32) / 255.0
                 
-                print(f"[InSPLINE 🦊] ✅ Mask created with {len(pts)} points")
+                print(f"[InSPLINE 🦊] Mask created with {len(pts)} points")
             else:
-                print(f"[InSPLINE 🦊] ⚠️ Less than 3 points - empty mask")
+                print(f"[InSPLINE 🦊] Less than 3 points - empty mask")
         except Exception as e:
-            print(f"[InSPLINE 🦊] ❌ Error parsing coordinates: {e}")
+            print(f"[InSPLINE 🦊] Error parsing coordinates: {e}")
         
         mask_tensor = torch.from_numpy(mask_np).unsqueeze(0)
         return (image, mask_tensor)
@@ -153,28 +146,22 @@ if SERVER_AVAILABLE:
             decision = data.get("decision")
             coordinates = data.get("coordinates")
             
-            print(f"[InSPLINE 🦊] API received '{decision}' for node '{node_id}'")
-
             if node_id in PENDING_DECISIONS:
                 if decision == "approve":
                     PENDING_DECISIONS[node_id]["status"] = "approved"
                     if coordinates:
                         PENDING_DECISIONS[node_id]["coordinates"] = coordinates
-                    print(f"[InSPLINE 🦊] Status: APPROVED")
                     
                 elif decision == "reject":
                     PENDING_DECISIONS[node_id]["status"] = "rejected"
                     if coordinates is not None:
                         PENDING_DECISIONS[node_id]["coordinates"] = coordinates
-                    print(f"[InSPLINE 🦊] Status: REJECTED (node still waiting)")
                     
                 elif decision == "cancel":
                     PENDING_DECISIONS[node_id]["status"] = "cancelled"
-                    print(f"[InSPLINE 🦊] Status: CANCELLED")
-                
+                    
                 return web.Response(status=200, text="Decision recorded")
             else:
-                print(f"[InSPLINE 🦊] Node {node_id} NOT FOUND in PENDING_DECISIONS")
                 return web.Response(status=404, text=f"Node {node_id} not waiting")
                 
         except Exception as e:
@@ -189,14 +176,10 @@ if SERVER_AVAILABLE:
             data = await request.json()
             node_id = str(data.get("node_id"))
             
-            print(f"[InSPLINE 🦊] API received CLEANUP for node '{node_id}'")
-
             if node_id in PENDING_DECISIONS:
                 PENDING_DECISIONS[node_id]["status"] = "removed"
-                print(f"[InSPLINE 🦊] Status: REMOVED")
                 return web.Response(status=200, text="Cleanup recorded")
             else:
-                print(f"[InSPLINE 🦊] Node {node_id} NOT FOUND (already cleaned)")
                 return web.Response(status=200, text="Node not found")
                 
         except Exception as e:

@@ -10,12 +10,14 @@
   },
   "comfyui": {
     "nodes": [
-      "Rayko_Image_Text.py"
-      "Rayko_Save_Image_Pair.py"
-      "Rayko_Saturation.py"
+      "Rayko_Intermediate_Spline_Mask.py"
       "Rayko_Spline_Mask.py"
       "Rayko_Models_Loader.py"
+      "Rayko_Saturation.py"
       "Rayko_Save_Image.py"
+      "Rayko_Save_Image_Pair.py"
+      "Rayko_Image_Text.py"
+      "Rayko_Text_Overlay.py"
     ]
   }
 }

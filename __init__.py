@@ -18,18 +18,18 @@ PACKAGE_DISPLAY_NAME = "ComfyUI_RaykoStudio"
 def load_modules():
     try:
         current_dir = Path(__file__).parent
-        logger.debug(f"Сканируем директорию: {current_dir}")
+        logger.debug(f"Scanning the directory: {current_dir}")
         
         loaded_modules = []
         failed_modules = []
         for py_file in current_dir.glob('*.py'):
             filename = py_file.name
             if filename in IGNORED_MODULES:
-                logger.debug(f"Пропускаем игнорируемый файл: {filename}")
+                logger.debug(f"Skipping the ignored file: {filename}")
                 continue
             
             module_name = py_file.stem
-            logger.debug(f"Попытка загрузки модуля: {module_name}")
+            logger.debug(f"Module loading attempt: {module_name}")
             
             try:
                 module = importlib.import_module(f'.{module_name}', package=__name__)
@@ -37,24 +37,24 @@ def load_modules():
                 loaded_modules.append(module_name)
             except ImportError as e:
                 failed_modules.append((module_name, str(e)))
-                logger.error(f"Ошибка импорта модуля {module_name}: {e}")
+                logger.error(f"Module import error {module_name}: {e}")
             except Exception as e:
                 failed_modules.append((module_name, str(e)))
-                logger.error(f"Неожиданная ошибка в модуле {module_name}: {e}")
+                logger.error(f"Unexpected error in the module {module_name}: {e}")
 
         missing_required = REQUIRED_MODULES - set(loaded_modules)
         if missing_required:
-            logger.error(f"Обязательные модули не загружены: {missing_required}")
+            logger.error(f"Required modules are not loaded: {missing_required}")
 
         if not failed_modules:
-            logger.info(f"Все модули {PACKAGE_DISPLAY_NAME} успешно загружены.")
+            logger.info(f"✅ All modules 🦊 {PACKAGE_DISPLAY_NAME} loaded successfully")
         else:
             for mod_name, error in failed_modules:
-                logger.error(f"Модуль '{mod_name}' не загружен: {error}")
-            logger.warning(f"Загружено {len(loaded_modules)} модулей, ошибки в {len(failed_modules)} модулях.")
+                logger.error(f"The module '{mod_name}' is not loaded: {error}")
+            logger.warning(f"Loaded {len(loaded_modules)} modules, errors in {len(failed_modules)} modules")
 
     except Exception as e:
-        logger.critical(f"Критическая ошибка при загрузке модулей: {e}")
+        logger.critical(f"Critical error when loading modules: {e}")
         raise
 
 def _merge_module_mappings(module, module_name: str):
@@ -63,39 +63,39 @@ def _merge_module_mappings(module, module_name: str):
             new_classes = module.NODE_CLASS_MAPPINGS
             duplicates = set(NODE_CLASS_MAPPINGS.keys()) & set(new_classes.keys())
             if duplicates:
-                logger.warning(f"Найдены дубликаты классов в модуле {module_name}: {duplicates}")
+                logger.warning(f"Duplicate classes found in the module {module_name}: {duplicates}")
             NODE_CLASS_MAPPINGS.update(new_classes)
-            logger.debug(f"Добавлены классы из {module_name}: {list(new_classes.keys())}")
+            logger.debug(f"Added classes from: {list(new_classes.keys())}")
         
         if hasattr(module, 'NODE_DISPLAY_NAME_MAPPINGS'):
             new_names = module.NODE_DISPLAY_NAME_MAPPINGS
             duplicates = set(NODE_DISPLAY_NAME_MAPPINGS.keys()) & set(new_names.keys())
             if duplicates:
-                logger.warning(f"Найдены дубликаты имен в модуле {module_name}: {duplicates}")
+                logger.warning(f"Duplicate names found in the module {module_name}: {duplicates}")
             NODE_DISPLAY_NAME_MAPPINGS.update(new_names)
-            logger.debug(f"Добавлены имена из {module_name}: {list(new_names.keys())}")
+            logger.debug(f"Added names from {module_name}: {list(new_names.keys())}")
             
     except Exception as e:
-        logger.error(f"Ошибка при объединении маппингов из модуля {module_name}: {e}")
+        logger.error(f"Error when combining mappings from the module {module_name}: {e}")
         raise
 
 try:
     load_modules()
 except Exception as e:
-    logger.critical(f"Фатальная ошибка при инициализации пакета: {e}")
+    logger.critical(f"Fatal error during package initialization: {e}")
     pass
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
 
 if not NODE_CLASS_MAPPINGS:
-    logger.warning("NODE_CLASS_MAPPINGS пуст - возможно, не найдено модулей с узлами")
+    logger.warning("NODE_CLASS_MAPPINGS is empty - perhaps no modules with nodes were found")
 else:
-    logger.debug(f"Загружено {len(NODE_CLASS_MAPPINGS)} классов узлов")
+    logger.debug(f"Uploaded by {len(NODE_CLASS_MAPPINGS)} node classes")
 
 if not NODE_DISPLAY_NAME_MAPPINGS:
-    logger.debug("NODE_DISPLAY_NAME_MAPPINGS пуст - будут использованы имена классов по умолчанию")
+    logger.debug("NODE_DISPLAY_NAME_MAPPINGS is empty - the default class names will be used")
 else:
-    logger.debug(f"Загружено {len(NODE_DISPLAY_NAME_MAPPINGS)} отображаемых имен")
+    logger.debug(f"Loaded {len(NODE_DISPLAY_NAME_MAPPINGS)} display names")
 
 WEB_DIRECTORY = "./web"
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS', 'WEB_DIRECTORY']

@@ -22,7 +22,7 @@ class LoadImageWithText:
         return {
             "required": {
                 "mode": (["read", "write"], {"default": "read"}),
-                "filename_prefix": ("STRING", {"default": "ComfyUI", "tooltip": "Prefix to save to output (write only)"}),
+                "filename_prefix": ("STRING", {"default": "Civitai/prompt", "tooltip": "Prefix to save to output (write only)"}),
                 "text_input": ("STRING", {"default": "", "multiline": True, "tooltip": "Text to write (write only)"}),
                 "image": (files, {"image_upload": True}),
             }

@@ -212,10 +212,10 @@ Link to the video: https://youtu.be/1s26hUcVXX4
 # 🦊 RS Loop Switch node  
 **A combined node for generating a sequence of values with automatic switching**  
 
-![Screenshot_4](https://github.com/user-attachments/assets/65cc934a-33b5-4592-8a15-fa54f2ac53c9)
+![Screenshot_1](https://github.com/user-attachments/assets/4e11bde0-55f8-4879-9290-b50ae452c55a)
 
 ### 🔥 Features  
-The node generates a list of INT values, automatically switching between 10 preset values based on the current cycle step. It is ideal for generating a series of images with different seeds without the need to manually change the parameters.But you can use it for any other tasks where dynamic INT changes are required.  
+The node generates a list of INT values, automatically switching between 10 preset values based on the current cycle step. It is ideal for generating a series of images with different seeds without the need to manually change the parameters. But you can use it for any other tasks where dynamic INT changes are required.  
 
 ### 🔌 Connection (examples)  
 - RS Loop Switch (output) → KSampler (seed)  

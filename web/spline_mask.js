@@ -1,23 +1,27 @@
-console.log("[SPLINE] spline_mask.js LOADED!");
+console.log("[SPLINE 🦊] spline_mask.js LOADED!");
 import { app } from "../../scripts/app.js";
+import { api } from "../../scripts/api.js";
 
 app.registerExtension({
     name: "RaykoSplineMask",
     
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
         if (nodeData.name !== "RaykoSplineMask") return;
-        
+
         const onNodeCreated = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function() {
             try {
                 onNodeCreated?.apply(this, arguments);
                 const node = this;
                 
-                console.log("[SPLINE] Node created:", node.id);
+                node.image = new Image();
+                node.imageReady = false;
+                node.currentStatus = "Ready";
+                node.buttons = [];
+                node.imageList = [];
+                node.selectedImage = "";
                 
-                const imageWidget = node.widgets?.find(w => w.name === "image");
                 const coordsWidget = node.widgets?.find(w => w.name === "coordinates");
-                
                 if (coordsWidget) {
                     coordsWidget.hidden = true;
                     coordsWidget.serializeValue = () => {
@@ -25,25 +29,28 @@ app.registerExtension({
                     };
                 }
                 
-                const clearButton = node.addWidget("button", "❌ Clear Points", "clear", () => {
-                    _points = [];
-                    updateCoords();
-                });
-                
-                setTimeout(() => {
-                    if (node.widgets) {
-                        const idx = node.widgets.indexOf(clearButton);
-                        if (idx !== -1) {
-                            node.widgets.splice(idx, 1);
-                            node.widgets.unshift(clearButton);
-                            node.setDirtyCanvas(true, true);
-                        }
+                const imageWidget = node.widgets?.find(w => w.name === "image");
+                if (imageWidget) {
+                    imageWidget.hidden = true;
+                    if (node.properties?.selected_image) {
+                        imageWidget.value = node.properties.selected_image;
                     }
-                }, 100);
+                }
+                
+                node.padding = 10;
+                node.targetWidth = 450;
+                node.buttonPositions = [];
+                
+                // 3 кнопки с новыми цветами
+                node.buttons = [
+                    { label: "🎨 IMAGE", color: "#2196F3", callback: () => node.showImageSelector(), hover: false },
+                    { label: "🖼️ UPLOAD IMAGE", color: "#4CAF50", callback: () => node.triggerFileUpload(), hover: false },
+                    { label: "🔴 CLEAR POINTS", color: "#dc3545", callback: () => node.clearPoints(), hover: false }
+                ];
+                
+                node.setSize([node.targetWidth, 600]);
                 
                 let _points = [];
-                let _imagePreview = null;
-                let _imageLoaded = false;
                 let _overlayCanvas = null;
                 let _syncRunning = false;
                 let _lastRect = null;
@@ -55,75 +62,263 @@ app.registerExtension({
                     } catch (e) {}
                 }
                 
+                if (node.properties?.selected_image && node.properties.selected_image !== "") {
+                    node.loadImage(node.properties.selected_image);
+                }
+                
                 const updateCoords = () => {
                     const jsonStr = JSON.stringify(_points);
                     node.properties = node.properties || {};
                     node.properties.spline_coords = jsonStr;
-                    if (coordsWidget) {
-                        coordsWidget.value = jsonStr;
-                    }
+                    if (coordsWidget) coordsWidget.value = jsonStr;
                     drawOverlay();
+                    node.setDirtyCanvas(true, true);
+                };
+
+                node.loadImage = function(imagePath) {
+                    if (!imagePath || imagePath === "") {
+                        console.log("[SPLINE 🦊] No image path provided");
+                        return;
+                    }
+                    
+                    console.log("[SPLINE 🦊] Loading image:", imagePath);
+                    
+                    node.selectedImage = imagePath;
+                    node.properties = node.properties || {};
+                    node.properties.selected_image = imagePath;
+                    
+                    if (imageWidget) {
+                        imageWidget.value = imagePath;
+                        console.log("[SPLINE 🦊] Widget value set to:", imagePath);
+                    }
+                    
+                    let filename = imagePath;
+                    let subfolder = "";
+                    
+                    if (imagePath.includes("/")) {
+                        const parts = imagePath.split("/");
+                        subfolder = parts[0];
+                        filename = parts.slice(1).join("/");
+                    }
+                    
+                    let imgUrl = `/view?filename=${encodeURIComponent(filename)}&type=input`;
+                    if (subfolder && subfolder !== "") {
+                        imgUrl += `&subfolder=${encodeURIComponent(subfolder)}`;
+                    }
+                    
+                    console.log("[SPLINE 🦊] Image URL:", imgUrl);
+                    
+                    node.image.src = imgUrl + "&t=" + Date.now();
+                    node.image.onload = () => {
+                        console.log("[SPLINE 🦊] Image loaded successfully:", node.image.width, "x", node.image.height);
+                        node.imageReady = true;
+                        if (_overlayCanvas) _overlayCanvas.style.display = "block";
+                        _lastRect = null;
+                        syncPosition();
+                        node.setDirtyCanvas(true, true);
+                    };
+                    node.image.onerror = (err) => {
+                        console.error("[SPLINE 🦊] Image load error:", err);
+                        console.error("[SPLINE 🦊] Failed URL:", imgUrl);
+                        node.imageReady = false;
+                        node.setDirtyCanvas(true, true);
+                    };
+                    node.currentStatus = "🎨 Draw mask on image";
                 };
                 
-                const loadImage = async (filename) => {
-                    const cleanFilename = filename.startsWith('._') ? filename.substring(2) : filename;
-                    const url = `/api/view?filename=${encodeURIComponent(cleanFilename)}&type=input`;
+                node.showImageSelector = function() {
+                    const self = this;
                     
-                    try {
-                        const resp = await fetch(url);
-                        if (resp.ok) {
-                            const blob = await resp.blob();
-                            const img = new Image();
-                            img.src = URL.createObjectURL(blob);
+                    const existingMenu = document.querySelector('.inspline-image-menu');
+                    if (existingMenu) existingMenu.remove();
+                    
+                    fetch("/rayko/inspline/images")
+                        .then(response => response.json())
+                        .then(data => {
+                            self.imageList = data.images || [];
+                            console.log("[SPLINE 🦊] Found images:", self.imageList.length);
                             
-                            await new Promise((resolve, reject) => {
-                                img.onload = () => {
-                                    if (_imagePreview?.src) URL.revokeObjectURL(_imagePreview.src);
-                                    _imagePreview = img;
-                                    _imageLoaded = true;
-                                    
-                                    const targetHeight = Math.max(400, img.height / 3 + 150);
-                                    node.setSize([Math.max(400, img.width / 3), targetHeight]);
-                                    
-                                    setTimeout(() => {
-                                        if (!_overlayCanvas) createOverlayCanvas();
-                                    }, 300);
-                                    
-                                    resolve();
+                            if (!self.imageList.length) {
+                                const menu = document.createElement("div");
+                                menu.className = 'inspline-image-menu';
+                                menu.textContent = "No images found in input folder!";
+                                menu.style.cssText = `
+                                    position: fixed;
+                                    background: #1a1a1a;
+                                    border: 1px solid #444;
+                                    border-radius: 6px;
+                                    padding: 15px;
+                                    z-index: 10001;
+                                    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                                    color: #888;
+                                `;
+                                self.positionMenu(menu, 0);
+                                document.body.appendChild(menu);
+                                setTimeout(() => menu.remove(), 2000);
+                                return;
+                            }
+                            
+                            const menu = document.createElement("div");
+                            menu.className = 'inspline-image-menu';
+                            menu.style.cssText = `
+                                position: fixed;
+                                background: #1a1a1a;
+                                border: 1px solid #444;
+                                border-radius: 6px;
+                                max-height: 300px;
+                                overflow-y: auto;
+                                z-index: 10001;
+                                box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                                min-width: 200px;
+                            `;
+                            
+                            self.imageList.forEach(imgPath => {
+                                const item = document.createElement("div");
+                                const displayName = imgPath.split('/').pop();
+                                item.textContent = displayName;
+                                item.title = imgPath;
+                                item.style.cssText = `
+                                    padding: 10px 15px;
+                                    cursor: pointer;
+                                    color: #ddd;
+                                    font-size: 12px;
+                                    border-bottom: 1px solid #333;
+                                `;
+                                if (imgPath === self.selectedImage) {
+                                    item.style.background = "#2a4a2a";
+                                    item.style.color = "#4CAF50";
+                                }
+                                item.onmouseover = () => {
+                                    if (imgPath !== self.selectedImage) {
+                                        item.style.background = "#333";
+                                    }
                                 };
-                                img.onerror = reject;
+                                item.onmouseout = () => {
+                                    if (imgPath !== self.selectedImage) {
+                                        item.style.background = "#1a1a1a";
+                                    }
+                                };
+                                item.onclick = (e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    console.log("[SPLINE 🦊] Selected image:", imgPath);
+                                    self.loadImage(imgPath);
+                                    menu.remove();
+                                };
+                                menu.appendChild(item);
                             });
-                        }
-                    } catch (e) {
-                        console.error("[SPLINE] Load error:", e);
-                        _imageLoaded = false;
-                    }
+                            
+                            self.positionMenu(menu, 0);
+                            document.body.appendChild(menu);
+                            
+                            const closeHandler = (e) => {
+                                if (!menu.contains(e.target)) {
+                                    menu.remove();
+                                    document.removeEventListener("mousedown", closeHandler);
+                                }
+                            };
+                            setTimeout(() => {
+                                document.addEventListener("mousedown", closeHandler);
+                            }, 100);
+                        })
+                        .catch(err => {
+                            console.error("[SPLINE 🦊] Error fetching images:", err);
+                            alert("Error loading image list!");
+                        });
                 };
                 
-                const getHeaderHeight = () => {
-                    let lastWidgetBottom = 0;
-                    
-                    if (node.widgets) {
-                        for (const w of node.widgets) {
-                            if (w.hidden) continue;
-                            
-                            let widgetH = Math.max(w.height || 20, 28);
-                            if (w.type === "combo" || w.name === "image") {
-                                widgetH = Math.max(widgetH, 32);
-                            }
-                            
-                            const widgetBottom = w.y + widgetH;
-                            if (widgetBottom > lastWidgetBottom) {
-                                lastWidgetBottom = widgetBottom;
-                            }
-                        }
+                node.positionMenu = function(menu, buttonIndex) {
+                    const canvasEl = app.canvas?.canvas || document.querySelector("canvas");
+                    if (!canvasEl || !this.pos) {
+                        menu.style.left = "250px";
+                        menu.style.top = "200px";
+                        return;
                     }
                     
-                    return lastWidgetBottom - 32;
+                    const canvasRect = canvasEl.getBoundingClientRect();
+                    const ds = app.canvas.ds;
+                    
+                    const btnY = this.size[1] - 45;
+                    const btnW = (this.size[0] - 50) / 3;
+                    const btnX = 15 + (buttonIndex * (btnW + 5));
+                    
+                    const nodeScreenX = canvasRect.left + ((this.pos[0] + ds.offset[0]) * ds.scale);
+                    const nodeScreenY = canvasRect.top + ((this.pos[1] + ds.offset[1]) * ds.scale);
+                    
+                    const menuX = nodeScreenX + btnX;
+                    const menuY = nodeScreenY + btnY + 30;
+                    
+                    menu.style.left = menuX + "px";
+                    menu.style.top = menuY + "px";
+                };
+                
+                node.triggerFileUpload = function() {
+                    const self = this;
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*';
+                    fileInput.style.display = 'none';
+                    document.body.appendChild(fileInput);
+                    
+                    fileInput.addEventListener('change', async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) {
+                            fileInput.remove();
+                            return;
+                        }
+                        
+                        console.log("[SPLINE 🦊] Uploading file:", file.name);
+                        
+                        const formData = new FormData();
+                        formData.append('image', file);
+                        formData.append('subfolder', '');
+                        formData.append('type', 'input');
+                        
+                        try {
+                            const response = await fetch('/upload/image', {
+                                method: 'POST',
+                                body: formData
+                            });
+                            
+                            if (response.ok) {
+                                const result = await response.json();
+                                console.log("[SPLINE 🦊] Upload result:", result);
+                                
+                                const imageName = result.name || result.filename;
+                                const subfolder = result.subfolder || '';
+                                
+                                let finalName = imageName;
+                                if (subfolder && subfolder !== '') {
+                                    finalName = `${subfolder}/${imageName}`;
+                                }
+                                
+                                if (finalName) {
+                                    console.log("[SPLINE 🦊] Loading uploaded image:", finalName);
+                                    self.loadImage(finalName);
+                                }
+                            } else {
+                                const errText = await response.text();
+                                console.error("[SPLINE 🦊] Upload failed:", errText);
+                                alert("Upload failed: " + errText);
+                            }
+                        } catch (err) {
+                            console.error("[SPLINE 🦊] Upload error:", err);
+                            alert("Upload error: " + err.message);
+                        } finally {
+                            fileInput.remove();
+                        }
+                    });
+                    
+                    fileInput.click();
+                };
+                
+                node.clearPoints = function() {
+                    _points = [];
+                    updateCoords();
                 };
                 
                 const calculateImageRect = () => {
-                    if (!_imagePreview || !app.canvas) return null;
+                    if (!app.canvas) return null;
                     
                     const ds = app.canvas.ds;
                     const canvasEl = app.canvas.canvas;
@@ -133,123 +328,110 @@ app.registerExtension({
                     const graphY = node.pos[1];
                     
                     const canvasRect = canvasEl.getBoundingClientRect();
-                    
                     const nodeScreenX = canvasRect.left + ((graphX + ds.offset[0]) * scale);
                     const nodeScreenY = canvasRect.top + ((graphY + ds.offset[1]) * scale);
                     
-                    const headerHeightGraph = getHeaderHeight();
-                    const scaledHeaderHeight = headerHeightGraph * scale;
+                    let widgetsTotalHeight = 0;
+                    if (node.widgets) {
+                        for (const w of node.widgets) {
+                            if (!w.hidden && w.type !== "button") {
+                                widgetsTotalHeight += (w.computeSize ? w.computeSize(node.size[0])[1] : 20);
+                            }
+                        }
+                    }
                     
-                    const nodePadding = 0 * scale;
+                    const titleBarHeight = LiteGraph.NODE_TITLE_HEIGHT || 30;
+                    const padding = 10;
+                    const footerHeight = 50;
                     
-                    const nodeWidth = node.size[0] * scale;
-                    const nodeHeight = node.size[1] * scale;
+                    const availableHeight = (node.size[1] * scale) - (titleBarHeight * scale) - (widgetsTotalHeight * scale) - (footerHeight * scale) - (padding * 2 * scale);
+                    const availableWidth = (node.size[0] * scale) - (padding * 2 * scale);
                     
-                    const previewWidth = nodeWidth - (nodePadding * 2);
-                    const previewHeight = nodeHeight - scaledHeaderHeight - (nodePadding * 2);
+                    if (availableWidth <= 0 || availableHeight <= 0) return null;
+
+                    let drawW = availableWidth;
+                    let drawH = availableHeight;
+                    let contentScale = 1;
                     
-                    const imgScale = Math.min(
-                        previewWidth / _imagePreview.width,
-                        previewHeight / _imagePreview.height
-                    );
+                    if (node.imageReady && node.image) {
+                        const imgRatio = node.image.width / node.image.height;
+                        
+                        if (availableWidth / availableHeight > imgRatio) {
+                            drawH = availableHeight;
+                            drawW = drawH * imgRatio;
+                        } else {
+                            drawW = availableWidth;
+                            drawH = drawW / imgRatio;
+                        }
+                        
+                        contentScale = drawW / node.image.width;
+                    }
                     
-                    const drawW = _imagePreview.width * imgScale;
-                    const drawH = _imagePreview.height * imgScale;
-                    
-                    const drawX = nodeScreenX + nodePadding + (previewWidth - drawW) / 2;
-                    const drawY = nodeScreenY + scaledHeaderHeight + nodePadding + (previewHeight - drawH) / 2;
-                    
-                    const overlayExpandX = 2 * scale;
-                    const overlayExpandTop = 2 * scale;
-                    const overlayShrinkBottom = 4 * scale;
-                    
-                    const correctedDrawX = drawX - overlayExpandX;
-                    const correctedDrawY = drawY - overlayExpandTop;
-                    const correctedDrawW = drawW + (overlayExpandX * 2);
-                    const correctedDrawH = drawH + overlayExpandTop - overlayShrinkBottom;
+                    const drawX = nodeScreenX + (padding * scale) + ((availableWidth - drawW) / 2);
+                    const drawY = nodeScreenY + (titleBarHeight * scale) + (widgetsTotalHeight * scale) + (padding * scale) + ((availableHeight - drawH) / 2);
                     
                     return {
-                        left: correctedDrawX,
-                        top: correctedDrawY,
-                        width: correctedDrawW,
-                        height: correctedDrawH,
-                        scale: imgScale
+                        left: drawX,
+                        top: drawY,
+                        width: drawW,
+                        height: drawH,
+                        scale: contentScale
                     };
                 };
                 
                 const startSyncLoop = () => {
                     if (_syncRunning) return;
                     _syncRunning = true;
-                    
                     const syncLoop = () => {
                         if (!_syncRunning) return;
-                        
                         syncPosition();
-                        
-                        if (_overlayCanvas && _imageLoaded) {
-                            requestAnimationFrame(syncLoop);
-                        } else {
-                            _syncRunning = false;
-                        }
+                        if (_overlayCanvas) requestAnimationFrame(syncLoop);
+                        else _syncRunning = false;
                     };
-                    
                     requestAnimationFrame(syncLoop);
-                    console.log("[SPLINE] Continuous sync loop started (60 FPS)");
                 };
 
                 const syncPosition = () => {
-                    if (!_overlayCanvas || !_imageLoaded) return;
-                    
+                    if (!_overlayCanvas) return;
                     const imgRect = calculateImageRect();
                     if (!imgRect) return;
                     
                     const hasChanged = !_lastRect || 
-                        Math.abs(_lastRect.left - imgRect.left) > 0.1 ||
-                        Math.abs(_lastRect.top - imgRect.top) > 0.1 ||
-                        Math.abs(_lastRect.width - imgRect.width) > 0.1 ||
-                        Math.abs(_lastRect.height - imgRect.height) > 0.1;
+                        Math.abs(_lastRect.left - imgRect.left) > 0.5 ||
+                        Math.abs(_lastRect.top - imgRect.top) > 0.5 ||
+                        Math.abs(_lastRect.width - imgRect.width) > 0.5 ||
+                        Math.abs(_lastRect.height - imgRect.height) > 0.5;
                     
                     if (hasChanged) {
                         _lastRect = { ...imgRect };
-                        
                         _overlayCanvas.style.left = `${imgRect.left}px`;
                         _overlayCanvas.style.top = `${imgRect.top}px`;
                         _overlayCanvas.style.width = `${imgRect.width}px`;
                         _overlayCanvas.style.height = `${imgRect.height}px`;
-                        
                         _overlayCanvas.dataset.scale = imgRect.scale;
-                        
                         drawOverlay();
                     }
                 };
                 
                 const createOverlayCanvas = () => {
                     if (_overlayCanvas) return;
-                    
                     _overlayCanvas = document.createElement("canvas");
                     _overlayCanvas.style.cssText = `
-                        position: fixed !important;
-                        z-index: 1000 !important;
-                        pointer-events: auto !important;
-                        cursor: crosshair !important;
-                        background: transparent !important;
-                        touch-action: none;
-                        border: 3px solid #00FF00 !important;
-                        box-sizing: border-box !important;
+                        position: fixed !important; z-index: 1000 !important;
+                        pointer-events: auto !important; cursor: crosshair !important;
+                        background: transparent !important; touch-action: none;
+                        border: 1px dashed #00FF00 !important; box-sizing: border-box !important;
+                        display: none;
                     `;
-                    
                     document.body.appendChild(_overlayCanvas);
                     
                     _overlayCanvas.addEventListener("mousedown", (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        
                         const rect = _overlayCanvas.getBoundingClientRect();
                         const x = e.clientX - rect.left;
                         const y = e.clientY - rect.top;
-                        
                         const scale = parseFloat(_overlayCanvas.dataset.scale || "1");
-                        
                         const imgX = x / scale;
                         const imgY = y / scale;
                         
@@ -276,91 +458,37 @@ app.registerExtension({
                             updateCoords();
                         }
                     });
-                    
                     startSyncLoop();
                 };
                 
-                node.onDrawForeground = function(ctx) {
-                    const headerHeightGraph = getHeaderHeight();
-                    
-                    const nodePadding = 0;
-                    const canvasCorrectionX = 4;
-                    const canvasCorrectionY = 12;
-                    
-                    const previewWidth = node.size[0] - (nodePadding * 2) - (canvasCorrectionX * 2);
-                    const previewHeight = node.size[1] - headerHeightGraph - (nodePadding * 2) - canvasCorrectionY;
-                    
-                    if (_imageLoaded && _imagePreview) {
-                        ctx.fillStyle = "#1a1a1a";
-                        ctx.fillRect(nodePadding - 2 + canvasCorrectionX, headerHeightGraph - 2, 
-                                    previewWidth + 4, previewHeight + 4);
-                        
-                        ctx.strokeStyle = "#444";
-                        ctx.strokeRect(nodePadding - 2 + canvasCorrectionX, headerHeightGraph - 2, 
-                                      previewWidth + 4, previewHeight + 4);
-                        
-                        const scale = Math.min(
-                            previewWidth / _imagePreview.width,
-                            previewHeight / _imagePreview.height
-                        );
-                        const drawW = _imagePreview.width * scale;
-                        const drawH = _imagePreview.height * scale;
-                        
-                        const drawX = nodePadding + canvasCorrectionX + (previewWidth - drawW) / 2;
-                        const drawY = headerHeightGraph + nodePadding + (previewHeight - drawH) / 2;
-                        
-                        ctx.drawImage(_imagePreview, drawX, drawY, drawW, drawH);
-                        
-                    } else {
-                        ctx.fillStyle = "#222";
-                        ctx.fillRect(nodePadding + canvasCorrectionX, headerHeightGraph, previewWidth, previewHeight);
-                        ctx.fillStyle = "#666";
-                        ctx.font = "14px Arial";
-                        ctx.textAlign = "center";
-                        ctx.fillText("Select image", 
-                                    nodePadding + previewWidth / 2 + canvasCorrectionX,
-                                    headerHeightGraph + previewHeight / 2);
-                    }
-                };
-                
                 const drawOverlay = () => {
-                    if (!_overlayCanvas || !_imagePreview) return;
-                    
+                    if (!_overlayCanvas || !_lastRect) return;
                     const width = parseFloat(_overlayCanvas.style.width || "0");
                     const height = parseFloat(_overlayCanvas.style.height || "0");
-                    
                     if (width <= 0 || height <= 0) return;
                     
                     const dpr = window.devicePixelRatio || 1;
                     _overlayCanvas.width = width * dpr;
                     _overlayCanvas.height = height * dpr;
-                    
                     const ctx = _overlayCanvas.getContext("2d");
                     ctx.scale(dpr, dpr);
                     ctx.clearRect(0, 0, width, height);
                     
                     const scale = parseFloat(_overlayCanvas.dataset.scale || "1");
-                    
                     if (_points.length >= 1) {
                         ctx.beginPath();
-                        const startX = _points[0].x * scale;
-                        const startY = _points[0].y * scale;
-                        ctx.moveTo(startX, startY);
-                        
+                        ctx.moveTo(_points[0].x * scale, _points[0].y * scale);
                         for (let i = 1; i < _points.length; i++) {
                             ctx.lineTo(_points[i].x * scale, _points[i].y * scale);
                         }
-                        
                         if (_points.length >= 3) {
                             ctx.closePath();
                             ctx.fillStyle = "rgba(0, 255, 0, 0.3)";
                             ctx.fill();
                         }
-                        
                         ctx.strokeStyle = "#0f0";
                         ctx.lineWidth = 2;
                         ctx.stroke();
-                        
                         for (const p of _points) {
                             ctx.beginPath();
                             ctx.arc(p.x * scale, p.y * scale, 4, 0, Math.PI * 2);
@@ -373,48 +501,144 @@ app.registerExtension({
                     }
                 };
                 
-                if (imageWidget) {
-                    const origCallback = imageWidget.callback;
-                    imageWidget.callback = async function(value) {
-                        _points = [];
-                        updateCoords();
-                        _imageLoaded = false;
-                        _imagePreview = null;
+                node.onDrawForeground = function(ctx) {
+                    if (!this.flags.collapsed) {
+                        const [w, h] = this.size;
                         
-                        if (_overlayCanvas) {
-                            _overlayCanvas.remove();
-                            _overlayCanvas = null;
-                            _lastRect = null;
-                            _syncRunning = false;
+                        let widgetsTotalHeight = 0;
+                        if (this.widgets) {
+                            for (const widget of this.widgets) {
+                                if (!widget.hidden && widget.type !== "button") {
+                                    widgetsTotalHeight += (widget.computeSize ? widget.computeSize(w)[1] : 20);
+                                }
+                            }
                         }
                         
-                        if (value && value !== "no_images_found") {
-                            await loadImage(value);
+                        const titleBarHeight = LiteGraph.NODE_TITLE_HEIGHT || 30;
+                        const padding = 10;
+                        const footerHeight = 50;
+                        const btnH = 28;
+                        const btnY = h - 45;
+                        const btnW = (w - 50) / 3;
+                        
+                        const startY = titleBarHeight + widgetsTotalHeight + padding;
+                        const availableHeight = h - startY - footerHeight - padding;
+                        const availableWidth = w - (padding * 2);
+                        
+                        if (this.imageReady && this.image) {
+                            const imgRatio = this.image.width / this.image.height;
+                            let drawW, drawH;
+                            
+                            if (availableWidth / availableHeight > imgRatio) {
+                                drawH = availableHeight;
+                                drawW = drawH * imgRatio;
+                            } else {
+                                drawW = availableWidth;
+                                drawH = drawW / imgRatio;
+                            }
+                            
+                            const drawX = padding + (availableWidth - drawW) / 2;
+                            const drawY = startY + (availableHeight - drawH) / 2;
+                            
+                            ctx.drawImage(this.image, drawX, drawY, drawW, drawH);
+                            
+                            ctx.strokeStyle = "#444";
+                            ctx.lineWidth = 1;
+                            ctx.strokeRect(drawX, drawY, drawW, drawH);
+                        } else {
+                            ctx.fillStyle = "#222";
+                            ctx.fillRect(padding, startY, availableWidth, availableHeight);
+                            ctx.fillStyle = "#555";
+                            ctx.font = "14px Arial";
+                            ctx.textAlign = "center";
+                            ctx.fillText("Select or Upload Image...", w / 2, startY + availableHeight / 2);
                         }
                         
-                        if (origCallback) origCallback.apply(this, arguments);
-                    };
-                    
-                    if (imageWidget.value && imageWidget.value !== "no_images_found") {
-                        setTimeout(() => loadImage(imageWidget.value), 100);
+                        this.buttonPositions = [];
+                        
+                        for (let i = 0; i < this.buttons.length; i++) {
+                            let btn = this.buttons[i];
+                            btn.x = 15 + (i * (btnW + 5));
+                            btn.y = btnY;
+                            btn.w = btnW;
+                            btn.h = btnH;
+                            
+                            this.buttonPositions.push({ x: btn.x, y: btn.y, w: btn.w, h: btn.h });
+
+                            ctx.fillStyle = btn.hover ? "#444" : "#2a2a2a";
+                            ctx.beginPath();
+                            if (ctx.roundRect) ctx.roundRect(btn.x, btn.y, btn.w, btn.h, 6);
+                            else ctx.rect(btn.x, btn.y, btn.w, btn.h);
+                            ctx.fill();
+                            ctx.lineWidth = 1;
+                            ctx.strokeStyle = btn.color;
+                            ctx.stroke();
+                            ctx.fillStyle = btn.color;
+                            ctx.font = "bold 11px Arial";
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+                            ctx.fillText(btn.label, btn.x + btn.w / 2, btn.y + btn.h / 2);
+                            if (btn.hover) app.canvas.canvas.style.cursor = "pointer";
+                        }
                     }
-                }
-                
-                node.setSize([400, 500]);
-                
-                node.onRemoved = function() {
-                    _syncRunning = false;
-                    if (_overlayCanvas) {
-                        _overlayCanvas.remove();
-                        _overlayCanvas = null;
-                    }
-                    if (_imagePreview?.src) URL.revokeObjectURL(_imagePreview.src);
                 };
                 
+                const onResize = node.onResize;
+                node.onResize = function(size) {
+                    if (onResize) onResize.apply(this, arguments);
+                    _lastRect = null;
+                };
+                
+                const onMove = node.onMove;
+                node.onMove = function() {
+                    if (onMove) onMove.apply(this, arguments);
+                    _lastRect = null;
+                };
+                
+                node.onMouseMove = function(event, pos, graphPos) {
+                    const [x, y] = pos;
+                    let needsRedraw = false;
+                    for (let btn of this.buttons) {
+                        const isOver = x >= btn.x && x <= btn.x + btn.w && y >= btn.y && y <= btn.y + btn.h;
+                        if (btn.hover !== isOver) { btn.hover = isOver; needsRedraw = true; }
+                    }
+                    if (needsRedraw) this.setDirtyCanvas(true, false);
+                };
+                
+                node.onMouseDown = function(event, pos, graphPos) {
+                    const [x, y] = pos;
+                    for (let btn of this.buttons) {
+                        if (x >= btn.x && x <= btn.x + btn.w && y >= btn.y && y <= btn.y + btn.h) {
+                            btn.callback();
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+                
+                node.onRemoved = function() {
+                    console.log(`[SPLINE 🦊] Node ${this.id} removed, cleaning up...`);
+                    
+                    _syncRunning = false;
+                    if (_overlayCanvas) { 
+                        _overlayCanvas.remove(); 
+                        _overlayCanvas = null; 
+                    }
+                    
+                    const existingMenu = document.querySelector('.inspline-image-menu');
+                    if (existingMenu) existingMenu.remove();
+                };
+                
+                createOverlayCanvas();
+                
             } catch (error) {
-                console.error("[SPLINE] Critical Error:", error);
-                console.trace(error);
+                console.error("[SPLINE 🦊] Critical Error:", error);
+                console.error(error.stack);
             }
         };
+    },
+
+    setup() {
+        // Пустой - все обработчики внутри onNodeCreated
     }
 });

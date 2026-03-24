@@ -29,9 +29,10 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 The node is designed to create masks without using the ComfyUI native editor. More accurate selection based on the principle of the Lasso tool from Photoshop.  
 
 ### 🪛 Usage  
-The node is ready to use immediately after adding it. You can scale the node to a convenient size to more accurately place spline points. Incorrectly placed dots can be deleted by right-clicking on them. To remove all points from the preview area, click the "❌ Clear Points" button. For convenience, a green frame has been made that shows the area where you can put dots. The frame is slightly larger than the preview size so that the dots can be placed outside the preview, which guarantees that the mask completely covers the edge of the image.  
+The node is ready for use immediately after it is added. Images are added using the "🎨 IMAGE" (images from the input folder) and "🖼️ UPLOAD IMAGE" (images from any folder on your PC) buttons. You can scale the node to a convenient size to more accurately place the points of the spline. Incorrectly positioned points can be deleted by right-clicking on them. To remove all points from the preview area, click the "🔴 CLEAR POINTS" button.  
 
-Link to the video: https://youtu.be/AqNLmLzSunU
+### ↔️ Inputs and Outputs:  
+The IMAGE output returns the original image unchanged. The MASK output returns a black and white mask where the white area corresponds to the drawn polygon.
 
 ---
 ---
@@ -46,7 +47,7 @@ Node allows you to pause the workflow at the image processing stage, manually se
 
 ### 🪛 Usage  
 When this node is reached, pipeline execution is automatically suspended. A preview of the input image is displayed in the node's interface. The user can left-click to add polygon points and right-click or Ctrl-click to delete the last points.  
-The ACCEPT button confirms the created mask, after which the node completes processing and transmits the data further according to the scheme. The CLEAR POINTS button clears all the drawn points for redrawing. It is important that after using this button, you do not need to press the Prompt Queue again, just draw a new mask and press ACCEPT. The CANCEL button completely interrupts the process and resets the node status.  
+The "✔️ ACCEPT" button confirms the created mask, after which the node completes processing and transmits the data further according to the scheme. The "🔴 CLEAR POINTS" button clears all the drawn points for redrawing. It is important that after using this button, you do not need to press the Prompt Queue again, just draw a new mask and press "✔️ ACCEPT". The "❌ CANCEL" button completely interrupts the process and resets the node status.  
 
 ### ↔️ Inputs and Outputs:
 The IMAGE input accepts an image from any previous node. The IMAGE output returns the original image unchanged. The MASK output returns a black and white mask where the white area corresponds to the drawn polygon.  

@@ -23,7 +23,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 # 🦊 RS Spline Mask node  
 **Node for creating a spline mask** 
 
-![Screenshot_1](https://github.com/user-attachments/assets/33544b90-d83c-4b9a-90e8-f94207aff158)
+![Screenshot_3](https://github.com/user-attachments/assets/91ff5f83-5f52-4983-a5e4-fe4f514f8d0a)
 
 ### 🔥 Features  
 The node is designed to create masks without using the ComfyUI native editor. More accurate selection based on the principle of the Lasso tool from Photoshop.  

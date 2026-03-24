@@ -206,8 +206,24 @@ Read - reads the text you wrote earlier in the uploaded image, sends the text an
 
 Link to the video: https://youtu.be/1s26hUcVXX4  
 
----
----
+---  
+---  
+
+# 🦊 RS Loop Switch node  
+**A combined node for generating a sequence of values with automatic switching**  
+
+![Screenshot_4](https://github.com/user-attachments/assets/65cc934a-33b5-4592-8a15-fa54f2ac53c9)
+
+### 🔥 Features  
+The node generates a list of INT values, automatically switching between 10 preset values based on the current cycle step. It is ideal for generating a series of images with different seeds without the need to manually change the parameters.But you can use it for any other tasks where dynamic INT changes are required.  
+
+### 🔌 Connection (examples)  
+- RS Loop Switch (output) → KSampler (seed)  
+- RS Loop Switch (output) → KSampler (steps)  
+- RS Loop Switch (output) → any INT input  
+
+---  
+---  
 
 ## 🤝 Bug Reporting  
 

@@ -4,7 +4,6 @@ import { api } from "../../scripts/api.js";
 
 app.registerExtension({
     name: "RaykoSplineMask",
-    
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
         if (nodeData.name !== "RaykoSplineMask") return;
 
@@ -40,8 +39,7 @@ app.registerExtension({
                 node.padding = 10;
                 node.targetWidth = 450;
                 node.buttonPositions = [];
-                
-                // 3 кнопки с новыми цветами
+                 
                 node.buttons = [
                     { label: "🎨 IMAGE", color: "#2196F3", callback: () => node.showImageSelector(), hover: false },
                     { label: "🖼️ UPLOAD IMAGE", color: "#4CAF50", callback: () => node.triggerFileUpload(), hover: false },
@@ -81,7 +79,7 @@ app.registerExtension({
                         return;
                     }
                     
-                    console.log("[SPLINE 🦊] Loading image:", imagePath);
+                    console.log("[SPLINE 🦊] Loading image: ", imagePath);
                     
                     node.selectedImage = imagePath;
                     node.properties = node.properties || {};
@@ -89,7 +87,7 @@ app.registerExtension({
                     
                     if (imageWidget) {
                         imageWidget.value = imagePath;
-                        console.log("[SPLINE 🦊] Widget value set to:", imagePath);
+                        console.log("[SPLINE 🦊] Widget value set to: ", imagePath);
                     }
                     
                     let filename = imagePath;
@@ -106,11 +104,11 @@ app.registerExtension({
                         imgUrl += `&subfolder=${encodeURIComponent(subfolder)}`;
                     }
                     
-                    console.log("[SPLINE 🦊] Image URL:", imgUrl);
+                    console.log("[SPLINE 🦊] Image URL: ", imgUrl);
                     
                     node.image.src = imgUrl + "&t=" + Date.now();
                     node.image.onload = () => {
-                        console.log("[SPLINE 🦊] Image loaded successfully:", node.image.width, "x", node.image.height);
+                        console.log("[SPLINE 🦊] Image loaded successfully: ", node.image.width, "x", node.image.height);
                         node.imageReady = true;
                         if (_overlayCanvas) _overlayCanvas.style.display = "block";
                         _lastRect = null;
@@ -118,8 +116,8 @@ app.registerExtension({
                         node.setDirtyCanvas(true, true);
                     };
                     node.image.onerror = (err) => {
-                        console.error("[SPLINE 🦊] Image load error:", err);
-                        console.error("[SPLINE 🦊] Failed URL:", imgUrl);
+                        console.error("[SPLINE 🦊] Image load error: ", err);
+                        console.error("[SPLINE 🦊] Failed URL: ", imgUrl);
                         node.imageReady = false;
                         node.setDirtyCanvas(true, true);
                     };
@@ -129,18 +127,18 @@ app.registerExtension({
                 node.showImageSelector = function() {
                     const self = this;
                     
-                    const existingMenu = document.querySelector('.inspline-image-menu');
+                    const existingMenu = document.querySelector('.spline-image-menu');
                     if (existingMenu) existingMenu.remove();
                     
-                    fetch("/rayko/inspline/images")
+                    fetch("/rayko/spline/images")
                         .then(response => response.json())
                         .then(data => {
                             self.imageList = data.images || [];
-                            console.log("[SPLINE 🦊] Found images:", self.imageList.length);
+                            console.log("[SPLINE 🦊] Found images: ", self.imageList.length);
                             
                             if (!self.imageList.length) {
                                 const menu = document.createElement("div");
-                                menu.className = 'inspline-image-menu';
+                                menu.className = 'spline-image-menu';
                                 menu.textContent = "No images found in input folder!";
                                 menu.style.cssText = `
                                     position: fixed;
@@ -159,7 +157,7 @@ app.registerExtension({
                             }
                             
                             const menu = document.createElement("div");
-                            menu.className = 'inspline-image-menu';
+                            menu.className = 'spline-image-menu';
                             menu.style.cssText = `
                                 position: fixed;
                                 background: #1a1a1a;
@@ -201,7 +199,7 @@ app.registerExtension({
                                 item.onclick = (e) => {
                                     e.stopPropagation();
                                     e.preventDefault();
-                                    console.log("[SPLINE 🦊] Selected image:", imgPath);
+                                    console.log("[SPLINE 🦊] Selected image: ", imgPath);
                                     self.loadImage(imgPath);
                                     menu.remove();
                                 };
@@ -222,7 +220,7 @@ app.registerExtension({
                             }, 100);
                         })
                         .catch(err => {
-                            console.error("[SPLINE 🦊] Error fetching images:", err);
+                            console.error("[SPLINE 🦊] Error fetching images: ", err);
                             alert("Error loading image list!");
                         });
                 };
@@ -267,7 +265,7 @@ app.registerExtension({
                             return;
                         }
                         
-                        console.log("[SPLINE 🦊] Uploading file:", file.name);
+                        console.log("[SPLINE 🦊] Uploading file: ", file.name);
                         
                         const formData = new FormData();
                         formData.append('image', file);
@@ -282,7 +280,7 @@ app.registerExtension({
                             
                             if (response.ok) {
                                 const result = await response.json();
-                                console.log("[SPLINE 🦊] Upload result:", result);
+                                console.log("[SPLINE 🦊] Upload result: ", result);
                                 
                                 const imageName = result.name || result.filename;
                                 const subfolder = result.subfolder || '';
@@ -293,16 +291,16 @@ app.registerExtension({
                                 }
                                 
                                 if (finalName) {
-                                    console.log("[SPLINE 🦊] Loading uploaded image:", finalName);
+                                    console.log("[SPLINE 🦊] Loading uploaded image: ", finalName);
                                     self.loadImage(finalName);
                                 }
                             } else {
                                 const errText = await response.text();
-                                console.error("[SPLINE 🦊] Upload failed:", errText);
+                                console.error("[SPLINE 🦊] Upload failed: ", errText);
                                 alert("Upload failed: " + errText);
                             }
                         } catch (err) {
-                            console.error("[SPLINE 🦊] Upload error:", err);
+                            console.error("[SPLINE 🦊] Upload error: ", err);
                             alert("Upload error: " + err.message);
                         } finally {
                             fileInput.remove();
@@ -417,12 +415,13 @@ app.registerExtension({
                     if (_overlayCanvas) return;
                     _overlayCanvas = document.createElement("canvas");
                     _overlayCanvas.style.cssText = `
-                        position: fixed !important; z-index: 1000 !important;
+                        position: fixed !important; z-index: 1001 !important;
                         pointer-events: auto !important; cursor: crosshair !important;
                         background: transparent !important; touch-action: none;
                         border: 1px dashed #00FF00 !important; box-sizing: border-box !important;
                         display: none;
                     `;
+                    _overlayCanvas.dataset.nodeType = "RaykoSplineMask";
                     document.body.appendChild(_overlayCanvas);
                     
                     _overlayCanvas.addEventListener("mousedown", (e) => {
@@ -460,7 +459,7 @@ app.registerExtension({
                     });
                     startSyncLoop();
                 };
-                
+                 
                 const drawOverlay = () => {
                     if (!_overlayCanvas || !_lastRect) return;
                     const width = parseFloat(_overlayCanvas.style.width || "0");
@@ -625,20 +624,20 @@ app.registerExtension({
                         _overlayCanvas = null; 
                     }
                     
-                    const existingMenu = document.querySelector('.inspline-image-menu');
+                    const existingMenu = document.querySelector('.spline-image-menu');
                     if (existingMenu) existingMenu.remove();
                 };
                 
                 createOverlayCanvas();
                 
             } catch (error) {
-                console.error("[SPLINE 🦊] Critical Error:", error);
+                console.error("[SPLINE 🦊] Critical Error: ", error);
                 console.error(error.stack);
             }
         };
     },
 
     setup() {
-        // Пустой - все обработчики внутри onNodeCreated
+        // Empty - all handlers inside onNodeCreated
     }
 });

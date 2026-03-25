@@ -4,7 +4,6 @@ import torch
 import numpy as np
 from PIL import Image, ImageDraw
 import folder_paths
-
 try:
     from server import PromptServer
     from aiohttp import web
@@ -64,7 +63,7 @@ class RaykoSplineMask:
             return (torch.zeros((1, h, w, 3)), torch.zeros((1, h, w)))
         
         h, w = img_tensor.shape[1], img_tensor.shape[2]
-        
+         
         mask_np = np.zeros((h, w), dtype=np.float32)
         
         try:
@@ -78,7 +77,7 @@ class RaykoSplineMask:
                 draw = ImageDraw.Draw(pil_mask)
                 draw.polygon(pts, fill=255)
                 mask_np = np.array(pil_mask).astype(np.float32) / 255.0
-                
+                 
                 print(f"[SPLINE 🦊] Mask created with {len(pts)} points")
             else:
                 print(f"[SPLINE 🦊] Less than 3 points - empty mask")
@@ -88,14 +87,12 @@ class RaykoSplineMask:
         mask_tensor = torch.from_numpy(mask_np).unsqueeze(0)
         return (img_tensor, mask_tensor)
 
-
 if PromptServer is not None and web is not None:
-    @PromptServer.instance.routes.get("/rayko/inspline/images")
-    async def inspline_get_images(request):
+    @PromptServer.instance.routes.get("/rayko/spline/images")
+    async def spline_get_images(request):
         try:
             input_dir = folder_paths.get_input_directory()
             images = []
-            
             if os.path.exists(input_dir):
                 for root, dirs, files in os.walk(input_dir):
                     for file in files:
@@ -107,7 +104,6 @@ if PromptServer is not None and web is not None:
         except Exception as e:
             print(f"[SPLINE 🦊] API Error getting images: {e}")
             return web.json_response({"images": []}, status=200)
-
 
 NODE_CLASS_MAPPINGS = {"RaykoSplineMask": RaykoSplineMask}
 NODE_DISPLAY_NAME_MAPPINGS = {"RaykoSplineMask": "🦊 RS Spline Mask"}

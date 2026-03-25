@@ -74,8 +74,7 @@ Link to the video: https://youtu.be/LxhVk5C_oas
 **Node allows you to overlay text on images using masks**  
 *The node is in the process of feature improvements, but the stated functionality is already working*
 
-![Screenshot_1](https://github.com/user-attachments/assets/96cdfb99-93fb-45d3-bb8a-f15db00bbb3f)
-
+![Screenshot_1](https://github.com/user-attachments/assets/cd2a9ceb-a4e3-4975-9ac9-460a2ffc8fad)
 
 ### 🔥 Features  
 - **Automatic font size selection** — the text always fits perfectly into the mask area  

@@ -18,6 +18,7 @@
       "Rayko_Save_Image_Pair.py"
       "Rayko_Image_Text.py"
       "Rayko_Text_Overlay.py"
+      "Rayko_Loop_Switch.py"
     ]
   }
 }

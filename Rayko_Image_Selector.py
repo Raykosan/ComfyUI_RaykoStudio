@@ -89,16 +89,16 @@ class RaykoImageSelect:
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("selected_images",)
     FUNCTION = "select_batch"
-    CATEGORY = "🦊 RaykoStudio"
+    CATEGORY = "RaykoStudio/Image"
     OUTPUT_NODE = True
 
     def select_batch(self, images, unique_id):
         unique_id = str(unique_id)
-
+        
         PENDING_DECISIONS[unique_id] = {
             "status": "pending",
             "last_heartbeat": time.time()
-}
+        }
 
         batch_size = images.shape[0]
         temp_dir = folder_paths.get_temp_directory()
@@ -126,7 +126,7 @@ class RaykoImageSelect:
         
         while True:
             current_time = time.time()
-                        
+            
             if unique_id in SELECTION_CACHE:
                 print(f"[ImSELECT 🦊] Selection received for node {unique_id}")
                 break

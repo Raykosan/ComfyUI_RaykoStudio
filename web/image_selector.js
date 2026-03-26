@@ -131,6 +131,88 @@ app.registerExtension({
             return { cols, rows, targetWidth, targetHeight };
         };
 
+        nodeType.prototype.getNodeScreenPosition = function() {
+            const canvasEl = app.canvas?.canvas || document.querySelector('canvas');
+            if (!canvasEl || !this.pos) {
+                return { x: 250, y: 200 };
+            }
+            
+            const canvasRect = canvasEl.getBoundingClientRect();
+            const ds = app.canvas.ds;
+            
+            return {
+                x: canvasRect.left + ((this.pos[0] + ds.offset[0]) * ds.scale),
+                y: canvasRect.top + ((this.pos[1] + ds.offset[1]) * ds.scale)
+            };
+        };
+
+        nodeType.prototype.showWarningPopup = function() {
+            const existingPopup = document.querySelector('.imselect-warning-popup');
+            if (existingPopup) existingPopup.remove();
+            
+            const popup = document.createElement('div');
+            popup.className = 'imselect-warning-popup';
+            popup.style.cssText = `
+                position: fixed;
+                background: #1a1a1a;
+                border: 2px solid #dc3545;
+                border-radius: 8px;
+                padding: 20px;
+                z-index: 10001;
+                box-shadow: 0 4px 30px rgba(0,0,0,0.7);
+                max-width: 450px;
+                font-family: 'Segoe UI', Roboto, sans-serif;
+            `;
+            
+            const nodeScreenPos = this.getNodeScreenPosition();
+            popup.style.left = (nodeScreenPos.x + 50) + 'px';
+            popup.style.top = (nodeScreenPos.y + 100) + 'px';
+            
+            popup.innerHTML = `
+                <div style="color: #dc3545; font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: center;">
+                    ⚠️ WARNING / ВНИМАНИЕ
+                </div>
+                <div style="color: #fff; font-size: 13px; margin-bottom: 12px; line-height: 1.5; border-bottom: 1px solid #333; padding-bottom: 12px;">
+                    <strong style="color: #2196F3;">🇬🇧 English:</strong><br>
+                    No images selected.<br>
+                    Please select at least one image, or press 
+                    <span style="color: #dc3545; font-weight: bold;">❌ CANCEL</span>
+                </div>
+                <div style="color: #fff; font-size: 13px; margin-bottom: 15px; line-height: 1.5;">
+                    <strong style="color: #2196F3;">🇷🇺 Русский:</strong><br>
+                    Не выбрано ни одно изображение.<br>
+                    Выберите хотя бы одно изображение, или нажмите кнопку 
+                    <span style="color: #dc3545; font-weight: bold;">❌ CANCEL</span>
+                </div>
+                <button id="imselect-warning-ok" style="
+                    background: #2a2a2a;
+                    color: #fff;
+                    border: 1px solid #555;
+                    padding: 8px 20px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    width: 100%;
+                ">OK / ПОНЯТНО</button>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            document.getElementById('imselect-warning-ok').addEventListener('click', () => {
+                popup.remove();
+            });
+            
+            setTimeout(() => {
+                const closeHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('mousedown', closeHandler);
+                    }
+                };
+                document.addEventListener('mousedown', closeHandler);
+            }, 100);
+        };
+
         const onDrawForeground = nodeType.prototype.onDrawForeground;
         nodeType.prototype.onDrawForeground = function (ctx) {
             if (onDrawForeground) onDrawForeground.apply(this, arguments);
@@ -313,11 +395,6 @@ app.registerExtension({
                     app.canvas.canvas.style.cursor = "pointer";
                 }
             });
-
-            //ctx.fillStyle = "#555";
-            //ctx.font = "10px Arial";
-            //ctx.textAlign = "right";
-            //ctx.fillText(this.userResized ? "📐 Manual size" : "📐 Auto-sized", this.size[0] - 10, btnY - 8);
         };
 
         const onMouseDown = nodeType.prototype.onMouseDown;
@@ -372,6 +449,10 @@ app.registerExtension({
             } else if (key === 'deselect_all') {
                 this.selectedIndices.clear();
             } else if (key === 'accept') {
+                if (this.selectedIndices.size === 0) {
+                    this.showWarningPopup();
+                    return;
+                }
                 const sorted = Array.from(this.selectedIndices).sort((a, b) => a - b);
                 this.sendSelection(sorted);
             } else if (key === 'cancel') {

@@ -89,18 +89,16 @@ class RaykoImageSelect:
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("selected_images",)
     FUNCTION = "select_batch"
-    CATEGORY = "RaykoStudio/Image"
+    CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
 
     def select_batch(self, images, unique_id):
         unique_id = str(unique_id)
-        timeout_seconds = 300
-        start_time = time.time()
-        
+
         PENDING_DECISIONS[unique_id] = {
             "status": "pending",
             "last_heartbeat": time.time()
-        }
+}
 
         batch_size = images.shape[0]
         temp_dir = folder_paths.get_temp_directory()
@@ -128,13 +126,7 @@ class RaykoImageSelect:
         
         while True:
             current_time = time.time()
-            
-            if current_time - start_time > timeout_seconds:
-                print(f"[ImSELECT 🦊] Timeout for node {unique_id}")
-                if unique_id in PENDING_DECISIONS:
-                    del PENDING_DECISIONS[unique_id]
-                break
-            
+                        
             if unique_id in SELECTION_CACHE:
                 print(f"[ImSELECT 🦊] Selection received for node {unique_id}")
                 break
@@ -152,7 +144,7 @@ class RaykoImageSelect:
                 print(f"[ImSELECT 🦊] Node {unique_id} completed via API")
                 break
             
-            last_heartbeat = state.get("last_heartbeat", start_time)
+            last_heartbeat = state.get("last_heartbeat", time.time())
             if current_time - last_heartbeat > 10:
                 print(f"[ImSELECT 🦊] Frontend disconnected for node {unique_id} (heartbeat timeout)")
                 if unique_id in PENDING_DECISIONS:

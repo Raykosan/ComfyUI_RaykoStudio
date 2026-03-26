@@ -314,10 +314,10 @@ app.registerExtension({
                 }
             });
 
-            ctx.fillStyle = "#555";
-            ctx.font = "10px Arial";
-            ctx.textAlign = "right";
-            ctx.fillText(this.userResized ? "📐 Manual size" : "📐 Auto-sized", this.size[0] - 8, 18);
+            //ctx.fillStyle = "#555";
+            //ctx.font = "10px Arial";
+            //ctx.textAlign = "right";
+            //ctx.fillText(this.userResized ? "📐 Manual size" : "📐 Auto-sized", this.size[0] - 10, btnY - 8);
         };
 
         const onMouseDown = nodeType.prototype.onMouseDown;

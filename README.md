@@ -84,7 +84,9 @@ The IMAGE input accepts an image from any previous node. The IMAGE output return
 	
     Continue Workflow  
         Click "✔️ ACCEPT" to pass selected images to next nodes
-        Only selected images will be processed downstream
+        Only selected images will be processed downstream  
+### ⚠️ Reminder
+**The generation process will pause indefinitely until you click "❌ CANCEL" or close the workflow or the ComfyUI page.**
 
 ---
 ---

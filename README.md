@@ -68,23 +68,18 @@ The IMAGE input accepts an image from any previous node. The IMAGE output return
 - **Auto-Cleanup** - Proper resource cleanup on node removal or workflow close  
 
 ### 🪛 Usage  
-**Action**  
+**Buttons**  
+➕ SELECT ALL - Select all images in batch  
 
-    ➕ SELECT ALL  
-    Select all images in batch  
+⭕ DESELECT ALL - Clear all selections  
 	
-    ⭕ DESELECT ALL  
-    Clear all selections  
+✔️ ACCEPT - Confirm selection and continue  
 	
-    ✔️ ACCEPT  
-    Confirm selection and continue  
-	
-    ❌ CANCEL  
-    Cancel and interrupt generation  
-	
-    Continue Workflow  
-        Click "✔️ ACCEPT" to pass selected images to next nodes
-        Only selected images will be processed downstream  
+❌ CANCEL - Cancel and interrupt generation  
+
+**Continue Workflow**  
+Click "✔️ ACCEPT" to pass selected images to next nodes. Only selected images will be processed downstream  
+		
 ### ⚠️ Reminder
 **The generation process will pause indefinitely until you click "❌ CANCEL" or close the workflow or the ComfyUI page.**
 

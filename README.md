@@ -55,6 +55,40 @@ The IMAGE input accepts an image from any previous node. The IMAGE output return
 ---
 ---
 
+# 🦊 RS Image Selector node  
+**Node for Interactive Batch Image Selection** 
+
+![Screenshot_2](https://github.com/user-attachments/assets/af723d73-4ff6-458c-a267-f4ab195d7b72)
+
+### 🔥 Features  
+- **Interactive Grid View** - Display all batch images in a responsive grid layout  
+- **Multi-Select Support** - Click to select/deselect individual images  
+- **Smart Auto-Resize** - Node automatically adjusts size based on image count  
+- **Heartbeat System** - Robust connection monitoring between frontend and backend  
+- **Auto-Cleanup** - Proper resource cleanup on node removal or workflow close  
+
+### 🪛 Usage  
+**Action**  
+
+    ➕ SELECT ALL  
+    Select all images in batch  
+	
+    ⭕ DESELECT ALL  
+    Clear all selections  
+	
+    ✔️ ACCEPT  
+    Confirm selection and continue  
+	
+    ❌ CANCEL  
+    Cancel and interrupt generation  
+	
+    Continue Workflow  
+        Click "✔️ ACCEPT" to pass selected images to next nodes
+        Only selected images will be processed downstream
+
+---
+---
+
 # 🦊 RS Models Loader node  
 **Combined node for loading models**  
 

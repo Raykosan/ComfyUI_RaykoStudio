@@ -173,15 +173,13 @@ app.registerExtension({
                     ⚠️ WARNING / ВНИМАНИЕ
                 </div>
                 <div style="color: #fff; font-size: 13px; margin-bottom: 12px; line-height: 1.5; border-bottom: 1px solid #333; padding-bottom: 12px;">
-                    <strong style="color: #2196F3;">🇬🇧 English:</strong><br>
                     No images selected.<br>
                     Please select at least one image, or press 
                     <span style="color: #dc3545; font-weight: bold;">❌ CANCEL</span>
                 </div>
                 <div style="color: #fff; font-size: 13px; margin-bottom: 15px; line-height: 1.5;">
-                    <strong style="color: #2196F3;">🇷🇺 Русский:</strong><br>
                     Не выбрано ни одно изображение.<br>
-                    Выберите хотя бы одно изображение, или нажмите кнопку 
+                    Выберите хотя бы одно изображение,<br>или нажмите кнопку 
                     <span style="color: #dc3545; font-weight: bold;">❌ CANCEL</span>
                 </div>
                 <button id="imselect-warning-ok" style="

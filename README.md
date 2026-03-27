@@ -197,6 +197,9 @@ Auto highlight recovery
 ### 🔥 Features  
 The node is used to save the image while preserving the workflow inside the image. You can add explanatory text to an image with a choice of background size, theme, font and its size. It is possible to add your own fonts (to the fonts folder). Use ttf and otf fonts.  
 If the label is not needed, leave the text field blank and the image is saved as usual.  
+Themes:  
+light - white background, black text.  
+dark - black background, white text.  
 
 ---
 ---

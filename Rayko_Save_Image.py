@@ -70,6 +70,8 @@ def combine_images_pil(images, direction='horizontal'):
     return combined
 
 class RSSaveImage:
+    WEB_DIRECTORY = "web"
+
     def __init__(self):
         self.output_dir = folder_paths.get_output_directory()
         self.type = "output"
@@ -86,20 +88,28 @@ class RSSaveImage:
         font_dir = os.path.join(script_dir, "fonts")
         font_list = get_font_list(font_dir)
         if not font_list:
-            font_list = ["none"]
+            font_list = ["default"]
+
+        # Дефолтные данные для интерфейса
+        default_data = {
+            "text": "",
+            "font_name": font_list[0] if font_list else "default",
+            "font_size": 50,
+            "footer_height": 100,
+            "theme": "light",
+            "filename_prefix": "ComfyUI",
+            "font_list": font_list
+        }
 
         return {
             "required": {
                 "images": ("IMAGE",),
-                "filename_prefix": ("STRING", {"default": "ComfyUI"}),
+                "node_data": ("STRING", {
+                    "default": json.dumps(default_data),
+                    "hidden": True
+                }),
             },
-            "optional": {
-                "text": ("STRING", {"multiline": True, "default": ""}),
-                "footer_height": ("INT", {"default": 100, "min": 0, "max": 1024}),
-                "font_name": (font_list, {"default": font_list[0] if font_list else "none"}),
-                "font_size": ("INT", {"default": 50, "min": 1, "max": 512}),
-                "theme": (["dark", "light"], {"default": "light"}),
-            },
+            "optional": {},
             "hidden": {
                 "prompt": "PROMPT",
                 "extra_pnginfo": "EXTRA_PNGINFO"
@@ -111,9 +121,36 @@ class RSSaveImage:
     OUTPUT_NODE = True
     CATEGORY = "🦊 RaykoStudio"
 
-    def save_images(self, images, filename_prefix="RS_SaveImage/img",
-                    text="", footer_height=100, font_name=None, font_size=50,
-                    theme="light", prompt=None, extra_pnginfo=None):
+    def save_images(self, images, node_data=None, prompt=None, extra_pnginfo=None):
+        # Парсинг данных из интерфейса
+        default_data = {
+            "text": "",
+            "font_name": "default",
+            "font_size": 50,
+            "footer_height": 100,
+            "theme": "light",
+            "filename_prefix": "ComfyUI",
+            "font_list": []
+        }
+        
+        try:
+            if node_data:
+                data = json.loads(node_data)
+                # Объединяем с дефолтом на случай если каких-то полей нет
+                data = {**default_data, **data}
+            else:
+                data = default_data
+        except Exception as e:
+            print(f"Error parsing node_data: {e}")
+            data = default_data
+
+        text = data.get("text", "")
+        font_name = data.get("font_name", "default")
+        font_size = data.get("font_size", 50)
+        footer_height = data.get("footer_height", 100)
+        theme = data.get("theme", "light")
+        filename_prefix = data.get("filename_prefix", "ComfyUI")
+
         filename_prefix += self.prefix_append
 
         if theme == "dark":
@@ -126,10 +163,13 @@ class RSSaveImage:
         batch_size = images.shape[0]
 
         font_path = None
-        if font_name and font_name != "none":
+        if font_name and font_name != "none" and font_name != "default":
             font_path = os.path.join(self.font_dir, font_name)
             if not os.path.isfile(font_path):
                 font_path = None
+        elif font_name == "default":
+             # Попытка найти дефолтный шрифт, если нужно, или оставить None для load_default
+            pass
 
         processed_images = []
         for i in range(batch_size):

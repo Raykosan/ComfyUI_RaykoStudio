@@ -53,7 +53,7 @@ app.registerExtension({
                             this.data = { ...this.data, ...saved };
                         }
                     } catch (e) {
-                        console.error("🦊 [RS_TextOverlay] Error loading saved ", e);
+                        console.error("🦊 [RS_TextOverlay] Error loading saved data", e);
                     }
                 }
                 
@@ -320,6 +320,7 @@ app.registerExtension({
                     ctx.fillText(text, x, y + h/2 + 4);
                 };
 
+                // === ИСПРАВЛЕННАЯ ФУНКЦИЯ — МНОГОСТРОЧНЫЙ ТЕКСТ ===
                 this.drawMultilineField = function(ctx, value, x, y, w, h) {
                     ctx.fillStyle = "#222";
                     ctx.fillRect(x, y, w, h);
@@ -328,8 +329,34 @@ app.registerExtension({
                     ctx.fillStyle = "#fff";
                     ctx.font = "11px sans-serif";
                     ctx.textAlign = "left";
-                    const display = value.length > 30 ? value.substring(0, 27) + "..." : value;
-                    ctx.fillText(display.replace('\n', '\\n'), x + 5, y + h/2 + 4);
+                    
+                    if (!value || value.trim() === "") {
+                        ctx.fillStyle = "#666";
+                        ctx.fillText("Enter text...", x + 5, y + h/2 + 4);
+                        return;
+                    }
+                    
+                    // Разбиваем текст на строки и рисуем каждую
+                    const lines = value.split('\n');
+                    const lineHeight = 14;
+                    const startY = y + 10;
+                    
+                    // Рисуем максимум 3 строки для отображения
+                    const maxLines = 3;
+                    for (let i = 0; i < Math.min(lines.length, maxLines); i++) {
+                        let line = lines[i];
+                        // Обрезаем если строка слишком длинная
+                        if (line.length > 35) {
+                            line = line.substring(0, 32) + "...";
+                        }
+                        ctx.fillText(line, x + 5, startY + (i * lineHeight));
+                    }
+                    
+                    // Если строк больше чем показываем
+                    if (lines.length > maxLines) {
+                        ctx.fillStyle = "#666";
+                        ctx.fillText("...", x + 5, startY + (maxLines * lineHeight));
+                    }
                 };
 
                 this.drawComboField = function(ctx, value, x, y, w, h) {

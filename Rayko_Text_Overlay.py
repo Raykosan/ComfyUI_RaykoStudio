@@ -49,6 +49,7 @@ class TextRenderConfig:
     shadow_color: Tuple[int, int, int, int]
     shadow_offset: Tuple[int, int]
     shadow_blur: float
+    shadow_opacity: float
     text_opacity: int = 100
     use_supersampling: bool = False
     use_edge_smoothing: bool = True
@@ -60,7 +61,7 @@ class TextRenderConfig:
 
     @property
     def has_shadow(self) -> bool:
-        return self.enable_shadow and any(self.shadow_offset)
+        return self.enable_shadow
 
 class LRUCache:
     def __init__(self, max_size: int = 100):
@@ -105,7 +106,8 @@ class HighQualityTextRenderer:
             shadow_color=config.shadow_color,
             shadow_offset=(config.shadow_offset[0] * scale_factor, 
                           config.shadow_offset[1] * scale_factor),
-            shadow_blur=config.shadow_blur,
+            shadow_blur=config.shadow_blur * scale_factor,
+            shadow_opacity=config.shadow_opacity,
             text_opacity=config.text_opacity,
             use_supersampling=False,
             use_edge_smoothing=False
@@ -613,6 +615,7 @@ class RS_TextOverlay:
             self.log(f"Error calculating mask rotation: {e}", level=2)
             return 0.0
 
+    # ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ — обводка с letter_spacing
     def _draw_single_line(self, draw, position, text, font, color, letter_spacing, text_orientation):
         x, y = position
         
@@ -628,19 +631,44 @@ class RS_TextOverlay:
                 bbox = draw.textbbox((x, current_y), char, font=font)
                 current_y += (bbox[3] - bbox[1]) + letter_spacing
 
-    def _draw_outline_optimized(self, draw, position, text, font, color, thickness):
+    # ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ — обводка рисуется для КАЖДОЙ буквы с letter_spacing
+    def _draw_outline_optimized(self, draw, position, text, font, color, thickness, letter_spacing, text_orientation):
         x, y = position
         
-        if thickness == 1:
-            directions = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]
-            for dx, dy in directions:
-                self._draw_single_line(draw, (x + dx, y + dy), text, font, color, 0, "horizontal")
+        if text_orientation == "horizontal":
+            current_x = x
+            for char in text:
+                # Рисуем обводку для каждой буквы
+                if thickness == 1:
+                    directions = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]
+                    for dx, dy in directions:
+                        draw.text((current_x + dx, y + dy), char, font=font, fill=color)
+                else:
+                    for radius in range(1, thickness + 1):
+                        for angle in range(0, 360, 45):
+                            dx = int(radius * math.cos(math.radians(angle)))
+                            dy = int(radius * math.sin(math.radians(angle)))
+                            draw.text((current_x + dx, y + dy), char, font=font, fill=color)
+                
+                # ✅ Применяем letter_spacing к обводке
+                current_x += draw.textlength(char, font=font) + letter_spacing
         else:
-            for radius in range(1, thickness + 1):
-                for angle in range(0, 360, 45):
-                    dx = int(radius * math.cos(math.radians(angle)))
-                    dy = int(radius * math.sin(math.radians(angle)))
-                    self._draw_single_line(draw, (x + dx, y + dy), text, font, color, 0, "horizontal")
+            current_y = y
+            for char in text:
+                # Рисуем обводку для каждой буквы
+                if thickness == 1:
+                    directions = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]
+                    for dx, dy in directions:
+                        draw.text((x + dx, current_y + dy), char, font=font, fill=color)
+                else:
+                    for radius in range(1, thickness + 1):
+                        for angle in range(0, 360, 45):
+                            dx = int(radius * math.cos(math.radians(angle)))
+                            dy = int(radius * math.sin(math.radians(angle)))
+                            draw.text((x + dx, current_y + dy), char, font=font, fill=color)
+                
+                bbox = draw.textbbox((x, current_y), char, font=font)
+                current_y += (bbox[3] - bbox[1]) + letter_spacing
 
     def _render_text_core(self, text: str, config: TextRenderConfig, 
                          container_size: Tuple[int, int]) -> Image.Image:
@@ -664,9 +692,11 @@ class RS_TextOverlay:
                 
             start_x = (container_size[0] - line_w) // 2
             
+            # ✅ ИСПРАВЛЕНИЕ: передаём letter_spacing в обводку
             if config.has_outline:
                 self._draw_outline_optimized(draw, (start_x, current_y), line, config.font,
-                                             config.outline_color, config.outline_thickness)
+                                             config.outline_color, config.outline_thickness,
+                                             config.letter_spacing, config.text_orientation)
             
             self._draw_single_line(draw, (start_x, current_y), line, config.font,
                                   config.text_color, config.letter_spacing, config.text_orientation)
@@ -685,13 +715,15 @@ class RS_TextOverlay:
         
         text_layer = self._render_text_core(text, config, container_size)
         
-        if config.has_shadow:
-            text_layer = self._apply_shadow_effect(text_layer, config)
-        
+        # Сначала supersampling
         if config.use_supersampling and config.supersampling_factor > 1:
             text_layer = self.quality_renderer.render_with_supersampling(
                 text, config, container_size, self._render_text_core, config.supersampling_factor
             )
+        
+        # ПОТОМ тень (после масштабирования!)
+        if config.has_shadow:
+            text_layer = self._apply_shadow_effect(text_layer, config)
         
         if config.use_edge_smoothing:
             text_layer = self.quality_renderer.apply_edge_smoothing(text_layer)
@@ -700,23 +732,48 @@ class RS_TextOverlay:
         return text_layer
 
     def _apply_shadow_effect(self, text_layer: Image.Image, config: TextRenderConfig) -> Image.Image:
+        # Получаем альфа-канал текста (форма букв)
         alpha = text_layer.getchannel("A")
-        shadow = Image.new("RGBA", text_layer.size, config.shadow_color)
-        shadow.putalpha(alpha)
         
+        # Создаём тень с альфа-каналом текста
+        shadow = Image.new("RGBA", text_layer.size, (0, 0, 0, 0))
+        shadow.putalpha(alpha.copy())
+        
+        # Применяем размытие если нужно
         if config.shadow_blur > 0:
             blur_radius = int(config.shadow_blur * 20)
             if blur_radius > 0:
                 shadow = shadow.filter(ImageFilter.GaussianBlur(blur_radius))
-                
+        
+        # Смещаем тень
         offset_x, offset_y = config.shadow_offset
-        if offset_x or offset_y:
-            shadow = shadow.transform(shadow.size, Image.AFFINE, (1, 0, offset_x, 0, 1, offset_y), 
-                                     Image.Resampling.BICUBIC, fill=(0, 0, 0, 0))
-                                     
+        shadow = shadow.transform(shadow.size, Image.AFFINE, (1, 0, offset_x, 0, 1, offset_y), 
+                                 Image.Resampling.BICUBIC, fill=(0, 0, 0, 0))
+        
+        # Применяем цвет и opacity тени
+        shadow_data = np.array(shadow)
+        mask = shadow_data[:, :, 3] > 0
+        
+        # Применяем shadow_opacity к альфа-каналу
+        shadow_data[:, :, 3] = (shadow_data[:, :, 3].astype(np.float32) * config.shadow_opacity).astype(np.uint8)
+        
+        # Создаём цвет тени (RGB без alpha)
+        shadow_rgb = np.array([
+            config.shadow_color[0],
+            config.shadow_color[1],
+            config.shadow_color[2]
+        ], dtype=np.uint8)
+        
+        # Применяем цвет только к пикселям где есть тень
+        shadow_data[mask, :3] = shadow_rgb
+        
+        shadow_colored = Image.fromarray(shadow_data, 'RGBA')
+        
+        # Композит: сначала тень, потом текст
         result = Image.new("RGBA", text_layer.size, (0, 0, 0, 0))
-        result.paste(shadow, (0, 0), shadow)
+        result.paste(shadow_colored, (0, 0), shadow_colored)
         result.paste(text_layer, (0, 0), text_layer)
+        
         return result
 
     def _process_single(self, image, mask, text, font_name, config, padding, 
@@ -825,6 +882,8 @@ class RS_TextOverlay:
                 max_font_size = data.get('max_font_size', 500)
                 padding = data.get('padding', 5)
                 
+                self.log(f"Shadow settings: enable={enable_shadow}, color={shadow_color}, offset=({shadow_offset_x}, {shadow_offset_y}), blur={shadow_blur}, opacity={shadow_opacity}", level=1)
+                
                 config = TextRenderConfig(
                     font=None,
                     text_color=self.parse_color(text_color, text_opacity),
@@ -834,9 +893,10 @@ class RS_TextOverlay:
                     line_spacing=line_spacing,
                     text_orientation=text_orientation,
                     enable_shadow=enable_shadow,
-                    shadow_color=self.parse_color(shadow_color, shadow_opacity),
+                    shadow_color=self.parse_color(shadow_color, 1.0),
                     shadow_offset=(shadow_offset_x, shadow_offset_y),
                     shadow_blur=shadow_blur,
+                    shadow_opacity=shadow_opacity,
                     text_opacity=int(text_opacity * 100),
                     use_supersampling=use_supersampling,
                     use_edge_smoothing=use_edge_smoothing,

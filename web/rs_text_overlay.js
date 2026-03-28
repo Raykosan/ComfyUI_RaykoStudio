@@ -83,28 +83,28 @@ app.registerExtension({
                     const inputW = this.size[0] - pad*2 - labelW;
                     let y = startY;
 
-                    // === TEXT ===
+                    // TEXT
                     this.drawLabel(ctx, "TEXT", pad, y, labelW, rowH * 2);
                     this.drawMultilineField(ctx, this.data.text, pad + labelW, y, inputW, rowH * 2);
                     this.clickZones.push({ type: "text", x: pad + labelW, y: y, w: inputW, h: rowH * 2 });
                     this.widgetYPositions["text"] = y;
                     y += rowH * 2 + 5;
 
-                    // === FONT NAME ===
+                    // FONT
                     this.drawLabel(ctx, "FONT", pad, y, labelW, rowH);
                     this.drawComboField(ctx, this.data.font_name, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["font_name"] = y;
                     this.clickZones.push({ type: "combo", field: "font_name", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === TEXT COLOR ===
+                    // TEXT COLOR
                     this.drawLabel(ctx, "TEXT COLOR", pad, y, labelW, rowH);
                     this.drawColorField(ctx, this.data.text_color, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["text_color"] = y;
                     this.clickZones.push({ type: "color", field: "text_color", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === OUTLINE THICKNESS ===
+                    // OUTLINE THICKNESS
                     this.drawLabel(ctx, "OUTLINE THICK", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.outline_thickness, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["outline_thickness"] = y;
@@ -113,25 +113,25 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "outline_thickness", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 0, max: 50, step: 1 });
                     y += rowH + 5;
 
-                    // === OUTLINE COLOR ===
+                    // OUTLINE COLOR
                     this.drawLabel(ctx, "OUTLINE COLOR", pad, y, labelW, rowH);
                     this.drawColorField(ctx, this.data.outline_color, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["outline_color"] = y;
                     this.clickZones.push({ type: "color", field: "outline_color", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === FORMATTING TEXT SEPARATOR ===
+                    // FORMATTING TEXT SEPARATOR
                     this.drawSeparator(ctx, "FORMATTING TEXT", pad, y, inputW + labelW, rowH);
                     y += rowH + 5;
 
-                    // === ROTATE WITH MASK ===
+                    // ROTATE WITH MASK
                     this.drawLabel(ctx, "ROTATE WITH MASK", pad, y, labelW, rowH);
                     this.drawBooleanField(ctx, this.data.rotate_with_mask, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["rotate_with_mask"] = y;
                     this.clickZones.push({ type: "boolean", field: "rotate_with_mask", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === TEXT OPACITY ===
+                    // TEXT OPACITY
                     this.drawLabel(ctx, "TEXT OPACITY", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.text_opacity, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["text_opacity"] = y;
@@ -140,7 +140,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "text_opacity", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 0, max: 1, step: 0.05, float: true });
                     y += rowH + 5;
 
-                    // === LINE SPACING ===
+                    // LINE SPACING
                     this.drawLabel(ctx, "LINE SPACING", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.line_spacing, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["line_spacing"] = y;
@@ -149,7 +149,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "line_spacing", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 0.5, max: 3, step: 0.1, float: true });
                     y += rowH + 5;
 
-                    // === LETTER SPACING ===
+                    // LETTER SPACING
                     this.drawLabel(ctx, "LETTER SPACING", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.letter_spacing, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["letter_spacing"] = y;
@@ -158,32 +158,32 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "letter_spacing", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: -20, max: 100, step: 0.5, float: true });
                     y += rowH + 5;
 
-                    // === TEXT ORIENTATION ===
+                    // TEXT ORIENTATION
                     this.drawLabel(ctx, "ORIENTATION", pad, y, labelW, rowH);
                     this.drawComboField(ctx, this.data.text_orientation, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["text_orientation"] = y;
                     this.clickZones.push({ type: "combo", field: "text_orientation", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === SHADOW SETTINGS SEPARATOR ===
+                    // SHADOW SETTINGS SEPARATOR
                     this.drawSeparator(ctx, "SHADOW SETTINGS", pad, y, inputW + labelW, rowH);
                     y += rowH + 5;
 
-                    // === ENABLE SHADOW ===
+                    // ENABLE SHADOW
                     this.drawLabel(ctx, "ENABLE SHADOW", pad, y, labelW, rowH);
                     this.drawBooleanField(ctx, this.data.enable_shadow, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["enable_shadow"] = y;
                     this.clickZones.push({ type: "boolean", field: "enable_shadow", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === SHADOW COLOR ===
+                    // SHADOW COLOR
                     this.drawLabel(ctx, "SHADOW COLOR", pad, y, labelW, rowH);
                     this.drawColorField(ctx, this.data.shadow_color, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["shadow_color"] = y;
                     this.clickZones.push({ type: "color", field: "shadow_color", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === SHADOW OFFSET X ===
+                    // SHADOW OFFSET X
                     this.drawLabel(ctx, "SHADOW OFFSET X", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.shadow_offset_x, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["shadow_offset_x"] = y;
@@ -192,7 +192,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "shadow_offset_x", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: -50, max: 50, step: 1 });
                     y += rowH + 5;
 
-                    // === SHADOW OFFSET Y ===
+                    // SHADOW OFFSET Y
                     this.drawLabel(ctx, "SHADOW OFFSET Y", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.shadow_offset_y, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["shadow_offset_y"] = y;
@@ -201,7 +201,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "shadow_offset_y", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: -50, max: 50, step: 1 });
                     y += rowH + 5;
 
-                    // === SHADOW BLUR ===
+                    // SHADOW BLUR
                     this.drawLabel(ctx, "SHADOW BLUR", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.shadow_blur, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["shadow_blur"] = y;
@@ -210,7 +210,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "shadow_blur", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 0, max: 1, step: 0.05, float: true });
                     y += rowH + 5;
 
-                    // === SHADOW OPACITY ===
+                    // SHADOW OPACITY
                     this.drawLabel(ctx, "SHADOW OPACITY", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.shadow_opacity, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["shadow_opacity"] = y;
@@ -219,18 +219,18 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "shadow_opacity", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 0, max: 1, step: 0.05, float: true });
                     y += rowH + 5;
 
-                    // === QUALITY SETTINGS SEPARATOR ===
+                    // QUALITY SETTINGS SEPARATOR
                     this.drawSeparator(ctx, "QUALITY SETTINGS", pad, y, inputW + labelW, rowH);
                     y += rowH + 5;
 
-                    // === USE SUPERSAMPLING ===
+                    // USE SUPERSAMPLING
                     this.drawLabel(ctx, "SUPERSAMPLING", pad, y, labelW, rowH);
                     this.drawBooleanField(ctx, this.data.use_supersampling, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["use_supersampling"] = y;
                     this.clickZones.push({ type: "boolean", field: "use_supersampling", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // === SUPERSAMPLING FACTOR ===
+                    // SUPERSAMPLING FACTOR
                     if (this.data.use_supersampling) {
                         this.drawLabel(ctx, "SUPERSAMPLE FACTOR", pad, y, labelW, rowH);
                         this.drawNumberFieldWithArrows(ctx, this.data.supersampling_factor, pad + labelW, y, inputW, rowH, arrowW);
@@ -241,7 +241,7 @@ app.registerExtension({
                         y += rowH + 5;
                     }
 
-                    // === USE EDGE SMOOTHING ===
+                    // USE EDGE SMOOTHING
                     this.drawLabel(ctx, "EDGE SMOOTHING", pad, y, labelW, rowH);
                     this.drawBooleanField(ctx, this.data.use_edge_smoothing, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["use_edge_smoothing"] = y;
@@ -256,22 +256,21 @@ app.registerExtension({
 
                 this.onMouseDown = function(e, pos, canvas) {
                     if (!this.clickZones.length) return false;
+                    
                     for (const zone of this.clickZones) {
                         const inX = pos[0] >= zone.x && pos[0] <= zone.x + zone.w;
                         const inY = pos[1] >= zone.y && pos[1] <= zone.y + zone.h;
                         if (inX && inY) {
                             if (zone.type === "text") {
-                                self.showTextInput();
+                                self.showTextInput(e);
                                 return true;
                             }
                             if (zone.type === "combo") {
-                                console.log("🔽 Combo clicked:", zone.field);
-                                self.showComboSelector(zone.field);
+                                self.showComboSelector(zone.field, e);
                                 return true;
                             }
                             if (zone.type === "color") {
-                                console.log("🎨 Color clicked:", zone.field);
-                                self.openColorPicker(zone.field);
+                                self.openColorPicker(zone.field, e);
                                 return true;
                             }
                             if (zone.type === "boolean") {
@@ -280,16 +279,13 @@ app.registerExtension({
                                 return true;
                             }
                             if (zone.type === "number") {
-                                const current = self.data[zone.field];
-                                const newVal = prompt(`${zone.field}:`, current);
-                                if (newVal !== null) {
-                                    let parsed = zone.float ? parseFloat(newVal) : parseInt(newVal);
-                                    if (!isNaN(parsed)) {
-                                        parsed = Math.max(zone.min, Math.min(zone.max, parsed));
-                                        self.data[zone.field] = zone.float ? Math.round(parsed * 100) / 100 : parsed;
-                                        self.updateUI();
-                                    }
-                                }
+                                self.showInlineInput(zone.field, e, { 
+                                    isNumber: true, 
+                                    min: zone.min, 
+                                    max: zone.max, 
+                                    step: zone.step || 1,
+                                    float: zone.float || false
+                                });
                                 return true;
                             }
                             if (zone.type === "arrow_left") {
@@ -313,6 +309,7 @@ app.registerExtension({
                     return false;
                 };
 
+                // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ОТРИСОВКИ ===
                 this.drawLabel = function(ctx, text, x, y, w, h) {
                     ctx.fillStyle = "#aaa";
                     ctx.font = "11px sans-serif";
@@ -320,7 +317,6 @@ app.registerExtension({
                     ctx.fillText(text, x, y + h/2 + 4);
                 };
 
-                // === ИСПРАВЛЕННАЯ ФУНКЦИЯ — МНОГОСТРОЧНЫЙ ТЕКСТ ===
                 this.drawMultilineField = function(ctx, value, x, y, w, h) {
                     ctx.fillStyle = "#222";
                     ctx.fillRect(x, y, w, h);
@@ -336,23 +332,19 @@ app.registerExtension({
                         return;
                     }
                     
-                    // Разбиваем текст на строки и рисуем каждую
                     const lines = value.split('\n');
                     const lineHeight = 14;
                     const startY = y + 10;
-                    
-                    // Рисуем максимум 3 строки для отображения
                     const maxLines = 3;
+                    
                     for (let i = 0; i < Math.min(lines.length, maxLines); i++) {
                         let line = lines[i];
-                        // Обрезаем если строка слишком длинная
                         if (line.length > 35) {
                             line = line.substring(0, 32) + "...";
                         }
                         ctx.fillText(line, x + 5, startY + (i * lineHeight));
                     }
                     
-                    // Если строк больше чем показываем
                     if (lines.length > maxLines) {
                         ctx.fillStyle = "#666";
                         ctx.fillText("...", x + 5, startY + (maxLines * lineHeight));
@@ -439,7 +431,8 @@ app.registerExtension({
                     ctx.fillText(value ? "ON" : "OFF", x + 8, y + h/2 + 4);
                 };
 
-                this.showComboSelector = function(fieldName) {
+                // === POPUP: ВЫПАДАЮЩИЙ СПИСОК — ПОЗИЦИЯ СПРАВА ОТ КЛИКА ===
+                this.showComboSelector = function(fieldName, clickEvent) {
                     const options = {
                         font_name: self.data.font_list || ["default"],
                         text_orientation: ["horizontal", "vertical"]
@@ -473,10 +466,9 @@ app.registerExtension({
                         `;
                         item.onmouseover = () => item.style.background = "#333";
                         item.onmouseout = () => item.style.background = "#1a1a1a";
-                        item.onclick = (e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            console.log("✅ Combo selected:", opt);
+                        item.onclick = (ev) => {
+                            ev.stopPropagation();
+                            ev.preventDefault();
                             self.data[fieldName] = opt;
                             self.updateUI();
                             menu.remove();
@@ -484,15 +476,9 @@ app.registerExtension({
                         menu.appendChild(item);
                     });
                     
-                    const widgetY = self.widgetYPositions[fieldName] || 200;
-                    const canvasRect = document.querySelector("#graph-canvas")?.getBoundingClientRect() ||
-                        document.querySelector("canvas")?.getBoundingClientRect();
-                    
-                    if (canvasRect && self.pos) {
-                        const menuX = canvasRect.left + self.pos[0] + self.padding + self.labelWidth;
-                        const menuY = canvasRect.top + self.pos[1] + widgetY + self.rowHeight;
-                        menu.style.left = menuX + "px";
-                        menu.style.top = menuY + "px";
+                    if (clickEvent) {
+                        menu.style.left = (clickEvent.clientX + 8) + "px";
+                        menu.style.top = clickEvent.clientY + "px";
                     } else {
                         menu.style.left = "250px";
                         menu.style.top = "200px";
@@ -501,8 +487,8 @@ app.registerExtension({
                     document.body.appendChild(menu);
                     
                     setTimeout(() => {
-                        const closeHandler = (e) => {
-                            if (!menu.contains(e.target)) {
+                        const closeHandler = (ev) => {
+                            if (!menu.contains(ev.target)) {
                                 menu.remove();
                                 document.removeEventListener("mousedown", closeHandler);
                             }
@@ -511,7 +497,8 @@ app.registerExtension({
                     }, 100);
                 };
 
-                this.showTextInput = function() {
+                // === POPUP: МНОГОСТРОЧНЫЙ ТЕКСТ — С ФОКУСОМ И ВЫДЕЛЕНИЕМ ===
+                this.showTextInput = function(clickEvent) {
                     const currentValue = self.data.text || '';
                     
                     const popup = document.createElement('div');
@@ -559,89 +546,177 @@ app.registerExtension({
                     popup.appendChild(input);
                     popup.appendChild(saveBtn);
                     
-                    const widgetY = self.widgetYPositions["text"] || 80;
-                    const canvasRect = document.querySelector("#graph-canvas")?.getBoundingClientRect();
-                    if (canvasRect && self.pos) {
-                        const inputX = canvasRect.left + self.pos[0] + self.padding + self.labelWidth;
-                        const inputY = canvasRect.top + self.pos[1] + widgetY + (self.rowHeight * 2);
-                        popup.style.left = inputX + 'px';
-                        popup.style.top = inputY + 'px';
+                    if (clickEvent) {
+                        popup.style.left = (clickEvent.clientX + 8) + 'px';
+                        popup.style.top = clickEvent.clientY + 'px';
                     }
                     
                     document.body.appendChild(popup);
-                    input.focus();
+                    
+                    setTimeout(() => {
+                        input.focus();
+                        setTimeout(() => {
+                            if (currentValue && currentValue.length > 0) {
+                                input.select();
+                            }
+                        }, 10);
+                    }, 50);
 
-                    saveBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
+                    saveBtn.onclick = (ev) => {
+                        ev.stopPropagation();
+                        ev.preventDefault();
                         self.data.text = input.value;
                         self.updateUI();
                         popup.remove();
                     };
+                    
+                    input.onkeydown = (ev) => {
+                        if (ev.key === 'Enter' && ev.ctrlKey) {
+                            ev.preventDefault();
+                            self.data.text = input.value;
+                            self.updateUI();
+                            popup.remove();
+                        }
+                    };
+                };
+                
+                // === POPUP: ОДНОСТРОЧНЫЙ ВВОД — С ФОКУСОМ И ВЫДЕЛЕНИЕМ ===
+                this.showInlineInput = function(fieldName, clickEvent, options = {}) {
+                    const currentValue = self.data[fieldName] || '';
+                    const isNumber = options.isNumber || false;
+                    const min = options.min !== undefined ? options.min : null;
+                    const max = options.max !== undefined ? options.max : null;
+                    const isFloat = options.float || false;
+                    
+                    const popup = document.createElement('div');
+                    popup.style.cssText = `
+                        position: fixed;
+                        z-index: 10003;
+                        background: #1a1a1a;
+                        border: 1px solid #444;
+                        border-radius: 6px;
+                        padding: 8px 12px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        white-space: nowrap;
+                    `;
+                    
+                    const input = document.createElement('input');
+                    input.type = isNumber ? 'number' : 'text';
+                    input.value = currentValue;
+                    if (isNumber) {
+                        input.step = options.step || 1;
+                        if (min !== null) input.min = min;
+                        if (max !== null) input.max = max;
+                    }
+                    input.style.cssText = `
+                        width: 100px;
+                        background: #222;
+                        color: #fff;
+                        border: 1px solid #444;
+                        border-radius: 4px;
+                        padding: 6px 10px;
+                        font-size: 12px;
+                        outline: none;
+                    `;
+                    
+                    const saveBtn = document.createElement('button');
+                    saveBtn.textContent = '✅';
+                    saveBtn.title = 'Save';
+                    saveBtn.style.cssText = `
+                        background: #4CAF50;
+                        color: #fff;
+                        border: none;
+                        border-radius: 4px;
+                        padding: 6px 12px;
+                        font-size: 12px;
+                        cursor: pointer;
+                        min-width: 28px;
+                    `;
+                    saveBtn.onmouseover = () => saveBtn.style.background = "#45a049";
+                    saveBtn.onmouseout = () => saveBtn.style.background = "#4CAF50";
+                    
+                    popup.appendChild(input);
+                    popup.appendChild(saveBtn);
+                    
+                    if (clickEvent) {
+                        popup.style.left = (clickEvent.clientX + 8) + 'px';
+                        popup.style.top = clickEvent.clientY + 'px';
+                    }
+                    
+                    document.body.appendChild(popup);
+                    
+                    setTimeout(() => {
+                        input.focus();
+                        setTimeout(() => {
+                            if (currentValue !== null && currentValue !== undefined && String(currentValue).length > 0) {
+                                input.select();
+                            }
+                        }, 10);
+                    }, 50);
+                    
+                    const doSave = () => {
+                        let value = input.value;
+                        if (isNumber) {
+                            let num = isFloat ? parseFloat(value) : parseInt(value);
+                            if (isNaN(num)) num = self.data[fieldName];
+                            if (min !== null) num = Math.max(min, num);
+                            if (max !== null) num = Math.min(max, num);
+                            value = isFloat ? Math.round(num * 100) / 100 : num;
+                        }
+                        self.data[fieldName] = value;
+                        self.updateUI();
+                        popup.remove();
+                    };
+                    
+                    saveBtn.onclick = (ev) => { ev.stopPropagation(); ev.preventDefault(); doSave(); };
+                    input.onkeydown = (ev) => { 
+                        if (ev.key === 'Enter') { 
+                            ev.preventDefault(); 
+                            doSave(); 
+                        } 
+                    };
+                    
+                    setTimeout(() => {
+                        const closeHandler = (ev) => {
+                            if (!popup.contains(ev.target)) {
+                                popup.remove();
+                                document.removeEventListener("mousedown", closeHandler);
+                            }
+                        };
+                        document.addEventListener("mousedown", closeHandler);
+                    }, 50);
+                    
+                    return popup;
                 };
 
-                this.openColorPicker = function(fieldName) {
+                // === НАТИВНЫЙ КОЛОРПИКЕР — ПРОСТОЙ И НАДЁЖНЫЙ ===
+                this.openColorPicker = function(fieldName, clickEvent) {
                     const currentColor = self.data[fieldName] || '#FFFFFF';
-                    console.log("🎨 Opening color picker:", fieldName, currentColor);
+                    
                     const colorInput = document.createElement('input');
                     colorInput.type = 'color';
                     colorInput.value = currentColor;
                     colorInput.style.display = 'none';
                     document.body.appendChild(colorInput);
+                    
                     colorInput.addEventListener('change', (e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
                         const newColor = e.target.value.toUpperCase();
                         self.data[fieldName] = newColor;
-                        console.log("🎨 Color changed:", newColor);
                         self.updateUI();
-                    }, { once: false });
+                        colorInput.remove();
+                    }, { once: true });
                     
-                    const widgetY = self.widgetYPositions[fieldName] || 200;
-                    const canvasRect = document.querySelector("#graph-canvas")?.getBoundingClientRect() ||
-                        document.querySelector("canvas")?.getBoundingClientRect();
-                    
-                    if (canvasRect && self.pos) {
-                        const pickerX = canvasRect.left + self.pos[0] + self.padding + self.labelWidth;
-                        const pickerY = canvasRect.top + self.pos[1] + widgetY;
-                        colorInput.style.position = 'fixed';
-                        colorInput.style.left = pickerX + 'px';
-                        colorInput.style.top = pickerY + 'px';
-                        colorInput.style.zIndex = '10002';
-                        colorInput.style.width = '1px';
-                        colorInput.style.height = '1px';
-                        colorInput.style.opacity = '0';
-                        console.log("📍 Picker positioned at:", pickerX, pickerY);
-                        requestAnimationFrame(() => {
-                            if (colorInput.showPicker) {
-                                colorInput.showPicker();
-                            } else {
-                                colorInput.click();
-                            }
-                        });
-                    } else {
-                        colorInput.style.position = 'fixed';
-                        colorInput.style.left = (window.innerWidth / 2) + 'px';
-                        colorInput.style.top = (window.innerHeight / 2) + 'px';
-                        colorInput.style.zIndex = '10002';
-                        requestAnimationFrame(() => {
-                            if (colorInput.showPicker) {
-                                colorInput.showPicker();
-                            } else {
-                                colorInput.click();
-                            }
-                        });
-                    }
-                    
-                    const clickOutsideHandler = (e) => {
-                        if (e.target !== colorInput) {
-                            colorInput.remove();
-                            document.removeEventListener("mousedown", clickOutsideHandler);
-                        }
-                    };
+                    // Открываем нативный пикер
                     setTimeout(() => {
-                        document.addEventListener("mousedown", clickOutsideHandler);
-                    }, 200);
+                        if (colorInput.showPicker) {
+                            colorInput.showPicker();
+                        } else {
+                            colorInput.click();
+                        }
+                    }, 10);
                 };
 
                 this.syncData = function() {

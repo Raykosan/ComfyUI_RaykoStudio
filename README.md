@@ -192,7 +192,7 @@ Auto highlight recovery
 # 🦊 RS Save Image node  
 **Node for adding explanatory text to an image**  
 
-![Screenshot_1](https://github.com/user-attachments/assets/db6d8553-6122-40c7-93c2-7deb596b98f1)
+![Screenshot_7](https://github.com/user-attachments/assets/0e1a41f9-2d07-4bd7-892a-a377a8a975f9)
 
 ### 🔥 Features  
 The node is used to save the image while preserving the workflow inside the image. You can add explanatory text to an image with a choice of background size, theme, font and its size. It is possible to add your own fonts (to the fonts folder). Use ttf and otf fonts.  

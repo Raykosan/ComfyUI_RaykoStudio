@@ -105,17 +105,18 @@ Link to the video: https://youtu.be/LxhVk5C_oas
 **Node allows you to overlay text on images using masks**  
 *The node is in the process of feature improvements, but the stated functionality is already working*
 
-![Screenshot_2](https://github.com/user-attachments/assets/b1159d71-161d-49c4-bc22-7ad21d995978)
+![Screenshot_6](https://github.com/user-attachments/assets/d3943194-bd29-4f14-a964-20a25206022e)
 
 ### 🔥 Features  
 - **Automatic font size selection** — the text always fits perfectly into the mask area  
 - **Text rotation by mask** — the text is automatically aligned to the angle of the mask  
 - **Multiline text support** — automatic line splitting  
-- **Vertical and horizontal text orientation**  
+- **Vertical and horizontal text orientation** - you write vertical text by typing one letter in each line  
 - **Adjusting the letter and line spacing**  
 - **Text outline** — customizable thickness and color  
-- **Shadow** — adjustable displacement, blurring and transparency  
-- **Text color** — HEX format support (#RRGGBB or #RRGGBBAA)  
+- **Shadow** — adjustable displacement, blurring and transparency
+- **Glow** — adjustable color, size, area and brightness  
+- **Color** — HEX format support (#RRGGBB or #RRGGBBAA)  
 - **Text transparency** — independent of stroke and shadow  
 - **Supersampling** — rendering text in increased resolution followed by compression for perfect smoothing  
 - **Edge Smoothing** — additional smoothing of text edges  
@@ -136,20 +137,24 @@ Restart ComfyUI
 | TEXT               | Text to display (supports multiline) |                       |
 | FONT               | List of available fonts              |                       |
 | TEXT COLOR         | Color text in HEX format             | #000000 - #FFFFFF     |
-| OUTLINE THICK      | Outline thickness                    | 0-50                  |
+| OUTLINE THICK      | Outline thickness                    | 0 - 50                |
 | OUTLINE COLOR      | Outline color in HEX format          | #000000 - #FFFFFF     |
 | ROTATE WITH MASK   | Rotate text by the angle of mask     | ON/OFF                |
-| TEXT OPACITY       | Text transparency                    | #000000 - #FFFFFF     |
-| LINE SPACING       | Line spacing                         | 0.5-3.0               |
+| TEXT OPACITY       | Text transparency                    | 0.0 - 1.0             |
+| LINE SPACING       | Line spacing                         | 0.5 - 3.0             |
 | LETTER SPACING     | Letter spacing                       | -20 - +100            |
-| ORIENTATION        | Text orientation                     | horizontal / vertical |
+| ENABLE GLOW        | Enable glow                          | ON/OFF                |
+| GLOW COLOR         | Color glow in HEX format             | #000000 - #FFFFFF     |
+| GLOW SIZE          | Glow size                            | -500 - +500           |
+| GLOW SPREAD        | Area of the glow                     | 0 - 500               |
+| GLOW BRIGHTNESS    | Brightness of the glow               | 0.0 - 1.0             |
 | ENABLE SHADOW      | Enable shadow                        | ON/OFF                |
 | SHADOW COLOR       | Shadow color in HEX format           | #000000 - #FFFFFF     |
-| SHADOW OFFSET X/Y  | Shifting the shadow                  | -50 - +50             |
-| SHADOW BLUR        | Blurring the shadow                  | 0.0-1.0               |
-| SHADOW OPACITY     | Shadow transparency                  | 0.0-1.0               |
+| SHADOW OFFSET X/Y  | Shifting the shadow                  | -500 - +500           |
+| SHADOW BLUR        | Blurring the shadow                  | 0.0 - 1.0             |
+| SHADOW BRIGHTNESS  | Brightness of the shadow             | 0.0 - 1.0             |
 | SUPERSAMPLING      | Enable supersampling                 | ON/OFF                |
-| SUPERSAMPLE FACTOR | Magnification factor                 | 2-4                   |
+| SUPERSAMPLE FACTOR | Magnification factor                 | 2 - 4                 |
 | EDGE SMOOTHING     | Smoothing the edges                  | ON/OFF                |
  
 ---

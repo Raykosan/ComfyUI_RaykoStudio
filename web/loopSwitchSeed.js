@@ -7,7 +7,6 @@ app.registerExtension({
         if (nodeData.name === "RaykoLoopSwitchSeed") {
             
             nodeType.prototype.onExecuted = function(message) {
-                // В ComfyUI 0.18+ данные могут приходить прямо в message
                 const uiData = message.ui || message;
                 
                 if (!this.widgets || !uiData) {

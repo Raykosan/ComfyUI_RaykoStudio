@@ -168,21 +168,18 @@ app.registerExtension({
                     const inputW = this.size[0] - pad*2 - labelW;
                     let y = startY;
 
-                    // TEXT
                     this.drawLabel(ctx, "TEXT", pad, y, labelW, rowH * 2);
                     this.drawMultilineField(ctx, this.data.text, pad + labelW, y, inputW, rowH * 2);
                     this.clickZones.push({ type: "text", x: pad + labelW, y: y, w: inputW, h: rowH * 2 });
                     this.widgetYPositions["text"] = y;
                     y += rowH * 2 + 10;
 
-                    // FONT
                     this.drawLabel(ctx, "FONT", pad, y, labelW, rowH);
                     this.drawComboField(ctx, this.data.font_name, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["font_name"] = y;
                     this.clickZones.push({ type: "combo", field: "font_name", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // FONT SIZE
                     this.drawLabel(ctx, "FONT SIZE", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.font_size, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["font_size"] = y;
@@ -191,7 +188,6 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "font_size", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 1, max: 512, step: 1 });
                     y += rowH + 5;
 
-                    // FOOTER SIZE
                     this.drawLabel(ctx, "FOOTER SIZE", pad, y, labelW, rowH);
                     this.drawNumberFieldWithArrows(ctx, this.data.footer_height, pad + labelW, y, inputW, rowH, arrowW);
                     this.widgetYPositions["footer_height"] = y;
@@ -200,14 +196,12 @@ app.registerExtension({
                     this.clickZones.push({ type: "arrow_right", field: "footer_height", x: pad + labelW + inputW - arrowW, y: y, w: arrowW, h: rowH, min: 0, max: 1024, step: 1 });
                     y += rowH + 5;
 
-                    // THEME
                     this.drawLabel(ctx, "THEME", pad, y, labelW, rowH);
                     this.drawComboField(ctx, this.data.theme, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["theme"] = y;
                     this.clickZones.push({ type: "combo", field: "theme", x: pad + labelW, y: y, w: inputW, h: rowH });
                     y += rowH + 5;
 
-                    // PREFIX
                     this.drawLabel(ctx, "PREFIX", pad, y, labelW, rowH);
                     this.drawStringField(ctx, this.data.filename_prefix, pad + labelW, y, inputW, rowH);
                     this.widgetYPositions["filename_prefix"] = y;
@@ -220,7 +214,6 @@ app.registerExtension({
                 this.onMouseDown = function(e, pos, canvas) {
                     if (!this.clickZones.length) return false;
                     
-                    // Клик по превью для переключения изображений
                     if (this.imgs.length > 1 && this.imgs[this.imageIndex]) {
                         const img = this.imgs[this.imageIndex];
                         const previewY = this.widgetsHeight + 20;
@@ -300,7 +293,6 @@ app.registerExtension({
                     return false;
                 };
 
-                // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ОТРИСОВКИ ===
                 this.drawLabel = function(ctx, text, x, y, w, h) {
                     ctx.fillStyle = "#aaa";
                     ctx.font = "11px sans-serif";
@@ -395,7 +387,6 @@ app.registerExtension({
                     ctx.fillText(value, x + w/2, y + h/2 + 4);
                 };
 
-                // === POPUP: ВЫПАДАЮЩИЙ СПИСОК (FONT, THEME) ===
                 this.showComboSelector = function(fieldName, clickEvent) {
                     let list = [];
                     if (fieldName === "font_name") {
@@ -462,7 +453,6 @@ app.registerExtension({
                     }, 100);
                 };
 
-                // === POPUP: МНОГОСТРОЧНЫЙ ТЕКСТ (TEXT) — С ИСПРАВЛЕННЫМ ВЫДЕЛЕНИЕМ ===
                 this.showTextInput = function(clickEvent) {
                     const currentValue = self.data.text || '';
                     
@@ -518,7 +508,6 @@ app.registerExtension({
                     
                     document.body.appendChild(popup);
                     
-                    // === ИСПРАВЛЕННЫЙ ФОКУС И ВЫДЕЛЕНИЕ — ДВОЙНАЯ ЗАДЕРЖКА ===
                     setTimeout(() => {
                         input.focus();
                         setTimeout(() => {
@@ -546,7 +535,6 @@ app.registerExtension({
                     };
                 };
                 
-                // === POPUP: ОДНОСТРОЧНЫЙ ВВОД — С ИСПРАВЛЕННЫМ ВЫДЕЛЕНИЕМ ДЛЯ ВСЕХ ПОЛЕЙ ===
                 this.showInlineInput = function(fieldName, clickEvent, options = {}) {
                     const currentValue = self.data[fieldName] || '';
                     const isNumber = options.isNumber || false;
@@ -613,12 +601,10 @@ app.registerExtension({
                     
                     document.body.appendChild(popup);
                     
-                    // === ИСПРАВЛЕННЫЙ ФОКУС И ВЫДЕЛЕНИЕ — ДВОЙНАЯ ЗАДЕРЖКА ДЛЯ ВСЕХ ПОЛЕЙ ===
                     setTimeout(() => {
                         input.focus();
                         setTimeout(() => {
                             if (currentValue && currentValue.toString().length > 0) {
-                                // === ТЕПЕРЬ select() ДЛЯ ВСЕХ ПОЛЕЙ, ВКЛЮЧАЯ ЧИСЛОВЫЕ ===
                                 input.select();
                             }
                         }, 10);

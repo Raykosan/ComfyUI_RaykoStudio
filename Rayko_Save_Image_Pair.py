@@ -123,7 +123,7 @@ class SaveImagePair:
         if theme == "dark":
             text_color_rgb = (255, 255, 255)
             bg_color_rgb = (0, 0, 0)
-        else:  # light
+        else:
             text_color_rgb = (0, 0, 0)
             bg_color_rgb = (255, 255, 255)
 

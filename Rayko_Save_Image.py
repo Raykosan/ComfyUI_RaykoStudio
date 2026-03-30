@@ -90,7 +90,6 @@ class RSSaveImage:
         if not font_list:
             font_list = ["default"]
 
-        # Дефолтные данные для интерфейса
         default_data = {
             "text": "",
             "font_name": font_list[0] if font_list else "default",
@@ -122,7 +121,6 @@ class RSSaveImage:
     CATEGORY = "🦊 RaykoStudio"
 
     def save_images(self, images, node_data=None, prompt=None, extra_pnginfo=None):
-        # Парсинг данных из интерфейса
         default_data = {
             "text": "",
             "font_name": "default",
@@ -136,7 +134,6 @@ class RSSaveImage:
         try:
             if node_data:
                 data = json.loads(node_data)
-                # Объединяем с дефолтом на случай если каких-то полей нет
                 data = {**default_data, **data}
             else:
                 data = default_data
@@ -156,7 +153,7 @@ class RSSaveImage:
         if theme == "dark":
             text_color_rgb = (255, 255, 255)
             bg_color_rgb = (0, 0, 0)
-        else:  # light
+        else:
             text_color_rgb = (0, 0, 0)
             bg_color_rgb = (255, 255, 255)
 
@@ -168,7 +165,6 @@ class RSSaveImage:
             if not os.path.isfile(font_path):
                 font_path = None
         elif font_name == "default":
-             # Попытка найти дефолтный шрифт, если нужно, или оставить None для load_default
             pass
 
         processed_images = []

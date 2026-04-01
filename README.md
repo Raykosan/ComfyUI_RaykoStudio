@@ -70,18 +70,50 @@ The IMAGE input accepts an image from any previous node. The IMAGE output return
 ### 🪛 Usage  
 **Buttons**  
 ➕ SELECT ALL - Select all images in batch  
-
 ⭕ DESELECT ALL - Clear all selections  
-	
 ✔️ ACCEPT - Confirm selection and continue  
-	
 ❌ CANCEL - Cancel and interrupt generation  
 
 **Continue Workflow**  
 Click "✔️ ACCEPT" to pass selected images to next nodes. Only selected images will be processed downstream  
 		
 ### ⚠️ Reminder
-**The generation process will pause indefinitely until you click "❌ CANCEL" or close the workflow or the ComfyUI page.**
+**The generation process will pause indefinitely until you click "❌ CANCEL" or close the workflow or the ComfyUI page.**  
+
+---
+---
+
+# 🦊 RS Styles Loader node  
+**Node for uploading and managing styles from CSV files**  
+
+![Screenshot_1](https://github.com/user-attachments/assets/9c3d45f2-8efc-4600-93f7-0c0b7a74e366)
+
+### 🔥 Features  
+- **Download CSV files** - Upload your files with styles directly through the interface  
+- **Tree structure** - Styles are organized by folders (categories)  
+- **Visual selection** - User-friendly interface with drop-down lists  
+- **Bypass styles** - Turn styles on/off without deleting them from the list  
+- **Combining** - Multiple styles are combined into one prompt  
+- **Save to workflow** - All settings are saved along with the project
+- 
+### 🪛 Usage  
+**Buttons**  
+SELECT CSV FILE - Selecting the desired CSV file in the files you have already uploaded  
+📂 UPLOAD NEW CSV FILE - Download a new CSV file from anywhere on your PC  
+➕ ADD STYLE - Choosing the styles you need  
+🟢 - Bypass on/off  
+❌ - Removing a style from the panel  
+
+### 🎨 Styles  
+**You can use your own styles or find them in the ComfyUI community**  
+For example:  
+https://github.com/vaulthunt3r/ComfyUI-Style-Prompts-Collection  
+https://github.com/Art-xmaster/comfyui-AGSoft/tree/main/styles  
+
+### ⚠️ Notes  
+The styles folder is created automatically at the first startup.  
+When deleting a node from workflow, the uploaded CSV files are not deleted.  
+To update the list of files after adding CSV manually, restart ComfyUI.  
 
 ---
 ---

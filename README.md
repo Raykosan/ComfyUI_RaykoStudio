@@ -101,19 +101,19 @@ Unlike standard crop nodes, this node **suspends the process** and waits for use
 Connect any image to the IMAGE input. Select an area:  
 - LMB + Drag - Create a new selection area  
 - Drag inside the frame - Move the area  
-- Drag around the corners - Change the size of the area
-Click the button:
+- Drag around the corners - Change the size of the area  
+Click the button:  
 ✔️ ACCEPT - Confirm the allocation and continue workflow  
 🔄 RESET - Reset the selection and select again  
 ❌ CANCEL - Cancel and interrupt generation  
 		
-### ⚠️ Reminder
-**The generation process will be suspended indefinitely until you click "✔️ ACCEPT", "❌ CANCEL" or close the workflow or the ComfyUI page.**
+### ⚠️ Reminder  
+**The generation process will be suspended indefinitely until you click "✔️ ACCEPT", "❌ CANCEL" or close the workflow or the ComfyUI page.**  
 
-Link to the video: https://youtu.be/6tl5cbyfmok
+Link to the video: https://youtu.be/6tl5cbyfmok  
 
----
----
+---  
+---  
 
 # 🦊 RS Styles Loader node  
 **Node for uploading and managing styles from CSV files**  

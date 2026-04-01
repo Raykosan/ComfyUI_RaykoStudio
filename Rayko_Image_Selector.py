@@ -89,7 +89,7 @@ class RaykoImageSelect:
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("selected_images",)
     FUNCTION = "select_batch"
-    CATEGORY = "RaykoStudio/Image"
+    CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
 
     def select_batch(self, images, unique_id):

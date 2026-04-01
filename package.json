@@ -10,7 +10,6 @@
   },
   "comfyui": {
     "nodes": [
-      "Rayko_Loop_Switch.py"
       "Rayko_Image_Selector.py"
       "Rayko_Image_Text.py"
       "Rayko_Intermediate_Spline_Mask.py"
@@ -20,6 +19,7 @@
       "Rayko_Save_Image.py"
       "Rayko_Save_Image_Pair.py"
       "Rayko_Spline_Mask.py"
+      "Rayko_Styles_Loader.py"
       "Rayko_Text_Overlay.py"
     ]
   }

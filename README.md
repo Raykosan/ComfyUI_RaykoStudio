@@ -83,6 +83,38 @@ Click "✔️ ACCEPT" to pass selected images to next nodes. Only selected image
 ---
 ---
 
+# 🦊 RS Crop Image node  
+**An interactive node for selecting and cropping images in ComfyUI with a pause in the process**  
+
+![Screenshot_1](https://github.com/user-attachments/assets/bca10299-1f83-47fb-b8b4-f69a5d9a3f44)
+
+### 🔥 Features  
+**RS Crop Image** is an interactive node for ComfyUI that allows you to select a rectangular area in an image using drag-and-drop before continuing workflow.  
+Unlike standard crop nodes, this node **suspends the process** and waits for user confirmation, which gives full control over the cropping area.  
+- **Drag-and-Drop** - Selecting an area with the mouse directly in the interface  
+- **Resizing**  - Stretching the frame by the corners  
+- **Moving** - Dragging the selected area  
+- **Process pause** - Workflow waits for confirmation before continuing  
+- **Visualization** - Real-time area size display  
+
+### 🪛 Usage  
+Connect any image to the IMAGE input. Select an area:  
+- LMB + Drag - Create a new selection area  
+- Drag inside the frame - Move the area  
+- Drag around the corners - Change the size of the area
+Click the button:
+✔️ ACCEPT - Confirm the allocation and continue workflow  
+🔄 RESET - Reset the selection and select again  
+❌ CANCEL - Cancel and interrupt generation  
+		
+### ⚠️ Reminder
+**The generation process will be suspended indefinitely until you click "✔️ ACCEPT", "❌ CANCEL" or close the workflow or the ComfyUI page.**
+
+Link to the video: https://youtu.be/6tl5cbyfmok
+
+---
+---
+
 # 🦊 RS Styles Loader node  
 **Node for uploading and managing styles from CSV files**  
 

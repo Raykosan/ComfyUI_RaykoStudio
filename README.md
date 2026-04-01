@@ -98,10 +98,10 @@ Click "✔️ ACCEPT" to pass selected images to next nodes. Only selected image
 - 
 ### 🪛 Usage  
 **Buttons**  
-SELECT CSV FILE - Selecting the desired CSV file in the files you have already uploaded  
-📂 UPLOAD NEW CSV FILE - Download a new CSV file from anywhere on your PC  
+SELECT CSV FILE - Select the desired CSV file from the list of files that you have already uploaded earlier.  
+📂 UPLOAD NEW CSV FILE - Download a new CSV file from anywhere on your PC. It will automatically appear in the styles folder and in the future you will be able to select it with the "SELECT CSV FILE" button.  
 ➕ ADD STYLE - Choosing the styles you need  
-🟢 - Bypass on/off  
+🟢 - Bypass on/off. You can choose an infinite number of styles and change them to create the combination you need.  
 ❌ - Removing a style from the panel  
 
 ### 🎨 Styles  

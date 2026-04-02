@@ -10,8 +10,10 @@
   },
   "comfyui": {
     "nodes": [
+      "Rayko_Crop_Image.py"
       "Rayko_Image_Selector.py"
       "Rayko_Image_Text.py"
+      "Rayko_Insert_Crop.py"
       "Rayko_Intermediate_Spline_Mask.py"
       "Rayko_Loop_Switch.py"
       "Rayko_Models_Loader.py"

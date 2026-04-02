@@ -70,18 +70,17 @@ app.registerExtension({
                     node.setDirtyCanvas(true, true);
                 };
                 
-                // ⚠️ ИСПРАВЛЕНО: Точно как в onDrawForeground
                 const calculateImageRect = () => {
                     if (!app.canvas || !node.imageReady) return null;
                     
                     const ds = app.canvas.ds;
-                    const canvasEl = app.canvas.canvas;
                     const scale = ds.scale;
+                    const canvasEl = app.canvas.canvas;
+                    const canvasRect = canvasEl.getBoundingClientRect();
                     
                     const graphX = node.pos[0];
                     const graphY = node.pos[1];
                     
-                    const canvasRect = canvasEl.getBoundingClientRect();
                     const nodeScreenX = canvasRect.left + ((graphX + ds.offset[0]) * scale);
                     const nodeScreenY = canvasRect.top + ((graphY + ds.offset[1]) * scale);
                     
@@ -99,7 +98,6 @@ app.registerExtension({
                     const footerHeight = 60;
                     const outputSlotsHeight = 40;
                     
-                    // ⚠️ Точно как в onDrawForeground
                     const startY = titleBarHeight + widgetsTotalHeight + padding + outputSlotsHeight;
                     const availableHeight = node.size[1] - startY - footerHeight - padding;
                     const availableWidth = node.size[0] - (padding * 2);
@@ -124,7 +122,6 @@ app.registerExtension({
                         contentScale = drawW / node.imageWidth;
                     }
                     
-                    // ⚠️ Конвертируем в экранные координаты
                     const drawX = nodeScreenX + (padding * scale) + ((availableWidth - drawW) * scale / 2);
                     const drawY = nodeScreenY + (startY * scale) + ((availableHeight - drawH) * scale / 2);
                     
@@ -171,8 +168,11 @@ app.registerExtension({
                         node._overlayCanvas.style.top = `${imgRect.top}px`;
                         node._overlayCanvas.style.width = `${imgRect.width}px`;
                         node._overlayCanvas.style.height = `${imgRect.height}px`;
-                        node._overlayCanvas.dataset.scale = imgRect.scale;
-                        node._overlayCanvas.style.display = "block";  // ⚠️ Всегда показываем
+                        
+                        const screenScale = imgRect.scale * currentScale;
+                        node._overlayCanvas.dataset.screenScale = screenScale;
+                        
+                        node._overlayCanvas.style.display = "block";
                         drawOverlay();
                     }
                 };
@@ -196,14 +196,15 @@ app.registerExtension({
                         const rect = node._overlayCanvas.getBoundingClientRect();
                         const x = e.clientX - rect.left;
                         const y = e.clientY - rect.top;
-                        const scale = parseFloat(node._overlayCanvas.dataset.scale || "1");
-                        const imgX = x / scale;
-                        const imgY = y / scale;
                         
-                        const cropX = node._cropRect.x * scale;
-                        const cropY = node._cropRect.y * scale;
-                        const cropW = node._cropRect.width * scale;
-                        const cropH = node._cropRect.height * scale;
+                        const screenScale = parseFloat(node._overlayCanvas.dataset.screenScale || "1");
+                        const imgX = x / screenScale;
+                        const imgY = y / screenScale;
+                        
+                        const cropX = node._cropRect.x * screenScale;
+                        const cropY = node._cropRect.y * screenScale;
+                        const cropW = node._cropRect.width * screenScale;
+                        const cropH = node._cropRect.height * screenScale;
                         const handleSize = 10;
                         
                         const handles = {
@@ -244,10 +245,11 @@ app.registerExtension({
                         const rect = node._overlayCanvas.getBoundingClientRect();
                         const x = e.clientX - rect.left;
                         const y = e.clientY - rect.top;
-                        const scale = parseFloat(node._overlayCanvas.dataset.scale || "1");
                         
-                        const deltaX = (x - _startX) / scale;
-                        const deltaY = (y - _startY) / scale;
+                        const screenScale = parseFloat(node._overlayCanvas.dataset.screenScale || "1");
+                        
+                        const deltaX = (x - _startX) / screenScale;
+                        const deltaY = (y - _startY) / screenScale;
                         
                         if (_isSelecting) {
                             const x1 = _startRect.x;
@@ -328,12 +330,12 @@ app.registerExtension({
                     ctx.scale(dpr, dpr);
                     ctx.clearRect(0, 0, width, height);
                     
-                    const scale = parseFloat(node._overlayCanvas.dataset.scale || "1");
+                    const screenScale = parseFloat(node._overlayCanvas.dataset.screenScale || "1");
                     
-                    const cropX = node._cropRect.x * scale;
-                    const cropY = node._cropRect.y * scale;
-                    const cropW = Math.max(1, node._cropRect.width * scale);
-                    const cropH = Math.max(1, node._cropRect.height * scale);
+                    const cropX = node._cropRect.x * screenScale;
+                    const cropY = node._cropRect.y * screenScale;
+                    const cropW = Math.max(1, node._cropRect.width * screenScale);
+                    const cropH = Math.max(1, node._cropRect.height * screenScale);
                     
                     ctx.fillStyle = "rgba(0, 200, 100, 0.25)";
                     ctx.fillRect(cropX, cropY, cropW, cropH);
@@ -544,7 +546,6 @@ app.registerExtension({
                             node.imageWidth = image_width || node.image.width;
                             node.imageHeight = image_height || node.image.height;
                             
-                            // ⚠️ Показываем оверлей
                             if (node._overlayCanvas) {
                                 node._overlayCanvas.style.display = "block";
                                 console.log("[RS Crop 🦊] Overlay display set to block");

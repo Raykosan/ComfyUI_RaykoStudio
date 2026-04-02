@@ -15,6 +15,8 @@ except ImportError:
 
 PENDING_DECISIONS = {}
 
+print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Crop Image  \033[92mLOADED\033[0m")
+
 class RSCropImage:
     @classmethod
     def INPUT_TYPES(cls):
@@ -33,8 +35,8 @@ class RSCropImage:
             }
         return inputs
 
-    RETURN_TYPES = ("IMAGE", "INT", "INT")
-    RETURN_NAMES = ("CROPPED_IMAGE", "CROPPED_WIDTH", "CROPPED_HEIGHT")
+    RETURN_TYPES = ("IMAGE", "STRING")
+    RETURN_NAMES = ("CROPPED_IMAGE", "CROP_DATA")
     FUNCTION = "crop_image"
     CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
@@ -87,12 +89,12 @@ class RSCropImage:
                 if current_status == "cancelled":
                     if unique_id in PENDING_DECISIONS:
                         del PENDING_DECISIONS[unique_id]
-                    return (image, image.shape[2], image.shape[1])
+                    return (image, "{}")
                     
                 if current_status == "removed":
                     if unique_id in PENDING_DECISIONS:
                         del PENDING_DECISIONS[unique_id]
-                    return (image, image.shape[2], image.shape[1])
+                    return (image, "{}")
                 
                 if current_status == "rejected":
                     PENDING_DECISIONS[unique_id]["status"] = "pending"
@@ -112,7 +114,15 @@ class RSCropImage:
         
         if image is None or len(image) == 0:
             h, w = 512, 512
-            return (torch.zeros((1, h, w, 3)), w, h)
+            crop_output = {
+                "source_width": w,
+                "source_height": h,
+                "x": 0,
+                "y": 0,
+                "width": 512,
+                "height": 512
+            }
+            return (torch.zeros((1, h, w, 3)), json.dumps(crop_output))
         
         img_tensor = image[0]
         img_height = img_tensor.shape[0]
@@ -131,7 +141,16 @@ class RSCropImage:
         else:
             cropped = img_tensor[:, y:y2, x:x2, :]
         
-        return (cropped, actual_width, actual_height)
+        crop_output = {
+            "source_width": img_width,
+            "source_height": img_height,
+            "x": x,
+            "y": y,
+            "width": actual_width,
+            "height": actual_height
+        }
+        
+        return (cropped, json.dumps(crop_output))
 
 
 if SERVER_AVAILABLE:

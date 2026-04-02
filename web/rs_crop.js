@@ -4,6 +4,48 @@ import { api } from "../../scripts/api.js";
 app.registerExtension({
     name: "RaykoStudio.CropImage",
     
+    setup() {
+        api.addEventListener("rayko.rscrop.show", (event) => {
+            const { node_id, image_url, image_width, image_height } = event.detail;
+            const node = app.graph.getNodeById(node_id);
+            if (node) {
+                node.image.src = image_url + "&t=" + Date.now();
+                node.image.onload = () => {
+                    node.imageReady = true;
+                    node.imageWidth = image_width || node.image.width;
+                    node.imageHeight = image_height || node.image.height;
+                    
+                    const overlay = document.querySelector(`canvas[style*="z-index: 1000"]`);
+                    if (overlay) {
+                        overlay.style.display = "block";
+                    }
+                    
+                    if (node.properties?.crop_rect) {
+                        try {
+                            const r = JSON.parse(node.properties.crop_rect);
+                            if (r.x >= node.imageWidth) r.x = 0;
+                            if (r.y >= node.imageHeight) r.y = 0;
+                            if (r.x + r.width > node.imageWidth) r.width = Math.max(64, node.imageWidth - r.x);
+                            if (r.y + r.height > node.imageHeight) r.height = Math.max(64, node.imageHeight - r.y);
+                            node.properties.crop_rect = JSON.stringify(r);
+                            node._cropRect = r;
+                        } catch (e) {}
+                    }
+                    
+                    setTimeout(() => {
+                        _lastRect = null;
+                        syncPosition();
+                    }, 100);
+                    node.setDirtyCanvas(true, true);
+                };
+                if (node.size[1] < 650) node.setSize([node.size[0], 650]);
+                node.currentStatus = "🖱️ Drag to select crop area, then APPROVE!";
+                app.canvas.centerOnNode(node);
+                node.setDirtyCanvas(true, true);
+            }
+        });
+    },
+    
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
         if (nodeData.name !== "RSCropImage") return;
 
@@ -538,47 +580,5 @@ app.registerExtension({
                 console.error("[RS Crop 🦊] Critical Error:", error);
             }
         };
-    },
-
-    setup() {
-        api.addEventListener("rayko.rscrop.show", (event) => {
-            const { node_id, image_url, image_width, image_height } = event.detail;
-            const node = app.graph.getNodeById(node_id);
-            if (node) {
-                node.image.src = image_url + "&t=" + Date.now();
-                node.image.onload = () => {
-                    node.imageReady = true;
-                    node.imageWidth = image_width || node.image.width;
-                    node.imageHeight = image_height || node.image.height;
-                    
-                    const overlay = document.querySelector(`canvas[style*="z-index: 1000"]`);
-                    if (overlay) {
-                        overlay.style.display = "block";
-                    }
-                    
-                    if (node.properties?.crop_rect) {
-                        try {
-                            const r = JSON.parse(node.properties.crop_rect);
-                            if (r.x >= node.imageWidth) r.x = 0;
-                            if (r.y >= node.imageHeight) r.y = 0;
-                            if (r.x + r.width > node.imageWidth) r.width = Math.max(64, node.imageWidth - r.x);
-                            if (r.y + r.height > node.imageHeight) r.height = Math.max(64, node.imageHeight - r.y);
-                            node.properties.crop_rect = JSON.stringify(r);
-                            node._cropRect = r;
-                        } catch (e) {}
-                    }
-                    
-                    setTimeout(() => {
-                        _lastRect = null;
-                        syncPosition();
-                    }, 100);
-                    node.setDirtyCanvas(true, true);
-                };
-                if (node.size[1] < 650) node.setSize([node.size[0], 650]);
-                node.currentStatus = "🖱️ Drag to select crop area, then APPROVE!";
-                app.canvas.centerOnNode(node);
-                node.setDirtyCanvas(true, true);
-            }
-        });
     }
 });

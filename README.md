@@ -83,21 +83,27 @@ Click "✔️ ACCEPT" to pass selected images to next nodes. Only selected image
 ---
 ---
 
-# 🦊 RS Crop Image node  
-**An interactive node for selecting and cropping images in ComfyUI with a pause in the process**  
+# 🦊 RS Crop Image node and 🦊 RS Insert Crop node  
+**An interactive node for selecting and cropping images in ComfyUI with a pause in the process. With further insertion of the cut fragment after its modification back into the original image.**  
 
-![Screenshot_1](https://github.com/user-attachments/assets/bca10299-1f83-47fb-b8b4-f69a5d9a3f44)
+![Screenshot_1](https://github.com/user-attachments/assets/bc0bc4ee-9721-4d03-ab82-48a79935536b)
+![Screenshot_2](https://github.com/user-attachments/assets/31c80d04-1b74-408f-88dc-d65cba0683ff)
 
 ### 🔥 Features  
-**RS Crop Image** is an interactive node for ComfyUI that allows you to select a rectangular area in an image using drag-and-drop before continuing workflow.  
+**🦊 RS Crop Image** is an interactive node for ComfyUI that allows you to select a rectangular area in an image using drag-and-drop before continuing workflow.  
 Unlike standard crop nodes, this node **suspends the process** and waits for user confirmation, which gives full control over the cropping area.  
 - **Drag-and-Drop** - Selecting an area with the mouse directly in the interface  
 - **Resizing**  - Stretching the frame by the corners  
 - **Moving** - Dragging the selected area  
 - **Process pause** - Workflow waits for confirmation before continuing  
-- **Visualization** - Real-time area size display  
+- **Visualization** - Real-time area size display
+- **Crop Data** - Output of exact cutout parameters  
+
+**🦊 RS Insert Crop** is a node that allows you to seamlessly insert a previously cut fragment back into the original image after it has been modified by the workflow nodes.  
+- **Crop Data** - Inserting a fragment into the original image using the previously obtained precise cutout parameters.
 
 ### 🪛 Usage  
+**🦊 RS Crop Image**  
 Connect any image to the IMAGE input. Select an area:  
 - LMB + Drag - Create a new selection area  
 - Drag inside the frame - Move the area  
@@ -106,11 +112,14 @@ Click the button:
 ✔️ ACCEPT - Confirm the allocation and continue workflow  
 🔄 RESET - Reset the selection and select again  
 ❌ CANCEL - Cancel and interrupt generation  
-		
+
+**🦊 RS Insert Crop**  
+Connect the original image to the Original Image input.  
+Connect the embedded and modified fragment to the Cropped Image input.  
+Connect the node with the text Crop Data.  
+
 ### ⚠️ Reminder  
 **The generation process will be suspended indefinitely until you click "✔️ ACCEPT", "❌ CANCEL" or close the workflow or the ComfyUI page.**  
-
-Link to the video: https://youtu.be/6tl5cbyfmok  
 
 ---  
 ---  

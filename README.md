@@ -32,7 +32,7 @@ The node is designed to create masks without using the ComfyUI native editor. Mo
 The node is ready for use immediately after it is added. Images are added using the "🎨 IMAGE" (images from the input folder) and "🖼️ UPLOAD IMAGE" (images from any folder on your PC) buttons. You can scale the node to a convenient size to more accurately place the points of the spline. Incorrectly positioned points can be deleted by right-clicking on them. To remove all points from the preview area, click the "🔴 CLEAR POINTS" button.  
 
 ### ↔️ Inputs and Outputs:  
-The IMAGE output returns the original image unchanged. The MASK output returns a black and white mask where the white area corresponds to the drawn polygon.
+The IMAGE output returns the original image unchanged. The MASK output returns a black and white mask where the white area corresponds to the drawn polygon.  
 
 ---
 ---
@@ -155,6 +155,36 @@ https://github.com/Art-xmaster/comfyui-AGSoft/tree/main/styles
 The styles folder is created automatically at the first startup.  
 When deleting a node from workflow, the uploaded CSV files are not deleted.  
 To update the list of files after adding CSV manually, restart ComfyUI.  
+
+---
+---
+
+# 🦊 RS Last Frame node  
+**A lightweight ComfyUI node that extracts the last frame from any video input.** 
+
+![Screenshot_5](https://github.com/user-attachments/assets/19f7b743-7cfa-4446-8478-1e7db0a29368)
+
+### 🔥 Features  
+- **Universal Input Support** — Accepts native VideoFromFile objects (ComfyUI's built-in video loader), standard IMAGE tensors (VHS, Image Batch), and dictionary formats
+- **Zero Dependencies** — Works out-of-the-box without requiring Video Helper Suite or other external libraries
+- **Automatic Format Detection** — Intelligently handles different tensor dimensions [F, H, W, C], [B, F, H, W, C], or channel-first formats
+- **Memory Efficient** — Extracts frames without unnecessary copying or conversion 
+
+### 🪛 Usage  
+If video has only 1 frame, that frame is returned unchanged  
+Automatically handles batched inputs by taking the first batch element  
+Channel permutation applied automatically if decoder outputs [F, C, H, W]  
+Compatible with ComfyUI v1.0+ and all major video loading extensions  
+
+### ↔️ Input and output:  
+Input: video_frames (* — Universal)  
+Accepts:  
+- IMAGE tensor from VHS loaders, Image Batch, or standard image nodes  
+- VideoFromFile object from ComfyUI's native Load Video node  
+- Dictionary with frames, images, or video keys
+
+Output: IMAGE (torch.Tensor)  
+Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview, or any image processing node.  
 
 ---
 ---

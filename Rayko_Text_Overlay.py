@@ -32,7 +32,7 @@ try:
 except ImportError:
     HAS_FOLDER_PATHS = False
 
-print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Text Overlay \033[92mLOADED\033[0m")
+print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Text Overlay  \033[92mLOADED\033[0m")
 
 class FontNotFoundError(Exception): pass
 

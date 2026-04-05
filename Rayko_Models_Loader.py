@@ -6,7 +6,7 @@ from nodes import UNETLoader, CLIPLoader, VAELoader, LoraLoader
 from server import PromptServer
 import aiohttp
 
-print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Models Loader \033[92mLOADED\033[0m")
+print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Models Loader  \033[92mLOADED\033[0m")
 
 class RaykoModelsLoader:
     @classmethod

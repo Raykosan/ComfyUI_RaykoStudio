@@ -2,8 +2,6 @@ import torch
 import numpy as np
 import json
 
-print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Insert Crop  \033[92mLOADED\033[0m")
-
 class RSInsertCropImage:
     @classmethod
     def INPUT_TYPES(cls):

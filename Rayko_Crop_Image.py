@@ -15,8 +15,6 @@ except ImportError:
 
 PENDING_DECISIONS = {}
 
-print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Crop Image  \033[92mLOADED\033[0m")
-
 class RSCropImage:
     @classmethod
     def INPUT_TYPES(cls):

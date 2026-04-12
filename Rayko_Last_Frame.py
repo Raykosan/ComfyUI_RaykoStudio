@@ -1,7 +1,5 @@
 import torch
 
-print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Last Frame  \033[92mLOADED\033[0m")
-
 class RS_Last_Frame:
     SIZE = (200, 40)
 

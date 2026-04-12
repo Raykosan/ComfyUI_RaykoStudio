@@ -1,8 +1,6 @@
 import torch
 from comfy.model_patcher import ModelPatcher
 
-print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Saturation  \033[92mLOADED\033[0m")
-
 class RS_SaturationSwitch:
     @classmethod
     def INPUT_TYPES(cls):

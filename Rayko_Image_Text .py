@@ -4,8 +4,6 @@ import numpy as np
 from PIL import Image, PngImagePlugin
 import folder_paths
 
-print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Image-Text  \033[92mLOADED\033[0m")
-
 def get_image_files():
     input_dir = folder_paths.get_input_directory()
     files = []

@@ -5,8 +5,6 @@ import json
 from typing import Dict, List, Tuple, Optional, Any
 import folder_paths
 
-print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Styles Loader  \033[92mLOADED\033[0m")
-
 logger = logging.getLogger(__name__)
 
 class RaykoStylesCSVLoader:

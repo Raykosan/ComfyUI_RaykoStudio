@@ -6,8 +6,6 @@ import os
 import folder_paths
 import textwrap
 
-print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Save Image  \033[92mLOADED\033[0m")
-
 def get_font_list(font_dir):
     if not os.path.isdir(font_dir):
         return []

@@ -1,8 +1,6 @@
 import random
 import os
 
-print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Loop Switch  \033[92mLOADED\033[0m")
-
 MAX_SEED = 9888888888888888
 
 WEB_DIRECTORY = "./web"

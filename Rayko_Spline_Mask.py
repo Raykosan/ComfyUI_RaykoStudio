@@ -11,8 +11,6 @@ except ImportError:
     PromptServer = None
     web = None
 
-print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Spline Mask  \033[92mLOADED\033[0m")
-
 class RaykoSplineMask:
     @classmethod
     def INPUT_TYPES(cls):

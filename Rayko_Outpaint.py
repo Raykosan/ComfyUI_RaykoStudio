@@ -10,8 +10,6 @@ import time
 import os
 import folder_paths
 
-print("\033[93m🦊\033[0m \033[93mRaykoStudio - RS Outpaint  \033[92mLOADED\033[0m")
-
 _GRID = 16
 _MIN_DIM = 32
 _DEFAULT_PAD_FACTOR = 0.3

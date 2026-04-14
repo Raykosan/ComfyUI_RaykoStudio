@@ -23,20 +23,20 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 # 🦊 RS Outpaint node  
 **Interactive visual mask selection for outpainting/inpainting workflows** 
 
-![Screenshot_1](https://github.com/user-attachments/assets/d753e1e3-1d7b-44f9-abb2-9eb75c20ef8e)
-![Screenshot_2](https://github.com/user-attachments/assets/84a8b879-51e7-494e-a291-f4b5d27d4e4b)
+![Screenshot_8](https://github.com/user-attachments/assets/253d46bc-4bf3-436a-9e61-6531fd623ffc)
 
 ### 🔥 Features  
-- **Visual Mask Editor** — Drag, resize, and position the crop area directly on the image preview
-- **Pause & Approve** — Workflow pauses after first execution, waiting for your confirmation
-- **Grid Snapping** — All dimensions snap to 16px grid for clean, model-friendly outputs
-- **Aspect Ratio Lock** — Toggle to preserve crop proportions while resizing
-- **Quick Presets** — One-click aspect ratios: 16:9, 9:16, 21:9, 4:3, 1:1, and more
-- **Smart Snapping** — Align crop to center, edges, or fit source dimensions
-- **Output Resolution Control** — Set target resolution with optional upscaling/downscaling
-- **Zoom & Pan** — Navigate large images with mouse wheel and middle-drag
-- **Padding Indicators** — Visual labels show generated padding areas (▲▼◀▶)
-- **Keyboard Shortcuts** — Arrow keys to nudge crop box (Shift for 4× step) 
+- **Visual Mask Editor** — Drag, resize, and position the crop area directly on the image preview  
+- **Pause & Approve** — Workflow pauses after first execution, waiting for your confirmation  
+- **Grid Snapping** — All dimensions snap to 16px grid for clean, model-friendly outputs  
+- **Aspect Ratio Lock** — Toggle to preserve crop proportions while resizing  
+- **Quick Presets** — One-click aspect ratios: 16:9, 9:16, 21:9, 4:3, 1:1, and more  
+- **Smart Snapping** — Align crop to center, edges, or fit source dimensions  
+- **Output Resolution Control** — Set target resolution with optional upscaling/downscaling  
+- **Zoom & Pan** — Navigate large images with mouse wheel and middle-drag  
+- **Color mask and Background** — Selecting the color for the mask and background when using the mask_image output  
+- **Padding Indicators** — Visual labels show generated padding areas (▲▼◀▶)  
+- **Keyboard Shortcuts** — Arrow keys to nudge crop box (Shift for 4× step)  
 
 ### 🪛 Usage  
 **Basic Workflow**  
@@ -47,6 +47,7 @@ Use corner/edge handles to resize
 Toggle 🔒 to lock/unlock aspect ratio  
 Select preset ratios or snap to position  
 Set Output Resolution (optional): Leave at 0 for auto, or specify target W×H  
+Select the colors for the mask and background, and you will use the mask_image output.  
 Click ✔️ ACCEPT to continue generation with your mask  
 
 ### ↔️ Inputs and Outputs:  
@@ -56,6 +57,7 @@ image - Source image for outpainting
 **Output** :  
 control_image - Image with masked area (gray padding where generation will occur)  
 control_mask - Binary mask: 0 = keep original (black), 1 = generate new content (white)  
+mask_image - Makes an image from a mask  
 width - Final output width (after optional resize)  
 height - Final output height (after optional resize)  
 

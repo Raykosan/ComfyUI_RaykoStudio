@@ -1,6 +1,6 @@
 {
   "name": "ComfyUI_RaykoStudio",
-  "version": "0.15.5",
+  "version": "0.15.6",
   "description": "Set of custom nodes for ComfyUI providing additional image processing capabilities",
   "author": "Raykosan",
   "license": "MIT",
@@ -18,6 +18,7 @@
       "Rayko_Last_Frame.py"
       "Rayko_Loop_Switch.py"
       "Rayko_Models_Loader.py"
+      "Rayko_Outpaint.py"
       "Rayko_Saturation.py"
       "Rayko_Save_Image.py"
       "Rayko_Save_Image_Pair.py"

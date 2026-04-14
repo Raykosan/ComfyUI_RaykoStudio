@@ -34,7 +34,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - **Smart Snapping** — Align crop to center, edges, or fit source dimensions  
 - **Output Resolution Control** — Set target resolution with optional upscaling/downscaling  
 - **Zoom & Pan** — Navigate large images with mouse wheel and middle-drag  
-- **Color mask and Background** — Selecting the color for the mask and background when using the mask_image output  
+- **Color Mask and Background** — Selecting the color for the mask and background when using the mask_image output  
 - **Padding Indicators** — Visual labels show generated padding areas (▲▼◀▶)  
 - **Keyboard Shortcuts** — Arrow keys to nudge crop box (Shift for 4× step)  
 

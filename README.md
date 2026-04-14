@@ -433,5 +433,5 @@ MIT License. Use node at your own risk without any warranties.
 ## ❤️ Acknowledgments  
 
 Thanks to ComfyUI community for inspiration and support.  
-Special thanks to **FotoSHAMAN**!  
+Special thanks to **FotoSHAMAN** for his fantastic ideas!  
 If you like this node, don't forget to star on GitHub!  

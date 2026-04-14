@@ -21,7 +21,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 ---
 
 # 🦊 RS Outpaint node  
-**Interactive visual mask selection for outpainting/inpainting workflows** 
+**Interactive visual mask selection for outpainting** 
 
 ![Screenshot_8](https://github.com/user-attachments/assets/253d46bc-4bf3-436a-9e61-6531fd623ffc)
 ![Screenshot_9](https://github.com/user-attachments/assets/9e9d929d-2ccb-441b-ab50-4a987493d583)

@@ -2,19 +2,16 @@ console.log("[SPLINE 🦊] rs_outpaint.js LOADED!");
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 
-// ── Constants ─────────────────────────────────────────────────────────
 const NODE_CLASS  = "RSOutpaint";
 const API_PREFIX  = "/rs_outpaint";
 const CANVAS_H    = 320;
 const MARGIN      = 22;
 const GRID        = 16;
 const OVERHANG    = 1;
-const CTRL_H      = 200; // Высота панели управления
+// ✅ УВЕЛИЧЕНА ВЫСОТА БЛОКА УПРАВЛЕНИЯ (было 200)
+const CTRL_H      = 240; 
 
-// ── Geometry helpers ──────────────────────────────────────────────────
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
-
-// Конвертация Canvas -> Source (с учетом масштаба)
 function crToSrc(cr, sf, scale) {
     return {
         x: Math.round((cr.x - sf.x) / scale),
@@ -23,8 +20,6 @@ function crToSrc(cr, sf, scale) {
         h: Math.round(cr.h / scale),
     };
 }
-
-// Конвертация Source -> Canvas
 function srcToCr(s, sf, scale) {
     return {
         x: sf.x + s.x * scale,
@@ -33,7 +28,6 @@ function srcToCr(s, sf, scale) {
         h: s.h * scale,
     };
 }
-
 function quantizeSrc(s) {
     return {
         x: Math.round(s.x / GRID) * GRID,
@@ -42,7 +36,6 @@ function quantizeSrc(s) {
         h: Math.max(GRID, Math.round(s.h / GRID) * GRID),
     };
 }
-
 function syncOutToAR(st, preserveArea = false) {
     if (st.outW >= GRID && st.outH >= GRID) {
         if (preserveArea) {
@@ -52,9 +45,7 @@ function syncOutToAR(st, preserveArea = false) {
         st.outH = Math.max(GRID, Math.round(st.outW / st.cropAR / GRID) * GRID);
     }
 }
-
 function defaultOut(_st) { return { w: 1280, h: 720 }; }
-
 function clampToValid(s, srcW, srcH) {
     const c = { ...s };
     if (c.x >= srcW - OVERHANG) c.x = srcW - OVERHANG;
@@ -63,7 +54,6 @@ function clampToValid(s, srcW, srcH) {
     if (c.y + c.h <= OVERHANG)  c.y = OVERHANG - c.h;
     return c;
 }
-
 function applyCanvasCr(canvasCr, st) {
     let s = crToSrc(canvasCr, st.sf, st.scale);
     s = quantizeSrc(s);
@@ -71,9 +61,19 @@ function applyCanvasCr(canvasCr, st) {
     st.cr = srcToCr(s, st.sf, st.scale);
 }
 
-// ── Per-node state ────────────────────────────────────────────────────
 function createState() {
-    return { srcW: 1280, srcH: 720, scale: 1, sf: { x: 0, y: 0, w: 0, h: 0 }, cr: { x: 0, y: 0, w: 0, h: 0 }, cropAR: 16/9, arLocked: true, initialized: false, view: { zoom: 1.0, panX: 0, panY: 0 }, outW: 0, outH: 0 };
+    return { 
+        srcW: 1280, srcH: 720, 
+        _lastW: 1280, _lastH: 720,
+        scale: 1, sf: { x: 0, y: 0, w: 0, h: 0 }, 
+        cr: { x: 0, y: 0, w: 0, h: 0 }, 
+        cropAR: 16/9, arLocked: true, 
+        initialized: false, 
+        view: { zoom: 1.0, panX: 0, panY: 0 }, 
+        outW: 0, outH: 0,
+        maskColor: "#ff0000", 
+        bgColor: "#141414"
+    };
 }
 function toWorld(e, wrapEl, view) { const rect = wrapEl.getBoundingClientRect(); return { x: (e.clientX - rect.left - view.panX) / view.zoom, y: (e.clientY - rect.top - view.panY) / view.zoom }; }
 function initLayout(st, wrapEl) {
@@ -82,37 +82,65 @@ function initLayout(st, wrapEl) {
     let sfW, sfH; if (maxW / ar <= maxH) { sfW = maxW; sfH = Math.round(maxW / ar); } else { sfH = maxH; sfW = Math.round(maxH * ar); }
     const sfX = Math.round((W - sfW) / 2), sfY = Math.max(MARGIN, Math.round((wrapEl.clientHeight - sfH) / 2));
     st.sf = { x: sfX, y: sfY, w: sfW, h: sfH }; st.scale = sfW / st.srcW; st.view = { zoom: 1.0, panX: 0, panY: 0 };
-    const defW = 1280, defH = 720; const defX = Math.round((st.srcW - defW) / (2 * GRID)) * GRID; const defY = Math.round((st.srcH - defH) / (2 * GRID)) * GRID;
+    const defW = Math.max(GRID, Math.round(st.srcW * 0.8 / GRID) * GRID);
+    const defH = Math.max(GRID, Math.round(st.srcH * 0.8 / GRID) * GRID);
+    const defX = Math.round((st.srcW - defW) / 2 / GRID) * GRID;
+    const defY = Math.round((st.srcH - defH) / 2 / GRID) * GRID;
     const def = clampToValid({ x: defX, y: defY, w: defW, h: defH }, st.srcW, st.srcH);
-    st.cr = srcToCr(def, st.sf, st.scale); st.cropAR = st.cr.w / st.cr.h; st.initialized = true; return true;
-}
-function restoreCropFromWidgets(st, widgets, overrideVal) {
-    const val = overrideVal !== undefined ? overrideVal : (widgets.cropState?.value ?? ""); if (!val) return;
-    const parts = val.split(",").map(Number); if (parts.length < 4 || parts.some(isNaN)) return;
-    const [cx, cy, cw, ch] = parts; if (cw >= GRID && ch >= GRID) { st.cr = srcToCr({ x: cx, y: cy, w: cw, h: ch }, st.sf, st.scale); st.cropAR = cw / ch; }
-    if (parts.length >= 6) { st.outW = parts[4] || 0; st.outH = parts[5] || 0; }
+    st.cr = srcToCr(def, st.sf, st.scale); st.cropAR = def.w / def.h; st.initialized = true; return true;
 }
 
-// ── DOM builder ───────────────────────────────────────────────────────
+function restoreCropFromWidgets(st, widgets, overrideVal) {
+    const val = overrideVal !== undefined ? overrideVal : (widgets.cropState?.value ?? ""); 
+    if (!val) return;
+    const parts = val.split(",").map(Number); 
+    if (parts.length < 4 || parts.some(isNaN)) return;
+    const [cx, cy, cw, ch] = parts;
+    if (cw >= GRID && ch >= GRID && cx + cw > 0 && cy + ch > 0 && cx < st.srcW && cy < st.srcH) {
+        st.cr = srcToCr({ x: cx, y: cy, w: cw, h: ch }, st.sf, st.scale); 
+        st.cropAR = cw / ch;
+    }
+    if (parts.length >= 6) { st.outW = parts[4] || 0; st.outH = parts[5] || 0; }
+    if (parts.length >= 9) {
+        st.maskColor = `#${((parts[6] << 16) + (parts[7] << 8) + parts[8]).toString(16).padStart(6, '0')}`;
+    }
+}
+
 function mkEl(tag, css, extra) { const el = document.createElement(tag); if (css) el.style.cssText = css; if (extra) Object.assign(el, extra); return el; }
 function mkBtn(label, css) { const b = mkEl("button", `padding:2px 7px;font-size:10px;border:1px solid #444;border-radius:4px;background:#2a2a2a;color:#bbb;cursor:pointer;${css||""}`); b.textContent = label; b.onmouseenter = () => { b.style.background = "#3a3a3a"; }; b.onmouseleave = () => { b.style.background = b._active ? "#1a3a5a" : "#2a2a2a"; }; return b; }
+
+function mkColorInput(label, defaultColor) {
+    const row = mkEl("div", "display:flex;align-items:center;gap:6px;font-size:11px;color:#999;");
+    const lbl = mkEl("span", ""); lbl.textContent = label;
+    
+    const colorPicker = mkEl("input", "width:0;height:0;opacity:0;position:absolute;pointer-events:none;", { type: "color", value: defaultColor });
+    const swatch = mkEl("div", `width:22px;height:22px;border-radius:4px;border:1px solid #444;cursor:pointer;background:${defaultColor};`);
+    const hexInput = mkEl("input", "width:56px;padding:2px 4px;font-size:10px;font-family:monospace;background:#1e1e1e;color:#ccc;border:1px solid #444;border-radius:4px;text-align:center;", { value: defaultColor.toUpperCase() });
+
+    swatch.onclick = () => colorPicker.click();
+    
+    row.append(lbl, swatch, colorPicker, hexInput);
+    return { row, picker: colorPicker, hexInput, swatch };
+}
+
 function buildUI() {
     const root = mkEl("div", "width:100%;box-sizing:border-box;padding:6px 8px 10px;font-family:system-ui,sans-serif;font-size:12px;color:#ccc;");
     const wrap = mkEl("div", `position:relative;min-height:${CANVAS_H}px;background:#181818;border:1px solid #3a3a3a;border-radius:6px;overflow:hidden;user-select:none;touch-action:none;cursor:default;`);
     const sfEl = mkEl("div", "position:absolute;background:#222;overflow:hidden;border:1px solid #333;");
     const imageEl = mkEl("img", "position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:none;"); imageEl.alt = "";
     const srcLabel = mkEl("div", "position:absolute;bottom:5px;right:7px;font-size:9px;color:rgba(255,255,255,0.3);font-family:monospace;pointer-events:none;"); srcLabel.textContent = "source";
-    const noDataMsg = mkEl("div", "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(255,255,255,0.2);pointer-events:none;text-align:center;padding:8px;"); noDataMsg.textContent = "Run node once to display image";
+    const noDataMsg = mkEl("div", "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(255,255,255,0.2);pointer-events:none;text-align:center;padding:8px;"); 
+    noDataMsg.textContent = "1280×720 (default placeholder)";
     const waitingMsg = mkEl("div", "position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:12px;color:rgba(255,200,100,0.8);pointer-events:none;text-align:center;padding:8px;font-weight:600;"); waitingMsg.textContent = "⏳ Adjust mask & click ACCEPT...";
     sfEl.append(imageEl, srcLabel, noDataMsg, waitingMsg);
-    const mkMask = () => mkEl("div", "position:absolute;background:rgba(210,70,70,0.28);pointer-events:none;display:none;");
+    const mkMask = () => mkEl("div", "position:absolute;pointer-events:none;display:none;");
     const [maskTop, maskBot, maskLeft, maskRight] = [mkMask(), mkMask(), mkMask(), mkMask()];
     const cropBox = mkEl("div", "position:absolute;cursor:move;border:2px solid rgba(80,150,255,0.9);background:rgba(50,120,200,0.08);");
     const HBASE = "position:absolute;width:11px;height:11px;background:#ddd;border:1.5px solid rgba(60,120,200,0.85);border-radius:2px;";
     const corners = { tl: mkEl("div", HBASE+"top:0;left:0;transform:translate(-50%,-50%);cursor:nw-resize;"), tr: mkEl("div", HBASE+"top:0;right:0;transform:translate(50%,-50%);cursor:ne-resize;"), bl: mkEl("div", HBASE+"bottom:0;left:0;transform:translate(-50%,50%);cursor:sw-resize;"), br: mkEl("div", HBASE+"bottom:0;right:0;transform:translate(50%,50%);cursor:se-resize;") };
     for (const [dir, el] of Object.entries(corners)) { el.dataset.dir = dir; cropBox.appendChild(el); }
     const sizeLabel = mkEl("div", "position:absolute;font-family:monospace;font-size:11px;font-weight:600;color:rgba(255,255,255,0.85);background:rgba(0,0,0,0.45);padding:1px 6px;border-radius:3px;pointer-events:none;white-space:nowrap;transform:translateX(-50%);");
-    const PAD_CSS = "position:absolute;font-family:monospace;font-size:10px;color:rgba(255,200,200,0.80);pointer-events:none;white-space:nowrap;";
+    const PAD_CSS = "position:absolute;font-family:monospace;font-size:10px;pointer-events:none;white-space:nowrap;";
     const padLabelT = mkEl("div", PAD_CSS), padLabelB = mkEl("div", PAD_CSS), padLabelL = mkEl("div", PAD_CSS), padLabelR = mkEl("div", PAD_CSS);
     const EBASE = "position:absolute;background:#ddd;border:1.5px solid rgba(60,120,200,0.85);border-radius:2px;pointer-events:auto;";
     const edges = { t: mkEl("div", EBASE+"width:18px;height:7px;top:0;left:50%;transform:translate(-50%,-50%);cursor:n-resize;"), b: mkEl("div", EBASE+"width:18px;height:7px;bottom:0;left:50%;transform:translate(-50%,50%);cursor:s-resize;"), l: mkEl("div", EBASE+"width:7px;height:18px;left:0;top:50%;transform:translate(-50%,-50%);cursor:w-resize;"), r: mkEl("div", EBASE+"width:7px;height:18px;right:0;top:50%;transform:translate(50%,-50%);cursor:e-resize;") };
@@ -130,7 +158,7 @@ function buildUI() {
     const hLabel = mkEl("span", "font-size:10px;color:#999;"); hLabel.textContent = "H";
     const hInput = mkEl("input", INPUT_CSS, { type: "number", min: GRID, step: GRID, value: 720 });
     const arBtn = mkEl("button", "padding:3px 9px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;"); arBtn.textContent = "🔒"; arBtn._active = true; arBtn.title = "Lock aspect ratio";
-    const resetBtn = mkBtn("reset"); resetBtn.title = "Reset to default 1280×720 centered crop";
+    const resetBtn = mkBtn("reset"); resetBtn.title = "Reset to default crop";
     cropSizeRow.append(wLabel, wInput, hLabel, hInput, arBtn, resetBtn);
     const CHIP_PRESETS = [["16:9",1280,720],["9:16",720,1280],["21:9",1344,576],["9:21",576,1344],["4:3",960,720],["3:4",720,960],["1:1",960,960],["3:2",1080,720],["2:3",720,1080]];
     const CHIP_CSS = "padding:2px 7px;font-size:10px;font-family:monospace;border:1px solid #444;border-radius:12px;background:#222;color:#999;cursor:pointer;white-space:nowrap;flex-shrink:0;";
@@ -149,16 +177,43 @@ function buildUI() {
     outSizeRow.append(outLabel, outWInput, outXLabel, outHInput);
     ctrl.append(cropSizeRow, presetRow, snapRow, outSizeRow);
 
-    // ✅ КНОПКА ACCEPT в едином стиле ноды, внизу панели
-    const acceptBtn = mkEl("button", "padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #28a745;border-radius:4px;background:#1a2a1a;color:#aaffaa;cursor:pointer;margin-top:4px;width:100%;text-align:center;display:none;");
+    // ✅ УБРАН MARGIN-TOP ДЛЯ ПЛОТНОСТИ
+    const maskColorInput = mkColorInput("mask:", "#ff0000");
+    const bgColorInput = mkColorInput("bg:", "#141414");
+    const colorRow = mkEl("div", "display:flex;align-items:center;gap:8px;flex-wrap:wrap;");
+    colorRow.append(maskColorInput.row, bgColorInput.row);
+    ctrl.appendChild(colorRow);
+
+    // ✅ УБРАН MARGIN-TOP ДЛЯ ПЛОТНОСТИ
+    const acceptBtn = mkEl("button", "padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #28a745;border-radius:4px;background:#1a2a1a;color:#aaffaa;cursor:pointer;width:100%;text-align:center;display:none;");
     acceptBtn.textContent = "✔️ ACCEPT";
     ctrl.appendChild(acceptBtn);
 
     root.append(wrap, ctrl);
-    return { root, wrap, viewport, zoomIndicator, sfEl, imageEl, srcLabel, noDataMsg, waitingMsg, maskTop, maskBot, maskLeft, maskRight, cropBox, arBtn, snapBtns, wInput, hInput, resetBtn, chipBtns, sizeLabel, padLabelT, padLabelB, padLabelL, padLabelR, edges, outWInput, outHInput, acceptBtn };
+    return { root, wrap, viewport, zoomIndicator, sfEl, imageEl, srcLabel, noDataMsg, waitingMsg, maskTop, maskBot, maskLeft, maskRight, cropBox, arBtn, snapBtns, wInput, hInput, resetBtn, chipBtns, sizeLabel, padLabelT, padLabelB, padLabelL, padLabelR, edges, outWInput, outHInput, acceptBtn, maskColorInput, bgColorInput };
 }
 
-// ── Render ──────────────────────────────────────────────────────────
+function updateMaskColors(st, dom) {
+    if (!dom) return;
+    const maskColor = st.maskColor;
+    const alpha = "45"; 
+    
+    const applyColor = (el) => {
+        if(el) el.style.backgroundColor = maskColor + alpha;
+    };
+    
+    applyColor(dom.maskTop);
+    applyColor(dom.maskBot);
+    applyColor(dom.maskLeft);
+    applyColor(dom.maskRight);
+    
+    const textColor = maskColor;
+    dom.padLabelT.style.color = textColor;
+    dom.padLabelB.style.color = textColor;
+    dom.padLabelL.style.color = textColor;
+    dom.padLabelR.style.color = textColor;
+}
+
 function render(st, dom) {
     if (!st.initialized) return;
     const { sf, cr, srcW, srcH, view } = st;
@@ -169,7 +224,7 @@ function render(st, dom) {
     dom.cropBox.style.left = cr.x + "px"; dom.cropBox.style.top = cr.y + "px"; dom.cropBox.style.width = cr.w + "px"; dom.cropBox.style.height = cr.h + "px";
     const s = crToSrc(cr, sf, st.scale);
     const ix1 = Math.max(cr.x, sf.x), iy1 = Math.max(cr.y, sf.y), ix2 = Math.min(cr.x + cr.w, sf.x + sf.w), iy2 = Math.min(cr.y + cr.h, sf.y + sf.h);
-    const setMask = (el, x, y, w, h) => { if (w > 0 && h > 0) { el.style.cssText = `position:absolute;background:rgba(210,70,70,0.28);pointer-events:none;display:block;left:${x}px;top:${y}px;width:${w}px;height:${h}px;`; } else { el.style.display = "none"; } };
+    const setMask = (el, x, y, w, h) => { if (w > 0 && h > 0) { el.style.cssText = `position:absolute;pointer-events:none;display:block;left:${x}px;top:${y}px;width:${w}px;height:${h}px;`; } else { el.style.display = "none"; } };
     setMask(dom.maskTop, cr.x, cr.y, cr.w, Math.max(0, iy1 - cr.y));
     setMask(dom.maskBot, cr.x, iy2, cr.w, Math.max(0, cr.y + cr.h - iy2));
     setMask(dom.maskLeft, cr.x, iy1, Math.max(0, ix1 - cr.x), iy2 - iy1);
@@ -191,6 +246,19 @@ function render(st, dom) {
     if (document.activeElement !== dom.outHInput) dom.outHInput.value = st.outH || "";
     const actualAR = st.arLocked ? st.cropAR : s.w / s.h;
     for (const btn of dom.chipBtns) { const chipAR = parseFloat(btn.dataset.chipAR); const active = Math.abs(chipAR - actualAR) < 0.005; btn.style.borderColor = active ? "#5090cc" : "#444"; btn.style.color = active ? "#aadaff" : "#999"; btn.style.background = active ? "#1a3050" : "#222"; }
+    
+    if (document.activeElement !== dom.maskColorInput.hexInput) {
+        dom.maskColorInput.picker.value = st.maskColor;
+        dom.maskColorInput.swatch.style.background = st.maskColor;
+        dom.maskColorInput.hexInput.value = st.maskColor.toUpperCase();
+    }
+    if (document.activeElement !== dom.bgColorInput.hexInput) {
+        dom.bgColorInput.picker.value = st.bgColor;
+        dom.bgColorInput.swatch.style.background = st.bgColor;
+        dom.bgColorInput.hexInput.value = st.bgColor.toUpperCase();
+    }
+    
+    updateMaskColors(st, dom);
 }
 
 function fitCropInView(st, dom) {
@@ -205,7 +273,11 @@ function fitCropInView(st, dom) {
 
 function syncWidgets(st, widgets, node) {
     const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale));
-    if (widgets.cropState) widgets.cropState.value = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH}`;
+    const mR = parseInt(st.maskColor.slice(1,3), 16);
+    const mG = parseInt(st.maskColor.slice(3,5), 16);
+    const mB = parseInt(st.maskColor.slice(5,7), 16);
+    
+    if (widgets.cropState) widgets.cropState.value = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH},${mR},${mG},${mB}`;
     if (node.graph) node.graph.setDirtyCanvas(true, true);
 }
 
@@ -218,9 +290,7 @@ function setArLocked(st, dom, locked) {
     dom.arBtn._active = locked;
 }
 
-// ── Image fetching WITH POLLING ────────────────────────────────
 let _pollingIntervals = {};
-
 async function fetchInfoWithRetry(nodeId, maxRetries = 5, delay = 300) {
     for (let i = 0; i < maxRetries; i++) {
         if (i > 0) await new Promise(resolve => setTimeout(resolve, delay * i));
@@ -233,7 +303,6 @@ async function fetchInfoWithRetry(nodeId, maxRetries = 5, delay = 300) {
     }
     return null;
 }
-
 async function fetchImageWithRetry(nodeId, dom, maxRetries = 3, delay = 200) {
     for (let i = 0; i < maxRetries; i++) {
         if (i > 0) await new Promise(resolve => setTimeout(resolve, delay * i));
@@ -254,7 +323,6 @@ async function fetchImageWithRetry(nodeId, dom, maxRetries = 3, delay = 200) {
     }
     return false;
 }
-
 function startPolling(nodeId, dom, applyImageData, widgets, st) {
     if (_pollingIntervals[nodeId]) { clearInterval(_pollingIntervals[nodeId]); delete _pollingIntervals[nodeId]; }
     let attempts = 0; const maxAttempts = 20; const interval = 500;
@@ -267,7 +335,6 @@ function startPolling(nodeId, dom, applyImageData, widgets, st) {
 }
 function stopPolling(nodeId) { if (_pollingIntervals[nodeId]) { clearInterval(_pollingIntervals[nodeId]); delete _pollingIntervals[nodeId]; } }
 
-// ── Interaction wiring ────────────────────────────────────────────────
 function applyCropDim(st, dom, widgets, node, axis, rawVal) {
     const isW = axis === "w"; const r = Math.max(GRID, Math.round(parseInt(rawVal, 10) / GRID) * GRID) || GRID;
     let s = crToSrc(st.cr, st.sf, st.scale); const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
@@ -281,6 +348,32 @@ function applyOutDim(st, dom, widgets, node, axis, rawVal) {
     else { const r = Math.round(v / GRID) * GRID; if (axis === "w") { st.outW = r; st.outH = Math.max(GRID, Math.round(r / st.cropAR / GRID) * GRID); } else { st.outH = r; st.outW = Math.max(GRID, Math.round(r * st.cropAR / GRID) * GRID); } }
     render(st, dom); syncWidgets(st, widgets, node);
 }
+
+function wireColors(st, dom) {
+    const bind = (inputObj, stateKey) => {
+        inputObj.picker.addEventListener("input", (e) => {
+            st[stateKey] = e.target.value;
+            inputObj.swatch.style.background = e.target.value;
+            inputObj.hexInput.value = e.target.value.toUpperCase();
+            updateMaskColors(st, dom);
+            syncWidgets(st, { cropState: { value: "" } }, { graph: null });
+        });
+        inputObj.hexInput.addEventListener("change", (e) => {
+            let val = e.target.value;
+            if (!val.startsWith("#")) val = "#" + val;
+            if (/^#[0-9A-F]{6}$/i.test(val)) {
+                st[stateKey] = val;
+                inputObj.picker.value = val;
+                inputObj.swatch.style.background = val;
+                updateMaskColors(st, dom);
+                syncWidgets(st, { cropState: { value: "" } }, { graph: null });
+            }
+        });
+    };
+    bind(dom.maskColorInput, 'maskColor');
+    bind(dom.bgColorInput, 'bgColor');
+}
+
 function wireInteractions(st, dom, widgets, node, nodeId) {
     const { wrap, arBtn, snapBtns, wInput, hInput, resetBtn, chipBtns, outWInput, outHInput } = dom;
     arBtn.addEventListener("click", () => setArLocked(st, dom, !st.arLocked));
@@ -307,7 +400,6 @@ function setupResizeObserver(st, dom) {
     ro.observe(dom.wrap); return ro;
 }
 
-// ── Node extension ────────────────────────────────────────────────────
 app.registerExtension({
     name: "RSOutpaint",
     async beforeRegisterNodeDef(nodeType, nodeData) {
@@ -318,91 +410,124 @@ app.registerExtension({
             const node = this;
             const widgets = { cropState: node.widgets?.find(w => w.name === "crop_state") };
             if (node.inputs) { for (let i = node.inputs.length - 1; i >= 0; i--) { if (node.inputs[i].name === "crop_state") node.removeInput(i); } }
-            const st = createState(), dom = buildUI();
+            
+            const st = createState();
+            const dom = buildUI();
+            wireColors(st, dom);
+
             const domWidget = node.addDOMWidget("rs_outpaint_canvas", "custom", dom.root, { serialize: false, hideOnZoom: false });
             domWidget.computeSize = () => [440, CANVAS_H + CTRL_H];
+            // ✅ УВЕЛИЧЕНА МИНИМАЛЬНАЯ ВЫСОТА НОДЫ
             node.setSize([Math.max(node.size[0], 520), Math.max(node.size[1], CANVAS_H + CTRL_H + 72)]);
+            
             let _prevNodeX = node.pos[0];
             node.onResize = function(size) { if (size[0] < 520) { if (this.pos[0] !== _prevNodeX) this.pos[0] += size[0] - 520; size[0] = 520; } _prevNodeX = this.pos[0]; const h = Math.max(CANVAS_H, size[1] - CTRL_H - 72); dom.wrap.style.height = h + "px"; };
             if (node.widgets) { const cs = node.widgets.find(w => w.name === "crop_state"); node.widgets = [domWidget, ...node.widgets.filter(w => w !== domWidget && w !== cs)]; if (cs) { node.widgets.push(cs); cs.computeSize = () => [0, -4]; cs.hidden = true; } }
             const origOnConfigure = node.onConfigure;
             node.onConfigure = function (info) { if (origOnConfigure) origOnConfigure.call(this, info); if (widgets.cropState) st._latchedCropState = widgets.cropState.value; };
+            
             const applyImageData = (data, preserveCrop) => {
-                const val = widgets.cropState?.value ?? "";
-                const hadCrop = preserveCrop && val !== "" && !val.split(",").some(isNaN);
-                const prevSrc = (hadCrop && st.initialized) ? crToSrc(st.cr, st.sf, st.scale) : null;
-                st.srcW = data.width; st.srcH = data.height;
-                initLayout(st, dom.wrap);
-                if (prevSrc) { const s = clampToValid(quantizeSrc(prevSrc), st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); st.cropAR = s.w / s.h; }
-                else if (hadCrop) restoreCropFromWidgets(st, widgets);
-                const d = defaultOut(st); st.outW = d.w; st.outH = d.h;
+                const dimsChanged = st.initialized && (st._lastW !== data.width || st._lastH !== data.height);
+                const shouldReset = dimsChanged || !preserveCrop || !st.initialized;
+
+                st.srcW = data.width;
+                st.srcH = data.height;
+                if (!initLayout(st, dom.wrap)) return;
+
+                if (shouldReset) {
+                    console.log(`🦊 [RS Outpaint] Auto-reset (${dimsChanged ? 'new image' : 'fresh init'}) ${st.srcW}x${st.srcH}`);
+                    const defW = Math.max(GRID, Math.round(st.srcW * 0.8 / GRID) * GRID);
+                    const defH = Math.max(GRID, Math.round(st.srcH * 0.8 / GRID) * GRID);
+                    const defX = Math.round((st.srcW - defW) / 2 / GRID) * GRID;
+                    const defY = Math.round((st.srcH - defH) / 2 / GRID) * GRID;
+                    st.cr = srcToCr({x: defX, y: defY, w: defW, h: defH}, st.sf, st.scale);
+                    st.cropAR = defW / defH;
+                    st.outW = 0;
+                    st.outH = 0;
+                } else {
+                    const val = widgets.cropState?.value ?? "";
+                    if (val) restoreCropFromWidgets(st, widgets, val);
+                }
+
+                st._lastW = st.srcW;
+                st._lastH = st.srcH;
+
                 fetchImageWithRetry(String(node.id), dom);
-                dom.imageEl.style.display = "block"; dom.noDataMsg.style.display = "none";
-                fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node);
+                dom.imageEl.style.display = "block";
+                dom.noDataMsg.style.display = "none";
+                fitCropInView(st, dom);
+                render(st, dom);
+                syncWidgets(st, widgets, node);
             };
+
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     const nodeId = String(node.id);
                     
-                    // ✅ FIX: Проверяем инициализацию. Если onShow уже сработал, skip.
                     if (!st.initialized) {
-                        if (!initLayout(st, dom.wrap)) return;
-                        restoreCropFromWidgets(st, widgets, st._latchedCropState);
-                        st._latchedCropState = undefined;
-                        if (st.outW < GRID || st.outH < GRID) { const d = defaultOut(st); st.outW = d.w; st.outH = d.h; }
-                        else syncOutToAR(st);
+                        if (initLayout(st, dom.wrap)) {
+                            restoreCropFromWidgets(st, widgets, st._latchedCropState);
+                            st._latchedCropState = undefined;
+                            if (st.outW < GRID || st.outH < GRID) { const d = defaultOut(st); st.outW = d.w; st.outH = d.h; }
+                            else syncOutToAR(st);
+                            st._lastW = st.srcW;
+                            st._lastH = st.srcH;
+                            fitCropInView(st, dom);
+                            render(st, dom);
+                            syncWidgets(st, widgets, node);
+                        }
                     }
                     
-                    fitCropInView(st, dom); wireInteractions(st, dom, widgets, node, nodeId);
-                    render(st, dom); setupResizeObserver(st, dom);
+                    wireInteractions(st, dom, widgets, node, nodeId);
+                    setupResizeObserver(st, dom);
 
-                    // ✅ POLLING
                     const onExecutionStart = () => { startPolling(nodeId, dom, applyImageData, widgets, st); };
                     api.addEventListener("executing", onExecutionStart);
                     const onInterrupt = () => { stopPolling(nodeId); };
                     api.addEventListener("interrupt", onInterrupt);
                     api.addEventListener("disconnected", onInterrupt);
                     
-                    // ✅ КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Инициализируем геометрию сразу при получении события
                     const onShow = (event) => {
                         const { node_id, image_width, image_height } = event.detail;
-                        if (String(node_id) === nodeId) {
-                            // Обновляем размеры и пересчитываем масштаб
+                        if (String(node_id) !== nodeId) return;
+
+                        dom.waitingMsg.style.display = "flex";
+                        dom.noDataMsg.style.display = "none";
+                        dom.acceptBtn.style.display = "block";
+                        dom.acceptBtn.textContent = "✔️ ACCEPT";
+                        dom.acceptBtn.disabled = false;
+
+                        if (!st.initialized || st._lastW !== image_width || st._lastH !== image_height) {
                             st.srcW = image_width;
                             st.srcH = image_height;
+                            initLayout(st, dom.wrap);
                             
-                            dom.waitingMsg.style.display = "flex";
-                            dom.noDataMsg.style.display = "none";
-                            dom.acceptBtn.style.display = "block";
-                            dom.acceptBtn.textContent = "✔️ ACCEPT";
-                            dom.acceptBtn.disabled = false;
-
-                            // Инициализируем layout только если еще не сделано
-                            if (!st.initialized && initLayout(st, dom.wrap)) {
-                                const val = widgets.cropState?.value;
-                                if (val) {
-                                    restoreCropFromWidgets(st, widgets, val);
-                                } else {
-                                    // Дефолтный кроп
-                                    const defW = Math.max(GRID, Math.round(st.srcW * 0.8 / GRID) * GRID);
-                                    const defH = Math.max(GRID, Math.round(st.srcH * 0.8 / GRID) * GRID);
-                                    const defX = Math.round((st.srcW - defW) / 2 / GRID) * GRID;
-                                    const defY = Math.round((st.srcH - defH) / 2 / GRID) * GRID;
-                                    st.cr = srcToCr({x:defX, y:defY, w:defW, h:defH}, st.sf, st.scale);
-                                    st.cropAR = defW / defH;
-                                }
-                                fitCropInView(st, dom);
-                                render(st, dom);
-                                syncWidgets(st, widgets, node);
-                            }
+                            const defW = Math.max(GRID, Math.round(st.srcW * 0.8 / GRID) * GRID);
+                            const defH = Math.max(GRID, Math.round(st.srcH * 0.8 / GRID) * GRID);
+                            const defX = Math.round((st.srcW - defW) / 2 / GRID) * GRID;
+                            const defY = Math.round((st.srcH - defH) / 2 / GRID) * GRID;
+                            st.cr = srcToCr({x: defX, y: defY, w: defW, h: defH}, st.sf, st.scale);
+                            st.cropAR = defW / defH;
+                            st.outW = 0; st.outH = 0;
+                            
+                            st._lastW = st.srcW;
+                            st._lastH = st.srcH;
+                            st.initialized = true;
+                            
+                            fitCropInView(st, dom);
+                            render(st, dom);
+                            syncWidgets(st, widgets, node);
+                            console.log(`🦊 [RS Outpaint] onShow reset ${st.srcW}x${st.srcH}`);
                         }
                     };
                     api.addEventListener("rs_outpaint.show", onShow);
                     
-                    // ✅ Обработчик кнопки ACCEPT
                     dom.acceptBtn.addEventListener("click", async () => {
                         const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale));
-                        const cropState = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH}`;
+                        const mR = parseInt(st.maskColor.slice(1,3), 16);
+                        const mG = parseInt(st.maskColor.slice(3,5), 16);
+                        const mB = parseInt(st.maskColor.slice(5,7), 16);
+                        const cropState = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH},${mR},${mG},${mB}`;
                         dom.acceptBtn.textContent = "⏳ Sending...";
                         dom.acceptBtn.disabled = true;
                         
@@ -427,7 +552,6 @@ app.registerExtension({
                         }
                     });
                     
-                    // Очистка
                     node._outpaintCleanup = () => {
                         api.removeEventListener("executing", onExecutionStart);
                         api.removeEventListener("interrupt", onInterrupt);
@@ -441,7 +565,6 @@ app.registerExtension({
                         }).catch(() => {});
                     };
 
-                    // ✅ Загрузка при старте (fallback)
                     fetchInfoWithRetry(nodeId, 3, 200).then(data => {
                         if (data) applyImageData(data, true);
                     });

@@ -48,7 +48,7 @@ Use corner/edge handles to resize
 Toggle 🔒 to lock/unlock aspect ratio  
 Select preset ratios or snap to position  
 Set Output Resolution (optional): Leave at 0 for auto, or specify target W×H  
-Select the colors for the mask and background, and you will use the mask_image output.  
+Select colors for the mask and background if you will be using the result of the mask_image function  
 Click ✔️ ACCEPT to continue generation with your mask  
 
 ### ↔️ Inputs and Outputs:  

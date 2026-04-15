@@ -20,7 +20,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 ---
 ---
 
-# 🦊 RS Outpaint node  
+# 🦊 RS Outpaint  
 **Interactive visual mask selection for outpainting** 
 
 ![Screenshot_8](https://github.com/user-attachments/assets/253d46bc-4bf3-436a-9e61-6531fd623ffc)
@@ -65,7 +65,7 @@ height - Final output height (after optional resize)
 ---
 ---
 
-# 🦊 RS Spline Mask node  
+# 🦊 RS Spline Mask  
 **Node for creating a spline mask** 
 
 ![Screenshot_3](https://github.com/user-attachments/assets/91ff5f83-5f52-4983-a5e4-fe4f514f8d0a)
@@ -82,7 +82,7 @@ The IMAGE output returns the original image unchanged. The MASK output returns a
 ---
 ---
 
-# 🦊 RS Intermediate Spline Mask node  
+# 🦊 RS Intermediate Spline Mask  
 **An interactive node for creating intermediate spline masks** 
 
 ![Screenshot_6](https://github.com/user-attachments/assets/c97fb1b8-5b1e-4c6b-bd49-af155e6f4d91)
@@ -100,7 +100,7 @@ The IMAGE input accepts an image from any previous node. The IMAGE output return
 ---
 ---
 
-# 🦊 RS Image Selector node  
+# 🦊 RS Image Selector  
 **Node for Interactive Batch Image Selection** 
 
 ![Screenshot_2](https://github.com/user-attachments/assets/af723d73-4ff6-458c-a267-f4ab195d7b72)
@@ -128,7 +128,7 @@ Click "✔️ ACCEPT" to pass selected images to next nodes. Only selected image
 ---
 ---
 
-# 🦊 RS Crop Image node and 🦊 RS Insert Crop node  
+# 🦊 RS Crop Image and 🦊 RS Insert Crop  
 **An interactive node for selecting and cropping images in ComfyUI with a pause in the process. With further insertion of the cut fragment after its modification back into the original image.**  
 
 ![Screenshot_1](https://github.com/user-attachments/assets/bc0bc4ee-9721-4d03-ab82-48a79935536b)
@@ -169,7 +169,7 @@ Connect the node with the text Crop Data.
 ---  
 ---  
 
-# 🦊 RS Styles Loader node  
+# 🦊 RS Styles Loader  
 **Node for uploading and managing styles from CSV files**  
 
 ![Screenshot_1](https://github.com/user-attachments/assets/9c3d45f2-8efc-4600-93f7-0c0b7a74e366)
@@ -204,7 +204,7 @@ To update the list of files after adding CSV manually, restart ComfyUI.
 ---
 ---
 
-# 🦊 RS Last Frame node  
+# 🦊 RS Last Frame  
 **A lightweight ComfyUI node that extracts the last frame from any video input.** 
 
 ![Screenshot_5](https://github.com/user-attachments/assets/19f7b743-7cfa-4446-8478-1e7db0a29368)
@@ -234,7 +234,7 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 ---
 ---
 
-# 🦊 RS Models Loader node  
+# 🦊 RS Models Loader  
 **Combined node for loading models**  
 
 ![Screenshot_1](https://github.com/user-attachments/assets/fdca35c0-6554-4cfd-9ddf-805aebbdb2cd)
@@ -249,7 +249,7 @@ Link to the video: https://youtu.be/LxhVk5C_oas
 ---
 ---
 
-# 🦊 RS Text Overlay node  
+# 🦊 RS Text Overlay  
 **Node allows you to overlay text on images using masks**  
 *The node is in the process of feature improvements, but the stated functionality is already working*
 
@@ -308,7 +308,7 @@ Restart ComfyUI
 ---
 ---
 
-# 🦊 RS Saturation node  
+# 🦊 RS Saturation  
 **Professional image saturation control with artifact and highlight protection.**  
 
 <img width="1024" height="742" alt="134" src="https://github.com/user-attachments/assets/e4266ff4-29e7-44bb-b7c3-67a1a895ec56" />
@@ -342,7 +342,7 @@ Auto highlight recovery
 --- 
 ---
 
-# 🦊 RS Save Image node  
+# 🦊 RS Save Image  
 **Node for adding explanatory text to an image**  
 
 ![Screenshot_7](https://github.com/user-attachments/assets/0e1a41f9-2d07-4bd7-892a-a377a8a975f9)
@@ -357,7 +357,7 @@ dark - black background, white text.
 ---
 ---
 	
-# 🦊 RS Save Image Pair node  
+# 🦊 RS Save Image Pair  
 **The node is used to save the original and final images in a single image, while maintaining the workflow within the image**  
 
 ![Screenshot_1](https://github.com/user-attachments/assets/c0ae91a2-dbc4-4e03-be4a-ad8fefeb6140)
@@ -377,7 +377,7 @@ dark - black background, white text.
 ---
 ---
 
-# 🦊 RS Image-Text node  
+# 🦊 RS Image-Text  
 **Node embeds any hidden text into the image that can be used later**  
 
 ![RS Image-Text ](https://github.com/user-attachments/assets/c8b119bb-c695-4500-8cc1-0a3c0d96e299)
@@ -395,7 +395,7 @@ Link to the video: https://youtu.be/1s26hUcVXX4
 ---  
 ---  
 
-# 🦊 RS Loop Switch node  
+# 🦊 RS Loop Switch  
 **A combined node for generating a sequence of values with automatic switching**  
 
 ![Screenshot_1](https://github.com/user-attachments/assets/4e11bde0-55f8-4879-9290-b50ae452c55a)

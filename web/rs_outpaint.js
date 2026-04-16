@@ -8,7 +8,6 @@ const CANVAS_H    = 320;
 const MARGIN      = 22;
 const GRID        = 16;
 const OVERHANG    = 1;
-// ✅ УВЕЛИЧЕНА ВЫСОТА БЛОКА УПРАВЛЕНИЯ (было 200)
 const CTRL_H      = 240; 
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -177,14 +176,12 @@ function buildUI() {
     outSizeRow.append(outLabel, outWInput, outXLabel, outHInput);
     ctrl.append(cropSizeRow, presetRow, snapRow, outSizeRow);
 
-    // ✅ УБРАН MARGIN-TOP ДЛЯ ПЛОТНОСТИ
     const maskColorInput = mkColorInput("mask:", "#ff0000");
     const bgColorInput = mkColorInput("bg:", "#141414");
     const colorRow = mkEl("div", "display:flex;align-items:center;gap:8px;flex-wrap:wrap;");
     colorRow.append(maskColorInput.row, bgColorInput.row);
     ctrl.appendChild(colorRow);
 
-    // ✅ УБРАН MARGIN-TOP ДЛЯ ПЛОТНОСТИ
     const acceptBtn = mkEl("button", "padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #28a745;border-radius:4px;background:#1a2a1a;color:#aaffaa;cursor:pointer;width:100%;text-align:center;display:none;");
     acceptBtn.textContent = "✔️ ACCEPT";
     ctrl.appendChild(acceptBtn);
@@ -417,7 +414,6 @@ app.registerExtension({
 
             const domWidget = node.addDOMWidget("rs_outpaint_canvas", "custom", dom.root, { serialize: false, hideOnZoom: false });
             domWidget.computeSize = () => [440, CANVAS_H + CTRL_H];
-            // ✅ УВЕЛИЧЕНА МИНИМАЛЬНАЯ ВЫСОТА НОДЫ
             node.setSize([Math.max(node.size[0], 520), Math.max(node.size[1], CANVAS_H + CTRL_H + 72)]);
             
             let _prevNodeX = node.pos[0];

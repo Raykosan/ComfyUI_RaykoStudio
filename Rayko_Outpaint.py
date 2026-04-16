@@ -48,7 +48,6 @@ class RSOutpaint:
             },
         }
 
-    # ✅ ДОБАВЛЕН mask_image
     RETURN_TYPES = ("IMAGE", "MASK", "IMAGE", "INT", "INT")
     RETURN_NAMES = ("control_image", "control_mask", "mask_image", "width", "height")
     FUNCTION = "outpaint_prep"
@@ -147,9 +146,8 @@ class RSOutpaint:
         output_width = output_height = 0
         use_crop_state = False
         
-        # ✅ ДЕФОЛТНЫЕ ЦВЕТА
-        color_r, color_g, color_b = 255, 0, 0       # Красный для маски
-        bg_r, bg_g, bg_b = 20, 20, 20               # Темный для фона
+        color_r, color_g, color_b = 255, 0, 0
+        bg_r, bg_g, bg_b = 20, 20, 20
         
         if crop_state:
             try:
@@ -161,10 +159,8 @@ class RSOutpaint:
                         use_crop_state = True
                 if len(parts) >= 6:
                     output_width, output_height = parts[4], parts[5]
-                # ✅ ПАРСИНГ ЦВЕТОВ (RGB)
                 if len(parts) >= 9:
                     color_r, color_g, color_b = parts[6], parts[7], parts[8]
-                    # Если есть и цвета фона (для полноты, хотя используем 3 для маски)
                     if len(parts) >= 12:
                          bg_r, bg_g, bg_b = parts[9], parts[10], parts[11]
             except ValueError:
@@ -222,18 +218,11 @@ class RSOutpaint:
         control_image = torch.from_numpy(out).unsqueeze(0)
         control_mask = torch.from_numpy(mask).unsqueeze(0)
 
-        # ✅ ГЕНЕРАЦИЯ MASK_IMAGE (RGB)
-        # control_mask shape: (1, H, W)
-        # Нам нужно (1, H, W, 3)
-        
-        # Нормализуем цвета 0-255 -> 0.0-1.0
         norm_color = torch.tensor([color_r/255.0, color_g/255.0, color_b/255.0]).view(1, 1, 1, 3)
         norm_bg = torch.tensor([bg_r/255.0, bg_g/255.0, bg_b/255.0]).view(1, 1, 1, 3)
         
-        # Расширяем маску до (1, H, W, 1) для вещания
         mask_exp = control_mask.unsqueeze(3)
         
-        # Формула: mask_color * mask_value + bg_color * (1 - mask_value)
         mask_image = mask_exp * norm_color + (1.0 - mask_exp) * norm_bg
         mask_image = torch.clamp(mask_image, 0.0, 1.0)
 

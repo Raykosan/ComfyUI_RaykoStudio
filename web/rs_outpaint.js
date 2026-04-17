@@ -9,40 +9,20 @@ const MARGIN      = 22;
 const GRID        = 16;
 const OVERHANG    = 1;
 const CTRL_H      = 240; 
+const DRAG_SENSITIVITY = 0.6;
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function crToSrc(cr, sf, scale) {
-    return {
-        x: Math.round((cr.x - sf.x) / scale),
-        y: Math.round((cr.y - sf.y) / scale),
-        w: Math.round(cr.w / scale),
-        h: Math.round(cr.h / scale),
-    };
+    return { x: Math.round((cr.x - sf.x) / scale), y: Math.round((cr.y - sf.y) / scale), w: Math.round(cr.w / scale), h: Math.round(cr.h / scale) };
 }
 function srcToCr(s, sf, scale) {
-    return {
-        x: sf.x + s.x * scale,
-        y: sf.y + s.y * scale,
-        w: s.w * scale,
-        h: s.h * scale,
-    };
+    return { x: sf.x + s.x * scale, y: sf.y + s.y * scale, w: s.w * scale, h: s.h * scale };
 }
 function quantizeSrc(s) {
     return {
-        x: Math.round(s.x / GRID) * GRID,
-        y: Math.round(s.y / GRID) * GRID,
-        w: Math.max(GRID, Math.round(s.w / GRID) * GRID),
-        h: Math.max(GRID, Math.round(s.h / GRID) * GRID),
+        x: Math.round(s.x / GRID) * GRID, y: Math.round(s.y / GRID) * GRID,
+        w: Math.max(GRID, Math.round(s.w / GRID) * GRID), h: Math.max(GRID, Math.round(s.h / GRID) * GRID)
     };
-}
-function syncOutToAR(st, preserveArea = false) {
-    if (st.outW >= GRID && st.outH >= GRID) {
-        if (preserveArea) {
-            const area = st.outW * st.outH;
-            st.outW = Math.max(GRID, Math.round(Math.sqrt(area * st.cropAR) / GRID) * GRID);
-        }
-        st.outH = Math.max(GRID, Math.round(st.outW / st.cropAR / GRID) * GRID);
-    }
 }
 function defaultOut(_st) { return { w: 1280, h: 720 }; }
 function clampToValid(s, srcW, srcH) {
@@ -53,28 +33,59 @@ function clampToValid(s, srcW, srcH) {
     if (c.y + c.h <= OVERHANG)  c.y = OVERHANG - c.h;
     return c;
 }
-function applyCanvasCr(canvasCr, st) {
-    let s = crToSrc(canvasCr, st.sf, st.scale);
-    s = quantizeSrc(s);
-    s = clampToValid(s, st.srcW, st.srcH);
-    st.cr = srcToCr(s, st.sf, st.scale);
+
+function syncOutputToBox(st, dom, widgets) {
+    const s = crToSrc(st.cr, st.sf, st.scale);
+    st.outW = s.w; st.outH = s.h;
+    if (document.activeElement !== dom.outWInput) dom.outWInput.value = s.w;
+    if (document.activeElement !== dom.outHInput) dom.outHInput.value = s.h;
+    syncWidgets(st, widgets, { graph: null });
 }
 
 function createState() {
     return { 
-        srcW: 1280, srcH: 720, 
-        _lastW: 1280, _lastH: 720,
-        scale: 1, sf: { x: 0, y: 0, w: 0, h: 0 }, 
-        cr: { x: 0, y: 0, w: 0, h: 0 }, 
-        cropAR: 16/9, arLocked: true, 
-        initialized: false, 
-        view: { zoom: 1.0, panX: 0, panY: 0 }, 
-        outW: 0, outH: 0,
-        maskColor: "#ff0000", 
-        bgColor: "#141414"
+        srcW: 1280, srcH: 720, _lastW: 1280, _lastH: 720, scale: 1, 
+        sf: { x: 0, y: 0, w: 0, h: 0 }, cr: { x: 0, y: 0, w: 0, h: 0 }, 
+        cropAR: 16/9, arLocked: true, initialized: false, 
+        view: { zoom: 1.0, panX: 0, panY: 0 }, outW: 0, outH: 0,
+        maskColor: "#ff0000", bgColor: "#141414"
     };
 }
-function toWorld(e, wrapEl, view) { const rect = wrapEl.getBoundingClientRect(); return { x: (e.clientX - rect.left - view.panX) / view.zoom, y: (e.clientY - rect.top - view.panY) / view.zoom }; }
+
+function resetNodeState(st, dom, widgets) {
+    Object.assign(st, createState());
+    
+    // 🔑 ПРИНУДИТЕЛЬНАЯ СИНХРОНИЗАЦИЯ ИКОНКИ ЛОКИРОВКИ
+    st.arLocked = true;
+    dom.arBtn.textContent = "🔒";
+    dom.arBtn.style.border = "1px solid #99c0ee";
+    dom.arBtn.style.background = "#1a3a5a";
+    dom.arBtn.style.color = "#aadaff";
+    dom.arBtn._active = true;
+
+    if(dom.wInput) dom.wInput.value = 1280; if(dom.hInput) dom.hInput.value = 720;
+    if(dom.outWInput) dom.outWInput.value = ""; if(dom.outHInput) dom.outHInput.value = "";
+    if(dom.maskColorInput) {
+        st.maskColor = "#ff0000"; dom.maskColorInput.picker.value = st.maskColor;
+        dom.maskColorInput.swatch.style.background = st.maskColor; dom.maskColorInput.hexInput.value = st.maskColor.toUpperCase();
+    }
+    if(dom.bgColorInput) {
+        st.bgColor = "#141414"; dom.bgColorInput.picker.value = st.bgColor;
+        dom.bgColorInput.swatch.style.background = st.bgColor; dom.bgColorInput.hexInput.value = st.bgColor.toUpperCase();
+    }
+    if(dom.waitingMsg) dom.waitingMsg.style.display = "none";
+    if(dom.acceptBtn) { dom.acceptBtn.style.display = "none"; dom.acceptBtn.textContent = "✔️ ACCEPT"; dom.acceptBtn.disabled = false; }
+    if(dom.cancelBtn) dom.cancelBtn.style.display = "none";
+    if(dom.noDataMsg) { dom.noDataMsg.style.display = "flex"; dom.noDataMsg.textContent = "1280×720 (default placeholder)"; }
+    if(dom.imageEl) {
+        dom.imageEl.style.display = "none";
+        if (dom.imageEl.src && dom.imageEl.src.startsWith("blob:")) URL.revokeObjectURL(dom.imageEl.src);
+    }
+    updateMaskColors(st, dom);
+    st.initialized = false;
+    syncWidgets(st, widgets, { graph: null });
+}
+
 function initLayout(st, wrapEl) {
     const W = wrapEl.clientWidth; if (W <= 0) return false;
     const maxW = W - MARGIN * 2, maxH = wrapEl.clientHeight - MARGIN * 2, ar = st.srcW / st.srcH;
@@ -89,35 +100,15 @@ function initLayout(st, wrapEl) {
     st.cr = srcToCr(def, st.sf, st.scale); st.cropAR = def.w / def.h; st.initialized = true; return true;
 }
 
-function restoreCropFromWidgets(st, widgets, overrideVal) {
-    const val = overrideVal !== undefined ? overrideVal : (widgets.cropState?.value ?? ""); 
-    if (!val) return;
-    const parts = val.split(",").map(Number); 
-    if (parts.length < 4 || parts.some(isNaN)) return;
-    const [cx, cy, cw, ch] = parts;
-    if (cw >= GRID && ch >= GRID && cx + cw > 0 && cy + ch > 0 && cx < st.srcW && cy < st.srcH) {
-        st.cr = srcToCr({ x: cx, y: cy, w: cw, h: ch }, st.sf, st.scale); 
-        st.cropAR = cw / ch;
-    }
-    if (parts.length >= 6) { st.outW = parts[4] || 0; st.outH = parts[5] || 0; }
-    if (parts.length >= 9) {
-        st.maskColor = `#${((parts[6] << 16) + (parts[7] << 8) + parts[8]).toString(16).padStart(6, '0')}`;
-    }
-}
-
 function mkEl(tag, css, extra) { const el = document.createElement(tag); if (css) el.style.cssText = css; if (extra) Object.assign(el, extra); return el; }
 function mkBtn(label, css) { const b = mkEl("button", `padding:2px 7px;font-size:10px;border:1px solid #444;border-radius:4px;background:#2a2a2a;color:#bbb;cursor:pointer;${css||""}`); b.textContent = label; b.onmouseenter = () => { b.style.background = "#3a3a3a"; }; b.onmouseleave = () => { b.style.background = b._active ? "#1a3a5a" : "#2a2a2a"; }; return b; }
-
 function mkColorInput(label, defaultColor) {
     const row = mkEl("div", "display:flex;align-items:center;gap:6px;font-size:11px;color:#999;");
     const lbl = mkEl("span", ""); lbl.textContent = label;
-    
     const colorPicker = mkEl("input", "width:0;height:0;opacity:0;position:absolute;pointer-events:none;", { type: "color", value: defaultColor });
     const swatch = mkEl("div", `width:22px;height:22px;border-radius:4px;border:1px solid #444;cursor:pointer;background:${defaultColor};`);
     const hexInput = mkEl("input", "width:56px;padding:2px 4px;font-size:10px;font-family:monospace;background:#1e1e1e;color:#ccc;border:1px solid #444;border-radius:4px;text-align:center;", { value: defaultColor.toUpperCase() });
-
     swatch.onclick = () => colorPicker.click();
-    
     row.append(lbl, swatch, colorPicker, hexInput);
     return { row, picker: colorPicker, hexInput, swatch };
 }
@@ -134,7 +125,7 @@ function buildUI() {
     sfEl.append(imageEl, srcLabel, noDataMsg, waitingMsg);
     const mkMask = () => mkEl("div", "position:absolute;pointer-events:none;display:none;");
     const [maskTop, maskBot, maskLeft, maskRight] = [mkMask(), mkMask(), mkMask(), mkMask()];
-    const cropBox = mkEl("div", "position:absolute;cursor:move;border:2px solid rgba(80,150,255,0.9);background:rgba(50,120,200,0.08);");
+    const cropBox = mkEl("div", "position:absolute;cursor:move;border:2px solid rgba(80,150,255,0.9);background:rgba(50,120,200,0.08);will-change:left,top,width,height;");
     const HBASE = "position:absolute;width:11px;height:11px;background:#ddd;border:1.5px solid rgba(60,120,200,0.85);border-radius:2px;";
     const corners = { tl: mkEl("div", HBASE+"top:0;left:0;transform:translate(-50%,-50%);cursor:nw-resize;"), tr: mkEl("div", HBASE+"top:0;right:0;transform:translate(50%,-50%);cursor:ne-resize;"), bl: mkEl("div", HBASE+"bottom:0;left:0;transform:translate(-50%,50%);cursor:sw-resize;"), br: mkEl("div", HBASE+"bottom:0;right:0;transform:translate(50%,50%);cursor:se-resize;") };
     for (const [dir, el] of Object.entries(corners)) { el.dataset.dir = dir; cropBox.appendChild(el); }
@@ -156,8 +147,8 @@ function buildUI() {
     const wInput = mkEl("input", INPUT_CSS, { type: "number", min: GRID, step: GRID, value: 1280 });
     const hLabel = mkEl("span", "font-size:10px;color:#999;"); hLabel.textContent = "H";
     const hInput = mkEl("input", INPUT_CSS, { type: "number", min: GRID, step: GRID, value: 720 });
-    const arBtn = mkEl("button", "padding:3px 9px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;"); arBtn.textContent = "🔒"; arBtn._active = true; arBtn.title = "Lock aspect ratio";
-    const resetBtn = mkBtn("reset"); resetBtn.title = "Reset to default crop";
+    const arBtn = mkEl("button", "padding:3px 9px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;"); arBtn.textContent = "🔒"; arBtn._active = true;
+    const resetBtn = mkBtn("reset");
     cropSizeRow.append(wLabel, wInput, hLabel, hInput, arBtn, resetBtn);
     const CHIP_PRESETS = [["16:9",1280,720],["9:16",720,1280],["21:9",1344,576],["9:21",576,1344],["4:3",960,720],["3:4",720,960],["1:1",960,960],["3:2",1080,720],["2:3",720,1080]];
     const CHIP_CSS = "padding:2px 7px;font-size:10px;font-family:monospace;border:1px solid #444;border-radius:12px;background:#222;color:#999;cursor:pointer;white-space:nowrap;flex-shrink:0;";
@@ -166,7 +157,7 @@ function buildUI() {
     const snapRow = mkEl("div", "display:flex;align-items:center;gap:0;");
     const snapLabel = mkEl("span", "font-size:10px;color:#999;margin-right:4px;"); snapLabel.textContent = "snap:";
     const SNAP_DEFS = [["center","center"],["top","top"],["bottom","bottom"],["left","left"],["right","right"],["fitW","fit W"],["fitH","fit H"]];
-    const snapBtns = SNAP_DEFS.map(([key, label], i) => { const isFirst = i===0, isLast = i===SNAP_DEFS.length-1; const radius = isFirst ? "4px 0 0 4px" : (isLast ? "0 4px 4px 0" : "0"); const bl = isFirst ? "1px solid #444" : "none"; const b = mkEl("button", `padding:2px 7px;font-size:10px;border:1px solid #444;border-left:${bl};border-radius:${radius};background:#2a2a2a;color:#bbb;cursor:pointer;white-space:nowrap;`); b.textContent = label; b.dataset.snap = key; b.onmouseenter = () => { b.style.background = "#3a3a3a"; }; b.onmouseleave = () => { b.style.background = "#2a2a2a"; }; return b; });
+    const snapBtns = SNAP_DEFS.map(([key, label], i) => { const isFirst = i===0, isLast = i===SNAP_DEFS.length-1; const radius = isFirst ? "4px 0 0 4px" : (isLast ? "0 4px 4px 0" : "0"); const bl = isFirst ? "1px solid #444" : "none"; const b = mkEl("button", `padding:2px 7px;font-size:10px;border:1px solid #444;border-left:${bl};border-radius:${radius};background:#2a2a2a;color:#bbb;cursor:pointer;white-space:nowrap;`); b.textContent = label; b.dataset.snap = key; return b; });
     snapRow.append(snapLabel, ...snapBtns);
     const outSizeRow = mkEl("div", "display:flex;align-items:center;gap:5px;flex-wrap:wrap;");
     const outLabel = mkEl("span", "font-size:10px;color:#999;"); outLabel.textContent = "output resolution:";
@@ -175,40 +166,25 @@ function buildUI() {
     const outHInput = mkEl("input", INPUT_CSS, { type: "number", min: 0, step: GRID, value: 0 }); outHInput.placeholder = "auto";
     outSizeRow.append(outLabel, outWInput, outXLabel, outHInput);
     ctrl.append(cropSizeRow, presetRow, snapRow, outSizeRow);
-
     const maskColorInput = mkColorInput("mask:", "#ff0000");
     const bgColorInput = mkColorInput("bg:", "#141414");
     const colorRow = mkEl("div", "display:flex;align-items:center;gap:8px;flex-wrap:wrap;");
     colorRow.append(maskColorInput.row, bgColorInput.row);
     ctrl.appendChild(colorRow);
-
     const acceptBtn = mkEl("button", "padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #28a745;border-radius:4px;background:#1a2a1a;color:#aaffaa;cursor:pointer;width:100%;text-align:center;display:none;");
-    acceptBtn.textContent = "✔️ ACCEPT";
-    ctrl.appendChild(acceptBtn);
-
+    acceptBtn.textContent = "✔️ ACCEPT"; ctrl.appendChild(acceptBtn);
+    const cancelBtn = mkEl("button", "padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #884444;border-radius:4px;background:#2a1a1a;color:#ffaaaa;cursor:pointer;width:100%;text-align:center;display:none;");
+    cancelBtn.textContent = "❌ CANCEL"; ctrl.appendChild(cancelBtn);
     root.append(wrap, ctrl);
-    return { root, wrap, viewport, zoomIndicator, sfEl, imageEl, srcLabel, noDataMsg, waitingMsg, maskTop, maskBot, maskLeft, maskRight, cropBox, arBtn, snapBtns, wInput, hInput, resetBtn, chipBtns, sizeLabel, padLabelT, padLabelB, padLabelL, padLabelR, edges, outWInput, outHInput, acceptBtn, maskColorInput, bgColorInput };
+    return { root, wrap, viewport, zoomIndicator, sfEl, imageEl, srcLabel, noDataMsg, waitingMsg, maskTop, maskBot, maskLeft, maskRight, cropBox, arBtn, snapBtns, wInput, hInput, resetBtn, chipBtns, sizeLabel, padLabelT, padLabelB, padLabelL, padLabelR, edges, outWInput, outHInput, acceptBtn, cancelBtn, maskColorInput, bgColorInput };
 }
 
 function updateMaskColors(st, dom) {
     if (!dom) return;
-    const maskColor = st.maskColor;
-    const alpha = "45"; 
-    
-    const applyColor = (el) => {
-        if(el) el.style.backgroundColor = maskColor + alpha;
-    };
-    
-    applyColor(dom.maskTop);
-    applyColor(dom.maskBot);
-    applyColor(dom.maskLeft);
-    applyColor(dom.maskRight);
-    
-    const textColor = maskColor;
-    dom.padLabelT.style.color = textColor;
-    dom.padLabelB.style.color = textColor;
-    dom.padLabelL.style.color = textColor;
-    dom.padLabelR.style.color = textColor;
+    const maskColor = st.maskColor, alpha = "45"; 
+    const applyColor = (el) => { if(el) el.style.backgroundColor = maskColor + alpha; };
+    applyColor(dom.maskTop); applyColor(dom.maskBot); applyColor(dom.maskLeft); applyColor(dom.maskRight);
+    dom.padLabelT.style.color = maskColor; dom.padLabelB.style.color = maskColor; dom.padLabelL.style.color = maskColor; dom.padLabelR.style.color = maskColor;
 }
 
 function render(st, dom) {
@@ -228,9 +204,8 @@ function render(st, dom) {
     setMask(dom.maskRight, ix2, iy1, Math.max(0, cr.x + cr.w - ix2), iy2 - iy1);
     const padT = Math.max(0, -s.y), padB = Math.max(0, s.y + s.h - srcH), padL = Math.max(0, -s.x), padR = Math.max(0, s.x + s.w - srcW);
     const outW = Math.round(s.w), outH = Math.round(s.h);
-    const effOutW = st.outW, effOutH = st.outH;
-    const hasOutScale = effOutW >= GRID && effOutH >= GRID && (effOutW !== outW || effOutH !== outH);
-    dom.sizeLabel.textContent = hasOutScale ? `${outW}×${outH} → ${effOutW}×${effOutH}` : `${outW} × ${outH}`;
+    const hasOutScale = st.outW >= GRID && st.outH >= GRID && (Math.abs(st.outW - outW) > 1 || Math.abs(st.outH - outH) > 1);
+    dom.sizeLabel.textContent = hasOutScale ? `${outW}×${outH} → ${st.outW}×${st.outH}` : `${outW} × ${outH}`;
     dom.sizeLabel.style.display = "block"; dom.sizeLabel.style.left = (cr.x + cr.w / 2) + "px"; dom.sizeLabel.style.top = (cr.y + cr.h - 18) + "px";
     const showPad = (el, text, show, cx, cy) => { el.textContent = text; el.style.display = show ? "block" : "none"; if (show) { el.style.left = cx + "px"; el.style.top = cy + "px"; el.style.transform = "translate(-50%,-50%)"; } };
     showPad(dom.padLabelT, `▲ ${Math.round(padT)}`, padT > 0, cr.x + cr.w / 2, cr.y + (padT * st.scale) / 2);
@@ -243,18 +218,8 @@ function render(st, dom) {
     if (document.activeElement !== dom.outHInput) dom.outHInput.value = st.outH || "";
     const actualAR = st.arLocked ? st.cropAR : s.w / s.h;
     for (const btn of dom.chipBtns) { const chipAR = parseFloat(btn.dataset.chipAR); const active = Math.abs(chipAR - actualAR) < 0.005; btn.style.borderColor = active ? "#5090cc" : "#444"; btn.style.color = active ? "#aadaff" : "#999"; btn.style.background = active ? "#1a3050" : "#222"; }
-    
-    if (document.activeElement !== dom.maskColorInput.hexInput) {
-        dom.maskColorInput.picker.value = st.maskColor;
-        dom.maskColorInput.swatch.style.background = st.maskColor;
-        dom.maskColorInput.hexInput.value = st.maskColor.toUpperCase();
-    }
-    if (document.activeElement !== dom.bgColorInput.hexInput) {
-        dom.bgColorInput.picker.value = st.bgColor;
-        dom.bgColorInput.swatch.style.background = st.bgColor;
-        dom.bgColorInput.hexInput.value = st.bgColor.toUpperCase();
-    }
-    
+    if (document.activeElement !== dom.maskColorInput.hexInput) { dom.maskColorInput.picker.value = st.maskColor; dom.maskColorInput.swatch.style.background = st.maskColor; dom.maskColorInput.hexInput.value = st.maskColor.toUpperCase(); }
+    if (document.activeElement !== dom.bgColorInput.hexInput) { dom.bgColorInput.picker.value = st.bgColor; dom.bgColorInput.swatch.style.background = st.bgColor; dom.bgColorInput.hexInput.value = st.bgColor.toUpperCase(); }
     updateMaskColors(st, dom);
 }
 
@@ -270,16 +235,14 @@ function fitCropInView(st, dom) {
 
 function syncWidgets(st, widgets, node) {
     const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale));
-    const mR = parseInt(st.maskColor.slice(1,3), 16);
-    const mG = parseInt(st.maskColor.slice(3,5), 16);
-    const mB = parseInt(st.maskColor.slice(5,7), 16);
-    
+    const mR = parseInt(st.maskColor.slice(1,3), 16), mG = parseInt(st.maskColor.slice(3,5), 16), mB = parseInt(st.maskColor.slice(5,7), 16);
     if (widgets.cropState) widgets.cropState.value = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH},${mR},${mG},${mB}`;
     if (node.graph) node.graph.setDirtyCanvas(true, true);
 }
 
 function setArLocked(st, dom, locked) {
-    st.arLocked = locked; if (locked) st.cropAR = st.cr.w / st.cr.h;
+    st.arLocked = locked;
+    if (locked && st.cr.h > 0) st.cropAR = st.cr.w / st.cr.h;
     dom.arBtn.textContent = locked ? "🔒" : "🔓";
     dom.arBtn.style.border = `1px solid ${locked ? "#99c0ee" : "#444"}`;
     dom.arBtn.style.background = locked ? "#1a3a5a" : "#2a2a2a";
@@ -287,114 +250,195 @@ function setArLocked(st, dom, locked) {
     dom.arBtn._active = locked;
 }
 
-let _pollingIntervals = {};
-async function fetchInfoWithRetry(nodeId, maxRetries = 5, delay = 300) {
-    for (let i = 0; i < maxRetries; i++) {
-        if (i > 0) await new Promise(resolve => setTimeout(resolve, delay * i));
-        try {
-            const url = `${API_PREFIX}/info?node_id=${nodeId}&t=${Date.now()}`;
-            const r = await fetch(url);
-            if (r.ok) return await r.json();
-            if (r.status !== 404) return null;
-        } catch (e) { console.warn(`🦊 Fetch error:`, e); }
-    }
-    return null;
-}
-async function fetchImageWithRetry(nodeId, dom, maxRetries = 3, delay = 200) {
-    for (let i = 0; i < maxRetries; i++) {
-        if (i > 0) await new Promise(resolve => setTimeout(resolve, delay * i));
-        try {
-            const url = `${API_PREFIX}/image?node_id=${nodeId}&t=${Date.now()}`;
-            const r = await fetch(url);
-            if (r.ok) {
-                const blob = await r.blob();
-                const url = URL.createObjectURL(blob);
-                const old = dom.imageEl.src;
-                dom.imageEl.src = url;
-                dom.imageEl.style.display = "block";
-                dom.noDataMsg.style.display = "none";
-                if (old && old.startsWith("blob:")) URL.revokeObjectURL(old);
-                return true;
-            }
-        } catch (e) { console.warn(`🦊 Image fetch error:`, e); }
-    }
-    return false;
-}
-function startPolling(nodeId, dom, applyImageData, widgets, st) {
-    if (_pollingIntervals[nodeId]) { clearInterval(_pollingIntervals[nodeId]); delete _pollingIntervals[nodeId]; }
-    let attempts = 0; const maxAttempts = 20; const interval = 500;
-    _pollingIntervals[nodeId] = setInterval(async () => {
-        attempts++;
-        const data = await fetchInfoWithRetry(nodeId, 1, 0);
-        if (data) { clearInterval(_pollingIntervals[nodeId]); delete _pollingIntervals[nodeId]; applyImageData(data, true); }
-        else if (attempts >= maxAttempts) { clearInterval(_pollingIntervals[nodeId]); delete _pollingIntervals[nodeId]; }
-    }, interval);
-}
-function stopPolling(nodeId) { if (_pollingIntervals[nodeId]) { clearInterval(_pollingIntervals[nodeId]); delete _pollingIntervals[nodeId]; } }
-
-function applyCropDim(st, dom, widgets, node, axis, rawVal) {
-    const isW = axis === "w"; const r = Math.max(GRID, Math.round(parseInt(rawVal, 10) / GRID) * GRID) || GRID;
-    let s = crToSrc(st.cr, st.sf, st.scale); const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
-    if (isW) { s.w = r; if (st.arLocked) s.h = Math.max(GRID, Math.round(r / st.cropAR / GRID) * GRID); } else { s.h = r; if (st.arLocked) s.w = Math.max(GRID, Math.round(r * st.cropAR / GRID) * GRID); }
-    s.x = Math.round((cx - s.w / 2) / GRID) * GRID; s.y = Math.round((cy - s.h / 2) / GRID) * GRID;
-    s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale);
-    if (!st.arLocked) st.cropAR = s.w / s.h; syncOutToAR(st); fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node);
-}
-function applyOutDim(st, dom, widgets, node, axis, rawVal) {
-    const v = parseInt(rawVal, 10); if (isNaN(v) || v < GRID) { const d = defaultOut(st); st.outW = d.w; st.outH = d.h; }
-    else { const r = Math.round(v / GRID) * GRID; if (axis === "w") { st.outW = r; st.outH = Math.max(GRID, Math.round(r / st.cropAR / GRID) * GRID); } else { st.outH = r; st.outW = Math.max(GRID, Math.round(r * st.cropAR / GRID) * GRID); } }
-    render(st, dom); syncWidgets(st, widgets, node);
-}
-
-function wireColors(st, dom) {
-    const bind = (inputObj, stateKey) => {
-        inputObj.picker.addEventListener("input", (e) => {
-            st[stateKey] = e.target.value;
-            inputObj.swatch.style.background = e.target.value;
-            inputObj.hexInput.value = e.target.value.toUpperCase();
-            updateMaskColors(st, dom);
-            syncWidgets(st, { cropState: { value: "" } }, { graph: null });
-        });
-        inputObj.hexInput.addEventListener("change", (e) => {
-            let val = e.target.value;
-            if (!val.startsWith("#")) val = "#" + val;
-            if (/^#[0-9A-F]{6}$/i.test(val)) {
-                st[stateKey] = val;
-                inputObj.picker.value = val;
-                inputObj.swatch.style.background = val;
-                updateMaskColors(st, dom);
-                syncWidgets(st, { cropState: { value: "" } }, { graph: null });
-            }
-        });
-    };
-    bind(dom.maskColorInput, 'maskColor');
-    bind(dom.bgColorInput, 'bgColor');
-}
-
 function wireInteractions(st, dom, widgets, node, nodeId) {
     const { wrap, arBtn, snapBtns, wInput, hInput, resetBtn, chipBtns, outWInput, outHInput } = dom;
     arBtn.addEventListener("click", () => setArLocked(st, dom, !st.arLocked));
-    wInput.addEventListener("change", () => applyCropDim(st, dom, widgets, node, "w", wInput.value));
-    hInput.addEventListener("change", () => applyCropDim(st, dom, widgets, node, "h", hInput.value));
-    resetBtn.addEventListener("click", () => { initLayout(st, dom.wrap); const d = defaultOut(st); st.outW = d.w; st.outH = d.h; fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node); });
-    outWInput.addEventListener("change", () => applyOutDim(st, dom, widgets, node, "w", outWInput.value));
-    outHInput.addEventListener("change", () => applyOutDim(st, dom, widgets, node, "h", outHInput.value));
-    for (const btn of chipBtns) { btn.addEventListener("click", () => { const rw = parseInt(btn.dataset.chipW, 10), rh = parseInt(btn.dataset.chipH, 10); const chipAR = rw / rh; setArLocked(st, dom, true); st.cropAR = chipAR; let s = crToSrc(st.cr, st.sf, st.scale); const cx = s.x + s.w / 2, cy = s.y + s.h / 2; const area = s.w * s.h; s.w = Math.max(GRID, Math.round(Math.sqrt(area * chipAR) / GRID) * GRID); s.h = Math.max(GRID, Math.round(s.w / chipAR / GRID) * GRID); s.x = Math.round((cx - s.w / 2) / GRID) * GRID; s.y = Math.round((cy - s.h / 2) / GRID) * GRID; s = clampToValid(s, st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); if (st.outW < GRID || st.outH < GRID) { st.outW = rw; st.outH = rh; } else syncOutToAR(st, true); fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node); }); }
-    for (const btn of snapBtns) { btn.addEventListener("click", () => { const mode = btn.dataset.snap; let s = crToSrc(st.cr, st.sf, st.scale); const { srcW, srcH } = st; if (mode === "center") { s.x = Math.round((srcW - s.w) / 2 / GRID) * GRID; s.y = Math.round((srcH - s.h) / 2 / GRID) * GRID; } else if (mode === "top") s.y = 0; else if (mode === "bottom") s.y = Math.round((srcH - s.h) / GRID) * GRID; else if (mode === "fitW") { s.w = srcW; if (st.arLocked) s.h = Math.round(s.w / st.cropAR / GRID) * GRID; s.x = 0; s.y = Math.round((srcH - s.h) / 2 / GRID) * GRID; } else if (mode === "fitH") { s.h = srcH; if (st.arLocked) s.w = Math.round(s.h * st.cropAR / GRID) * GRID; s.y = 0; s.x = Math.round((srcW - s.w) / 2 / GRID) * GRID; } else if (mode === "left") s.x = 0; else if (mode === "right") s.x = Math.round((srcW - s.w) / GRID) * GRID; s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); if (!st.arLocked) st.cropAR = s.w / s.h; syncOutToAR(st); render(st, dom); syncWidgets(st, widgets, node); }); }
+    wInput.addEventListener("change", () => {
+        const r = Math.max(GRID, Math.round(parseInt(wInput.value, 10) / GRID) * GRID) || GRID;
+        let s = crToSrc(st.cr, st.sf, st.scale); const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
+        s.w = r; if (st.arLocked) s.h = Math.max(GRID, Math.round(r / st.cropAR / GRID) * GRID);
+        s.x = Math.round((cx - s.w / 2) / GRID) * GRID; s.y = Math.round((cy - s.h / 2) / GRID) * GRID;
+        s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale);
+        if (!st.arLocked) st.cropAR = s.w / s.h;
+        fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node);
+    });
+    hInput.addEventListener("change", () => {
+        const r = Math.max(GRID, Math.round(parseInt(hInput.value, 10) / GRID) * GRID) || GRID;
+        let s = crToSrc(st.cr, st.sf, st.scale); const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
+        s.h = r; if (st.arLocked) s.w = Math.max(GRID, Math.round(r * st.cropAR / GRID) * GRID);
+        s.x = Math.round((cx - s.w / 2) / GRID) * GRID; s.y = Math.round((cy - s.h / 2) / GRID) * GRID;
+        s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale);
+        if (!st.arLocked) st.cropAR = s.w / s.h;
+        fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node);
+    });
+    resetBtn.addEventListener("click", () => { initLayout(st, dom.wrap); st.outW = 0; st.outH = 0; fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node); });
+    outWInput.addEventListener("change", () => {
+        const v = parseInt(outWInput.value, 10); if (!isNaN(v) && v >= GRID) { st.outW = v; st.outH = Math.max(GRID, Math.round(v / st.cropAR / GRID) * GRID); } else { st.outW = 0; st.outH = 0; }
+        render(st, dom); syncWidgets(st, widgets, node);
+    });
+    outHInput.addEventListener("change", () => {
+        const v = parseInt(outHInput.value, 10); if (!isNaN(v) && v >= GRID) { st.outH = v; st.outW = Math.max(GRID, Math.round(v * st.cropAR / GRID) * GRID); } else { st.outW = 0; st.outH = 0; }
+        render(st, dom); syncWidgets(st, widgets, node);
+    });
+    
+    for (const btn of chipBtns) { btn.addEventListener("click", () => { 
+        const rw = parseInt(btn.dataset.chipW, 10), rh = parseInt(btn.dataset.chipH, 10); const chipAR = rw / rh; 
+        setArLocked(st, dom, true); st.cropAR = chipAR; 
+        let s = crToSrc(st.cr, st.sf, st.scale); const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
+        const area = s.w * s.h; s.w = Math.max(GRID, Math.round(Math.sqrt(area * chipAR) / GRID) * GRID); s.h = Math.max(GRID, Math.round(s.w / chipAR / GRID) * GRID);
+        s.x = Math.round((cx - s.w / 2) / GRID) * GRID; s.y = Math.round((cy - s.h / 2) / GRID) * GRID; 
+        if(s.x < -s.w) s.x = -s.w; if(s.y < -s.h) s.y = -s.h;
+        st.cr = srcToCr(s, st.sf, st.scale); st.outW = s.w; st.outH = s.h;
+        fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node);
+    }); }
+
+    for (const btn of snapBtns) { btn.addEventListener("click", () => { 
+        const mode = btn.dataset.snap; let s = crToSrc(st.cr, st.sf, st.scale); const { srcW, srcH } = st; 
+        if (mode === "center") { s.x = Math.round((srcW - s.w) / 2 / GRID) * GRID; s.y = Math.round((srcH - s.h) / 2 / GRID) * GRID; } 
+        else if (mode === "top") s.y = 0; else if (mode === "bottom") s.y = Math.round((srcH - s.h) / GRID) * GRID; 
+        else if (mode === "fitW") { s.w = srcW; if (st.arLocked) s.h = Math.round(s.w / st.cropAR / GRID) * GRID; s.x = 0; s.y = Math.round((srcH - s.h) / 2 / GRID) * GRID; } 
+        else if (mode === "fitH") { s.h = srcH; if (st.arLocked) s.w = Math.round(s.h * st.cropAR / GRID) * GRID; s.y = 0; s.x = Math.round((srcW - s.w) / 2 / GRID) * GRID; } 
+        else if (mode === "left") s.x = 0; else if (mode === "right") s.x = Math.round((srcW - s.w) / GRID) * GRID; 
+        s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); 
+        if (!st.arLocked) st.cropAR = s.w / s.h; 
+        render(st, dom); syncWidgets(st, widgets, node); 
+    }); }
+
     wrap.addEventListener("wheel", e => { e.preventDefault(); const rect = wrap.getBoundingClientRect(); const sx = e.clientX - rect.left, sy = e.clientY - rect.top; const factor = e.deltaY < 0 ? 1.12 : (1 / 1.12); const newZoom = clamp(st.view.zoom * factor, 0.15, 5.0); st.view.panX = sx - (sx - st.view.panX) * (newZoom / st.view.zoom); st.view.panY = sy - (sy - st.view.panY) * (newZoom / st.view.zoom); st.view.zoom = newZoom; render(st, dom); }, { passive: false });
     dom.zoomIndicator.addEventListener("click", () => { st.view = { zoom: Infinity, panX: 0, panY: 0 }; fitCropInView(st, dom); render(st, dom); });
-    let pan = null, drag = null, MIN_DRAG_PX = GRID;
-    wrap.addEventListener("pointerdown", e => { if (e.button === 1) { pan = { sx: e.clientX, sy: e.clientY, ox: st.view.panX, oy: st.view.panY }; wrap.setPointerCapture(e.pointerId); e.preventDefault(); return; } const handle = e.target.closest("[data-dir]"); const inCropBox = dom.cropBox.contains(e.target); const wc = toWorld(e, wrap, st.view); if (handle) { drag = { type: "resize", dir: handle.dataset.dir, sx: wc.x, sy: wc.y, sb: { ...st.cr }, ar: st.arLocked ? st.cropAR : null }; e.preventDefault(); } else if (inCropBox) { drag = { type: "move", sx: wc.x, sy: wc.y, sb: { ...st.cr } }; e.preventDefault(); } if (drag) wrap.setPointerCapture(e.pointerId); });
-    wrap.addEventListener("pointermove", e => { if (pan) { st.view.panX = pan.ox + (e.clientX - pan.sx); st.view.panY = pan.oy + (e.clientY - pan.sy); render(st, dom); return; } if (!drag) return; const wc = toWorld(e, wrap, st.view), dx = wc.x - drag.sx, dy = wc.y - drag.sy, minPx = MIN_DRAG_PX * st.scale; if (drag.type === "move") { applyCanvasCr({ ...drag.sb, x: drag.sb.x + dx, y: drag.sb.y + dy }, st); render(st, dom); return; } let { x, y, w, h } = drag.sb, { dir, ar } = drag; if (dir === "br") { w = Math.max(minPx, w + dx); h = ar ? Math.round(w / ar) : Math.max(minPx, h + dy); } else if (dir === "bl") { const nw = Math.max(minPx, w - dx); x += w - nw; w = nw; h = ar ? Math.round(w / ar) : Math.max(minPx, h + dy); } else if (dir === "tr") { w = Math.max(minPx, w + dx); const nh = ar ? Math.round(w / ar) : Math.max(minPx, h - dy); y += h - nh; h = nh; } else if (dir === "tl") { const nw = Math.max(minPx, w - dx); x += w - nw; w = nw; const nh = ar ? Math.round(w / ar) : Math.max(minPx, h - dy); y += h - nh; h = nh; } else if (dir === "t") { const nh = Math.max(minPx, h - dy); const nw = ar ? Math.round(nh * ar) : w; if (ar) x += Math.round((w - nw) / 2); y += h - nh; h = nh; w = nw; } else if (dir === "b") { const nh = Math.max(minPx, h + dy); const nw = ar ? Math.round(nh * ar) : w; if (ar) x += Math.round((w - nw) / 2); h = nh; w = nw; } else if (dir === "l") { const nw = Math.max(minPx, w - dx); const nh = ar ? Math.round(nw / ar) : h; if (ar) y += Math.round((h - nh) / 2); x += w - nw; w = nw; h = nh; } else if (dir === "r") { const nw = Math.max(minPx, w + dx); const nh = ar ? Math.round(nw / ar) : h; if (ar) y += Math.round((h - nh) / 2); w = nw; h = nh; } applyCanvasCr({ x, y, w, h }, st); render(st, dom); });
-    wrap.addEventListener("pointerup", () => { if (pan) { pan = null; return; } if (drag) { const type = drag.type; drag = null; if (type === "resize" && st.arLocked) { let s = crToSrc(st.cr, st.sf, st.scale); s = quantizeSrc(s); s.h = Math.max(GRID, Math.round(s.w / st.cropAR / GRID) * GRID); s = clampToValid(s, st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); } if (type === "resize") { if (!st.arLocked) { const s = crToSrc(st.cr, st.sf, st.scale); st.cropAR = s.w / s.h; } syncOutToAR(st); } if (type === "resize" || type === "move") fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node); } });
-    wrap.addEventListener("pointercancel", () => { pan = null; drag = null; });
-    wrap.tabIndex = 0;
-    wrap.addEventListener("keydown", e => { const arrows = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]; if (!arrows.includes(e.key)) return; if ([wInput, hInput, outWInput, outHInput].includes(document.activeElement)) return; e.preventDefault(); e.stopPropagation(); let s = crToSrc(st.cr, st.sf, st.scale); const step = e.shiftKey ? GRID * 4 : GRID; if (e.key === "ArrowUp") s.y -= step; else if (e.key === "ArrowDown") s.y += step; else if (e.key === "ArrowLeft") s.x -= step; else if (e.key === "ArrowRight") s.x += step; s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); render(st, dom); syncWidgets(st, widgets, node); });
-}
+    
+    let drag = null;
 
-function setupResizeObserver(st, dom) {
-    const ro = new ResizeObserver(() => { if (!st.initialized) return; if (dom.wrap.clientHeight <= 0) return; const prevSrc = crToSrc(st.cr, st.sf, st.scale); const prevZoom = st.view.zoom, prevPan = { ...st.view }; if (!initLayout(st, dom.wrap)) return; const s = clampToValid(quantizeSrc(prevSrc), st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); if (prevZoom !== 1.0 || prevPan.panX !== 0 || prevPan.panY !== 0) st.view = prevPan; render(st, dom); });
-    ro.observe(dom.wrap); return ro;
+    wrap.addEventListener("pointerdown", e => {
+        if (e.button === 1) {
+            const pan = { sx: e.clientX, sy: e.clientY, ox: st.view.panX, oy: st.view.panY };
+            const onPanMove = (ev) => { st.view.panX = pan.ox + (ev.clientX - pan.sx); st.view.panY = pan.oy + (ev.clientY - pan.sy); render(st, dom); };
+            const onPanUp = () => { window.removeEventListener("pointermove", onPanMove); window.removeEventListener("pointerup", onPanUp); };
+            window.addEventListener("pointermove", onPanMove);
+            window.addEventListener("pointerup", onPanUp);
+            wrap.setPointerCapture(e.pointerId);
+            e.preventDefault();
+            return;
+        }
+
+        const handle = e.target.closest("[data-dir]");
+        const inBox = dom.cropBox.contains(e.target);
+        if (!handle && !inBox) return;
+
+        e.preventDefault();
+        wrap.setPointerCapture(e.pointerId);
+        
+        drag = {
+            type: handle ? "resize" : "move",
+            dir: handle?.dataset.dir,
+            startX: e.clientX,
+            startY: e.clientY,
+            startLocalX: st.cr.x,
+            startLocalY: st.cr.y,
+            startLocalW: st.cr.w,
+            startLocalH: st.cr.h,
+            ar: st.arLocked ? st.cropAR : null
+        };
+    });
+
+    wrap.addEventListener("pointermove", e => {
+        if (!drag) return;
+        
+        const dxScreen = e.clientX - drag.startX;
+        const dyScreen = e.clientY - drag.startY;
+        
+        const dxLocal = (dxScreen / st.scale) * DRAG_SENSITIVITY;
+        const dyLocal = (dyScreen / st.scale) * DRAG_SENSITIVITY;
+        
+        let newX = drag.startLocalX;
+        let newY = drag.startLocalY;
+        let newW = drag.startLocalW;
+        let newH = drag.startLocalH;
+
+        if (drag.type === "move") {
+            newX += dxLocal;
+            newY += dyLocal;
+        } else {
+            if (drag.dir === "br") { 
+                newW = Math.max(GRID, drag.startLocalW + dxLocal); 
+                newH = drag.ar ? newW / drag.ar : Math.max(GRID, drag.startLocalH + dyLocal); 
+            }
+            else if (drag.dir === "bl") { 
+                newW = Math.max(GRID, drag.startLocalW - dxLocal); 
+                newX = drag.startLocalX + drag.startLocalW - newW; 
+                newH = drag.ar ? newW / drag.ar : Math.max(GRID, drag.startLocalH + dyLocal); 
+            }
+            else if (drag.dir === "tr") { 
+                newW = Math.max(GRID, drag.startLocalW + dxLocal); 
+                newH = drag.ar ? newW / drag.ar : Math.max(GRID, drag.startLocalH - dyLocal); 
+                newY = drag.startLocalY + drag.startLocalH - newH; 
+            }
+            else if (drag.dir === "tl") { 
+                newW = Math.max(GRID, drag.startLocalW - dxLocal); 
+                newX = drag.startLocalX + drag.startLocalW - newW; 
+                newH = drag.ar ? newW / drag.ar : Math.max(GRID, drag.startLocalH - dyLocal); 
+                newY = drag.startLocalY + drag.startLocalH - newH; 
+            }
+            else if (drag.dir === "t") { 
+                newH = Math.max(GRID, drag.startLocalH - dyLocal); 
+                newY = drag.startLocalY + drag.startLocalH - newH; 
+                newW = drag.ar ? newH * drag.ar : newW;
+                if(drag.ar) newX = drag.startLocalX + (drag.startLocalW - newW)/2;
+            }
+            else if (drag.dir === "b") { 
+                newH = Math.max(GRID, drag.startLocalH + dyLocal); 
+                newW = drag.ar ? newH * drag.ar : newW;
+                if(drag.ar) newX = drag.startLocalX + (drag.startLocalW - newW)/2;
+            }
+            else if (drag.dir === "l") { 
+                newW = Math.max(GRID, drag.startLocalW - dxLocal); 
+                newX = drag.startLocalX + drag.startLocalW - newW; 
+                newH = drag.ar ? newW / drag.ar : newH;
+                if(drag.ar) newY = drag.startLocalY + (drag.startLocalH - newH)/2;
+            }
+            else if (drag.dir === "r") { 
+                newW = Math.max(GRID, drag.startLocalW + dxLocal); 
+                newH = drag.ar ? newW / drag.ar : newH;
+                if(drag.ar) newY = drag.startLocalY + (drag.startLocalH - newH)/2;
+            }
+        }
+
+        dom.cropBox.style.left = newX + "px";
+        dom.cropBox.style.top = newY + "px";
+        dom.cropBox.style.width = newW + "px";
+        dom.cropBox.style.height = newH + "px";
+        
+        drag.tempLocalX = newX;
+        drag.tempLocalY = newY;
+        drag.tempLocalW = newW;
+        drag.tempLocalH = newH;
+    });
+
+    wrap.addEventListener("pointerup", e => {
+        if (!drag) return;
+        
+        const finalVisualX = drag.tempLocalX !== undefined ? drag.tempLocalX : drag.startLocalX;
+        const finalVisualY = drag.tempLocalY !== undefined ? drag.tempLocalY : drag.startLocalY;
+        const finalVisualW = drag.tempLocalW !== undefined ? drag.tempLocalW : drag.startLocalW;
+        const finalVisualH = drag.tempLocalH !== undefined ? drag.tempLocalH : drag.startLocalH;
+
+        const srcX = (finalVisualX - st.sf.x) / st.scale;
+        const srcY = (finalVisualY - st.sf.y) / st.scale;
+        const srcW = finalVisualW / st.scale;
+        const srcH = finalVisualH / st.scale;
+
+        const snapped = quantizeSrc({ x: srcX, y: srcY, w: srcW, h: srcH });
+        
+        st.cr = srcToCr(snapped, st.sf, st.scale);
+        drag = null;
+
+        syncOutputToBox(st, dom, widgets);
+        syncWidgets(st, widgets, node);
+        fitCropInView(st, dom);
+        render(st, dom);
+    });
+    
+    wrap.addEventListener("pointercancel", () => { drag = null; });
 }
 
 app.registerExtension({
@@ -406,173 +450,75 @@ app.registerExtension({
             const result = origOnNodeCreated?.apply(this, arguments);
             const node = this;
             const widgets = { cropState: node.widgets?.find(w => w.name === "crop_state") };
+
+            // 🔑 ПРОГРАММНОЕ СКРЫТИЕ ВИДЖЕТА
+            if (widgets.cropState) {
+                widgets.cropState.hidden = true;
+                widgets.cropState.computeSize = () => [0, -4]; // Минимальный размер
+            }
+    
             if (node.inputs) { for (let i = node.inputs.length - 1; i >= 0; i--) { if (node.inputs[i].name === "crop_state") node.removeInput(i); } }
-            
+            if (node.inputs) { for (let i = node.inputs.length - 1; i >= 0; i--) { if (node.inputs[i].name === "crop_state") node.removeInput(i); } }
             const st = createState();
             const dom = buildUI();
-            wireColors(st, dom);
-
             const domWidget = node.addDOMWidget("rs_outpaint_canvas", "custom", dom.root, { serialize: false, hideOnZoom: false });
             domWidget.computeSize = () => [440, CANVAS_H + CTRL_H];
             node.setSize([Math.max(node.size[0], 520), Math.max(node.size[1], CANVAS_H + CTRL_H + 72)]);
             
-            let _prevNodeX = node.pos[0];
-            node.onResize = function(size) { if (size[0] < 520) { if (this.pos[0] !== _prevNodeX) this.pos[0] += size[0] - 520; size[0] = 520; } _prevNodeX = this.pos[0]; const h = Math.max(CANVAS_H, size[1] - CTRL_H - 72); dom.wrap.style.height = h + "px"; };
-            if (node.widgets) { const cs = node.widgets.find(w => w.name === "crop_state"); node.widgets = [domWidget, ...node.widgets.filter(w => w !== domWidget && w !== cs)]; if (cs) { node.widgets.push(cs); cs.computeSize = () => [0, -4]; cs.hidden = true; } }
-            const origOnConfigure = node.onConfigure;
-            node.onConfigure = function (info) { if (origOnConfigure) origOnConfigure.call(this, info); if (widgets.cropState) st._latchedCropState = widgets.cropState.value; };
-            
-            const applyImageData = (data, preserveCrop) => {
-                const dimsChanged = st.initialized && (st._lastW !== data.width || st._lastH !== data.height);
-                const shouldReset = dimsChanged || !preserveCrop || !st.initialized;
+            node.heartbeatInterval = null;
+            node.startHeartbeat = function() {
+                if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+                this.heartbeatInterval = setInterval(async () => {
+                    try { await fetch("/rs_outpaint/heartbeat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(this.id) }) }); } catch (e) {}
+                }, 3000);
+            };
+            node.stopHeartbeat = function() {
+                if (this.heartbeatInterval) { clearInterval(this.heartbeatInterval); this.heartbeatInterval = null; }
+            };
 
-                st.srcW = data.width;
-                st.srcH = data.height;
-                if (!initLayout(st, dom.wrap)) return;
-
-                if (shouldReset) {
-                    console.log(`🦊 [RS Outpaint] Auto-reset (${dimsChanged ? 'new image' : 'fresh init'}) ${st.srcW}x${st.srcH}`);
-                    const defW = Math.max(GRID, Math.round(st.srcW * 0.8 / GRID) * GRID);
-                    const defH = Math.max(GRID, Math.round(st.srcH * 0.8 / GRID) * GRID);
-                    const defX = Math.round((st.srcW - defW) / 2 / GRID) * GRID;
-                    const defY = Math.round((st.srcH - defH) / 2 / GRID) * GRID;
-                    st.cr = srcToCr({x: defX, y: defY, w: defW, h: defH}, st.sf, st.scale);
-                    st.cropAR = defW / defH;
-                    st.outW = 0;
-                    st.outH = 0;
-                } else {
-                    const val = widgets.cropState?.value ?? "";
-                    if (val) restoreCropFromWidgets(st, widgets, val);
+            const onShow = (event) => {
+                const { node_id, image_width, image_height } = event.detail;
+                if (String(node_id) !== String(node.id)) return;
+                resetNodeState(st, dom, widgets);
+                st.srcW = image_width; st.srcH = image_height;
+                if (initLayout(st, dom.wrap)) {
+                    dom.waitingMsg.style.display = "flex"; dom.noDataMsg.style.display = "none";
+                    dom.acceptBtn.style.display = "block"; dom.cancelBtn.style.display = "block";
+                    dom.acceptBtn.disabled = false; dom.acceptBtn.textContent = "✔️ ACCEPT";
+                    const tempUrl = api.apiURL(`/view?filename=rsoutpaint_${node_id}.png&type=temp&subfolder=rsoutpaint&t=${Date.now()}`);
+                    const img = new Image();
+                    img.onload = () => { dom.imageEl.src = tempUrl; dom.imageEl.style.display = "block"; fitCropInView(st, dom); render(st, dom); };
+                    img.src = tempUrl;
+                    node.startHeartbeat();
                 }
-
-                st._lastW = st.srcW;
-                st._lastH = st.srcH;
-
-                fetchImageWithRetry(String(node.id), dom);
-                dom.imageEl.style.display = "block";
-                dom.noDataMsg.style.display = "none";
-                fitCropInView(st, dom);
-                render(st, dom);
-                syncWidgets(st, widgets, node);
             };
+            api.addEventListener("rs_outpaint.show", onShow);
 
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    const nodeId = String(node.id);
-                    
-                    if (!st.initialized) {
-                        if (initLayout(st, dom.wrap)) {
-                            restoreCropFromWidgets(st, widgets, st._latchedCropState);
-                            st._latchedCropState = undefined;
-                            if (st.outW < GRID || st.outH < GRID) { const d = defaultOut(st); st.outW = d.w; st.outH = d.h; }
-                            else syncOutToAR(st);
-                            st._lastW = st.srcW;
-                            st._lastH = st.srcH;
-                            fitCropInView(st, dom);
-                            render(st, dom);
-                            syncWidgets(st, widgets, node);
-                        }
+            dom.acceptBtn.addEventListener("click", async () => {
+                const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale));
+                const mR = parseInt(st.maskColor.slice(1,3), 16), mG = parseInt(st.maskColor.slice(3,5), 16), mB = parseInt(st.maskColor.slice(5,7), 16);
+                const cropState = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH},${mR},${mG},${mB}`;
+                dom.acceptBtn.textContent = "⏳ Sending..."; dom.acceptBtn.disabled = true;
+                try {
+                    const resp = await fetch("/rs_outpaint/decision", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id), decision: "approve", crop_state: cropState }) });
+                    if (resp.ok) {
+                        node.stopHeartbeat(); resetNodeState(st, dom, widgets);
+                        dom.noDataMsg.textContent = "✅ Approved! Continuing..."; dom.noDataMsg.style.display = "flex";
+                        setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 1500);
                     }
-                    
-                    wireInteractions(st, dom, widgets, node, nodeId);
-                    setupResizeObserver(st, dom);
-
-                    const onExecutionStart = () => { startPolling(nodeId, dom, applyImageData, widgets, st); };
-                    api.addEventListener("executing", onExecutionStart);
-                    const onInterrupt = () => { stopPolling(nodeId); };
-                    api.addEventListener("interrupt", onInterrupt);
-                    api.addEventListener("disconnected", onInterrupt);
-                    
-                    const onShow = (event) => {
-                        const { node_id, image_width, image_height } = event.detail;
-                        if (String(node_id) !== nodeId) return;
-
-                        dom.waitingMsg.style.display = "flex";
-                        dom.noDataMsg.style.display = "none";
-                        dom.acceptBtn.style.display = "block";
-                        dom.acceptBtn.textContent = "✔️ ACCEPT";
-                        dom.acceptBtn.disabled = false;
-
-                        if (!st.initialized || st._lastW !== image_width || st._lastH !== image_height) {
-                            st.srcW = image_width;
-                            st.srcH = image_height;
-                            initLayout(st, dom.wrap);
-                            
-                            const defW = Math.max(GRID, Math.round(st.srcW * 0.8 / GRID) * GRID);
-                            const defH = Math.max(GRID, Math.round(st.srcH * 0.8 / GRID) * GRID);
-                            const defX = Math.round((st.srcW - defW) / 2 / GRID) * GRID;
-                            const defY = Math.round((st.srcH - defH) / 2 / GRID) * GRID;
-                            st.cr = srcToCr({x: defX, y: defY, w: defW, h: defH}, st.sf, st.scale);
-                            st.cropAR = defW / defH;
-                            st.outW = 0; st.outH = 0;
-                            
-                            st._lastW = st.srcW;
-                            st._lastH = st.srcH;
-                            st.initialized = true;
-                            
-                            fitCropInView(st, dom);
-                            render(st, dom);
-                            syncWidgets(st, widgets, node);
-                            console.log(`🦊 [RS Outpaint] onShow reset ${st.srcW}x${st.srcH}`);
-                        }
-                    };
-                    api.addEventListener("rs_outpaint.show", onShow);
-                    
-                    dom.acceptBtn.addEventListener("click", async () => {
-                        const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale));
-                        const mR = parseInt(st.maskColor.slice(1,3), 16);
-                        const mG = parseInt(st.maskColor.slice(3,5), 16);
-                        const mB = parseInt(st.maskColor.slice(5,7), 16);
-                        const cropState = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH},${mR},${mG},${mB}`;
-                        dom.acceptBtn.textContent = "⏳ Sending...";
-                        dom.acceptBtn.disabled = true;
-                        
-                        try {
-                            const resp = await fetch("/rs_outpaint/decision", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ node_id: nodeId, decision: "approve", crop_state: cropState })
-                            });
-                            
-                            if (resp.ok) {
-                                dom.waitingMsg.style.display = "none";
-                                dom.acceptBtn.style.display = "none";
-                                dom.noDataMsg.textContent = "✅ Approved! Continuing...";
-                                dom.noDataMsg.style.display = "flex";
-                                setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 1500);
-                            }
-                        } catch (err) {
-                            console.error("🦊 Accept failed:", err);
-                            dom.acceptBtn.textContent = "✔️ ACCEPT";
-                            dom.acceptBtn.disabled = false;
-                        }
-                    });
-                    
-                    node._outpaintCleanup = () => {
-                        api.removeEventListener("executing", onExecutionStart);
-                        api.removeEventListener("interrupt", onInterrupt);
-                        api.removeEventListener("disconnected", onInterrupt);
-                        api.removeEventListener("rs_outpaint.show", onShow);
-                        stopPolling(nodeId);
-                        fetch("/rs_outpaint/cleanup", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ node_id: nodeId })
-                        }).catch(() => {});
-                    };
-
-                    fetchInfoWithRetry(nodeId, 3, 200).then(data => {
-                        if (data) applyImageData(data, true);
-                    });
-                });
+                } catch (err) { console.error("Accept failed:", err); }
             });
+
+            dom.cancelBtn.addEventListener("click", async () => {
+                node.stopHeartbeat(); resetNodeState(st, dom, widgets);
+                try { await fetch("/rs_outpaint/cleanup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id) }) }); } catch(e){}
+                try { await api.interrupt(); } catch(e){}
+            });
+
+            wireInteractions(st, dom, widgets, node, String(node.id));
+            node._outpaintCleanup = () => { api.removeEventListener("rs_outpaint.show", onShow); node.stopHeartbeat(); fetch("/rs_outpaint/cleanup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id) }) }).catch(() => {}); };
             const origOnRemoved = node.onRemoved;
-            node.onRemoved = function () { 
-                node._outpaintCleanup?.(); 
-                stopPolling(String(node.id));
-                if (origOnRemoved) origOnRemoved.call(this); 
-            };
-            node._outpaintCtx = { st, dom, widgets };
+            node.onRemoved = function () { node._outpaintCleanup?.(); if (origOnRemoved) origOnRemoved.call(this); };
             return result;
         };
     },

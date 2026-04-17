@@ -40,7 +40,6 @@ class RSOutpaint:
         return {
             "required": {
                 "image": ("IMAGE", {"tooltip": "Source image."}),
-                # 🔑 Добавлен "hidden": True, чтобы виджет не отображался в UI
                 "crop_state": ("STRING", {"default": "", "tooltip": "Internal state", "hidden": True}),
             },
             "hidden": {"unique_id": "UNIQUE_ID"},
@@ -53,7 +52,6 @@ class RSOutpaint:
     CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = "Interactive mask for outpaint with auto-reset"
 
-    # 🔑 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Отключаем кеширование, чтобы нода всегда выполнялась
     @classmethod
     def IS_CHANGED(cls, image, unique_id):
         return float("nan")
@@ -107,7 +105,6 @@ class RSOutpaint:
                 except Exception as e:
                     print(f"🦊 [RS Outpaint] Error saving preview: {e}")
 
-            # Цикл ожидания
             while True:
                 state = _PENDING_DECISIONS.get(unique_id, {})
                 current_status = state.get("status", "pending")
@@ -136,7 +133,6 @@ class RSOutpaint:
                     
                 time.sleep(0.2)
 
-            # Парсинг и генерация маски
             crop_x = crop_y = crop_w = crop_h = 0
             output_width = output_height = 0
             use_crop_state = False
@@ -219,7 +215,6 @@ class RSOutpaint:
             return (control_image, control_mask, mask_image, eff_w, eff_h)
 
         finally:
-            # Всегда очищаем состояние, чтобы следующие запуски не зависали
             if unique_id in _PENDING_DECISIONS:
                 del _PENDING_DECISIONS[unique_id]
 
@@ -267,5 +262,3 @@ async def rs_outpaint_heartbeat(request):
         return web.Response(status=404, text="Not found")
     except Exception as e:
         return web.Response(status=500, text=str(e))
-
-print("🦊 [RS Outpaint] ✅ Routes registered")

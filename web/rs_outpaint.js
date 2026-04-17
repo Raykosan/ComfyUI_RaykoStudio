@@ -55,7 +55,6 @@ function createState() {
 function resetNodeState(st, dom, widgets) {
     Object.assign(st, createState());
     
-    // 🔑 ПРИНУДИТЕЛЬНАЯ СИНХРОНИЗАЦИЯ ИКОНКИ ЛОКИРОВКИ
     st.arLocked = true;
     dom.arBtn.textContent = "🔒";
     dom.arBtn.style.border = "1px solid #99c0ee";
@@ -451,10 +450,9 @@ app.registerExtension({
             const node = this;
             const widgets = { cropState: node.widgets?.find(w => w.name === "crop_state") };
 
-            // 🔑 ПРОГРАММНОЕ СКРЫТИЕ ВИДЖЕТА
             if (widgets.cropState) {
                 widgets.cropState.hidden = true;
-                widgets.cropState.computeSize = () => [0, -4]; // Минимальный размер
+                widgets.cropState.computeSize = () => [0, -4];
             }
     
             if (node.inputs) { for (let i = node.inputs.length - 1; i >= 0; i--) { if (node.inputs[i].name === "crop_state") node.removeInput(i); } }

@@ -21,7 +21,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 ---
 
 # 🦊 RS Outpaint  
-**Interactive visual mask selection for outpainting** 
+**Interactive node for precise control of the outpainting area with a visual mask editor** 
 
 ![Screenshot_8](https://github.com/user-attachments/assets/253d46bc-4bf3-436a-9e61-6531fd623ffc)
 ![Screenshot_9](https://github.com/user-attachments/assets/9e9d929d-2ccb-441b-ab50-4a987493d583)
@@ -38,6 +38,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - **Color Mask and Background** — Selecting the color for the mask and background when using the mask_image output  
 - **Padding Indicators** — Visual labels show generated padding areas (▲▼◀▶)  
 - **Keyboard Shortcuts** — Arrow keys to nudge crop box (Shift for 4× step)  
+- **Heartbeat** — mechanism to prevent freezes  
+- **Instant reset** — reset of the state after each generation  
 
 ### 🪛 Usage  
 **Basic Workflow**  
@@ -47,9 +49,12 @@ Drag the blue-bordered box to reposition
 Use corner/edge handles to resize  
 Toggle 🔒 to lock/unlock aspect ratio  
 Select preset ratios or snap to position  
-Set Output Resolution (optional): Leave at 0 for auto, or specify target W×H  
+Set Output Resolution - is the target output resolution (by default, it is equal to the frame size). You can manually set the upscale/downscale of the result, if the fields are empty, the frame size is used  
 Select colors for the mask and background if you will be using the result of the mask_image function  
 Click ✔️ ACCEPT to continue generation with your mask  
+Click ❌ CANCEL to interrupt the generation process  
+
+💡Tip: For precise positioning, use the arrow keys on your keyboard (hold Shift to move faster)
 
 ### ↔️ Inputs and Outputs:  
 **Input** :  

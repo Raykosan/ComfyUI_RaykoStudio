@@ -41,11 +41,16 @@ class RaykoModelsLoader:
     @classmethod
     def IS_CHANGED(cls, lora_data="[]", **kwargs):
         import hashlib
+        if lora_data is None:
+            lora_data = "[]"
         return hashlib.md5(lora_data.encode()).hexdigest()
 
     def load_models(self, unet_name, weight_dtype, clip_name, clip_type, clip_device, vae_name, lora_data="[]"):
         print(f"\n[Rayko] === Start load_models ===")
         print(f"[Rayko] lora_data RAW: {lora_data}")
+        
+        if not lora_data:
+            lora_data = "[]"
         
         wd = None if weight_dtype == "default" else weight_dtype
         model = UNETLoader().load_unet(unet_name=unet_name, weight_dtype=wd)[0]
@@ -60,6 +65,8 @@ class RaykoModelsLoader:
 
         try:
             loras = json.loads(lora_data) if lora_data else []
+            if not isinstance(loras, list):
+                loras = []
             print(f"[Rayko] LoRA count: {len(loras)}")
         except Exception as e:
             loras = []
@@ -68,6 +75,9 @@ class RaykoModelsLoader:
         lora_loader = LoraLoader()
 
         for i, lora in enumerate(loras):
+            if not isinstance(lora, dict):
+                continue
+                
             name = lora.get("name", "")
             strength_model = float(lora.get("strength_model", 1.0))
             strength_clip = float(lora.get("strength_clip", strength_model))

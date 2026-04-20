@@ -313,6 +313,18 @@ Restart ComfyUI
 ---
 ---
 
+# 🦊 RS Color Picker  
+**A node for selecting a color and displaying its HEX parameters**  
+ 
+<img width="372" height="416" alt="Screenshot_3" src="https://github.com/user-attachments/assets/ab1681d0-0276-4ef6-a34d-56f181661034" />  
+
+### 🪛 Usage  
+Click on the color window, select the color with the cursor on the palette, or click the picker icon and select a color anywhere on the monitor.  
+A HEX of this color will appear in the text field, which you can copy to the clipboard.  
+
+---
+---
+
 # 🦊 RS Saturation  
 **Professional image saturation control with artifact and highlight protection.**  
 

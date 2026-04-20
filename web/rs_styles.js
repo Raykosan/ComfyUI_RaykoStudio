@@ -26,12 +26,12 @@ app.registerExtension({
                 this.menuPosition = null;
                 this.menuScrollPosition = 0;
                 
+                const self = this;
+                
                 this.hiddenWidget = this.widgets.find(w => w.name === "node_data");
                 if (this.hiddenWidget) {
                     this.hiddenWidget.hidden = true;
                     this.hiddenWidget.tooltip = "";
-                    
-                    // ← Полностью отключаем нативное поведение виджета
                     this.hiddenWidget.type = "hidden";
                     
                     if (this.hiddenWidget.element) {
@@ -40,13 +40,13 @@ app.registerExtension({
                     }
                     
                     this.hiddenWidget.serializeValue = () => {
-                        this.syncData();
+                        self.syncData();
                         return this.hiddenWidget.value;
                     };
                     try {
                         const saved = JSON.parse(this.hiddenWidget.value);
                         if (saved && typeof saved === 'object') {
-                            this.data = { ...this.data, ...saved };
+                            self.data = { ...self.data, ...saved };
                         }
                     } catch (e) {
                         console.error("[Rayko] Error loading saved data", e);
@@ -58,8 +58,8 @@ app.registerExtension({
                 }
                 
                 this.setSize([this.targetWidth, 300]);
-                const self = this;
 
+                // --- Core Data Loader ---
                 this.loadCSVList = async function() {
                     try {
                         const response = await api.fetchApi("/rayko_get_csv_files");
@@ -78,6 +78,7 @@ app.registerExtension({
                     }
                 };
 
+                // --- Helper Drawing Methods ---
                 this.drawSeparator = function(ctx, text, x, y, w, h) {
                     ctx.fillStyle = "#444";
                     ctx.fillRect(x, y + 8, w, 1);
@@ -138,27 +139,28 @@ app.registerExtension({
                     ctx.fillText(label, x + w/2 + 8, y + h/2);
                 };
 
+                // --- Main Rendering ---
                 this.onDrawForeground = function(ctx, visibleRect) {
                     this.clickZones = [];
                     const startY = 80;
-                    const rowH = this.rowHeight;
-                    const pad = 10;
+                    const rowH = self.rowHeight;
+                    const pad = self.padding;
                     let y = startY;
 
-                    this.drawLabel(ctx, "SELECT CSV FILE", pad, y, this.labelWidth, rowH);
-                    this.drawComboField(ctx, this.data.active_csv_file, pad + this.labelWidth, y, this.size[0] - pad*2 - this.labelWidth, rowH);
-                    this.clickZones.push({ type: "combo", field: "active_csv_file", x: pad + this.labelWidth, y: y, w: this.size[0] - pad*2 - this.labelWidth, h: rowH });
+                    self.drawLabel(ctx, "SELECT CSV FILE", pad, y, self.labelWidth, rowH);
+                    self.drawComboField(ctx, self.data.active_csv_file, pad + self.labelWidth, y, self.size[0] - pad*2 - self.labelWidth, rowH);
+                    this.clickZones.push({ type: "combo", field: "active_csv_file", x: pad + self.labelWidth, y: y, w: self.size[0] - pad*2 - self.labelWidth, h: rowH });
                     y += rowH + 10;
 
-                    this.drawButton(ctx, "📂 UPLOAD NEW CSV FILE", pad, y, this.size[0] - pad*2, rowH, "#FF9800");
-                    this.clickZones.push({ type: "upload", x: pad, y: y, w: this.size[0] - pad*2, h: rowH });
+                    self.drawButton(ctx, "📂 UPLOAD NEW CSV FILE", pad, y, self.size[0] - pad*2, rowH, "#FF9800");
+                    this.clickZones.push({ type: "upload", x: pad, y: y, w: self.size[0] - pad*2, h: rowH });
                     y += rowH + 10;
 
-                    this.drawButton(ctx, "➕ ADD STYLE", pad, y, this.size[0] - pad*2, rowH, "#9C27B0");
-                    this.clickZones.push({ type: "add_style", x: pad, y: y, w: this.size[0] - pad*2, h: rowH });
+                    self.drawButton(ctx, "➕ ADD STYLE", pad, y, self.size[0] - pad*2, rowH, "#9C27B0");
+                    this.clickZones.push({ type: "add_style", x: pad, y: y, w: self.size[0] - pad*2, h: rowH });
                     y += rowH + 15;
 
-                    this.drawSeparator(ctx, "ACTIVE STYLES", pad, y, this.size[0] - pad*2, rowH);
+                    self.drawSeparator(ctx, "ACTIVE STYLES", pad, y, self.size[0] - pad*2, rowH);
                     y += rowH + 10;
 
                     const rightPanelWidth = 40;
@@ -166,14 +168,14 @@ app.registerExtension({
                     const toggleRadius = 7;
                     const nameStartX = 42;
                     
-                    for (let i = 0; i < this.data.styles.length; i++) {
-                        const row = this.data.styles[i];
+                    for (let i = 0; i < self.data.styles.length; i++) {
+                        const row = self.data.styles[i];
                         const styleY = y + (i * rowH);
                         const h = rowH - 2;
                         const centerY = styleY + h/2;
 
                         ctx.fillStyle = i % 2 === 0 ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.15)";
-                        ctx.fillRect(pad, styleY, this.size[0] - (pad * 2), h);
+                        ctx.fillRect(pad, styleY, self.size[0] - (pad * 2), h);
 
                         ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
                         ctx.beginPath();
@@ -181,7 +183,7 @@ app.registerExtension({
                         ctx.fill();
                         this.clickZones.push({ type: "toggle", index: i, x: toggleStartX - toggleRadius - 5, y: styleY, w: toggleRadius * 2 + 10, h: h });
 
-                        const nameW = this.size[0] - nameStartX - rightPanelWidth - pad - 10;
+                        const nameW = self.size[0] - nameStartX - rightPanelWidth - pad - 10;
                         
                         ctx.fillStyle = row.enabled ? "#fff" : "#777";
                         ctx.font = "12px sans-serif";
@@ -204,18 +206,19 @@ app.registerExtension({
                         ctx.fillText(displayName, nameStartX, centerY);
                         this.clickZones.push({ type: "name", index: i, x: nameStartX, y: styleY, w: nameW, h: h });
 
-                        const delX = this.size[0] - rightPanelWidth;
+                        const delX = self.size[0] - rightPanelWidth;
                         ctx.fillStyle = "#f44336";
                         ctx.fillText("❌", delX, centerY);
                         this.clickZones.push({ type: "delete", index: i, x: delX, y: styleY, w: 30, h: h });
                     }
 
-                    const totalH = y + (this.data.styles.length * rowH) + 20;
-                    if (this.size[1] < totalH) {
-                        this.setSize([this.targetWidth, totalH]);
+                    const totalH = y + (self.data.styles.length * rowH) + 20;
+                    if (self.size[1] < totalH) {
+                        self.setSize([self.targetWidth, totalH]);
                     }
                 };
 
+                // --- Input Handling ---
                 this.onMouseDown = function(e, pos, canvas) {
                     if (!this.clickZones.length) return false;
                     
@@ -254,11 +257,16 @@ app.registerExtension({
                     return false;
                 };
 
+                // --- Popup: CSV Selector (FIXED: pointerdown + capture) ---
                 this.showCSVSelector = function(clickEvent) {
                     const list = self.data.csv_list || [];
                     if (!list.length) return;
                     
+                    const existingMenu = document.getElementById("rayko-csv-selector");
+                    if (existingMenu) existingMenu.remove();
+                    
                     const menu = document.createElement("div");
+                    menu.id = "rayko-csv-selector";
                     menu.style.cssText = `position:fixed;background:#1a1a1a;border:1px solid #444;border-radius:6px;max-height:300px;overflow-y:auto;z-index:10001;box-shadow:0 4px 20px rgba(0,0,0,0.5);min-width:200px;`;
                     
                     list.forEach(opt => {
@@ -272,7 +280,7 @@ app.registerExtension({
                             self.data.active_csv_file = opt;
                             self.syncData();
                             self.updateUI();
-                            menu.remove();
+                            closeMenu();
                         };
                         menu.appendChild(item);
                     });
@@ -283,12 +291,25 @@ app.registerExtension({
                     }
                     
                     document.body.appendChild(menu);
-                    setTimeout(() => {
-                        const closeHandler = (ev) => { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener("mousedown", closeHandler); } };
-                        document.addEventListener("mousedown", closeHandler);
-                    }, 100);
+                    
+                    const closeMenu = () => {
+                        menu.remove();
+                        document.removeEventListener("pointerdown", closeOutside, true);
+                        document.removeEventListener("keydown", closeEsc, true);
+                    };
+                    const closeOutside = (ev) => {
+                        if (!menu.contains(ev.target)) closeMenu();
+                    };
+                    const closeEsc = (ev) => {
+                        if (ev.key === "Escape") closeMenu();
+                    };
+                    
+                    // pointerdown fires before LiteGraph canvas handlers consume the event
+                    document.addEventListener("pointerdown", closeOutside, true);
+                    document.addEventListener("keydown", closeEsc, true);
                 };
 
+                // --- Upload Logic ---
                 this.uploadCSVFile = async function() {
                     const fileInput = document.createElement("input");
                     fileInput.type = "file";
@@ -325,6 +346,7 @@ app.registerExtension({
                     fileInput.click();
                 };
 
+                // --- Style Selector Trigger ---
                 this.showStyleSelector = async function(clickEvent) {
                     if (!self.data.active_csv_file || self.data.active_csv_file === "No CSV files") {
                         alert("⚠️ Upload CSV first!");
@@ -384,13 +406,16 @@ app.registerExtension({
                     }
                 };
 
+                // --- Popup: Style Tree Menu (FIXED: pointerdown + capture) ---
                 this.showStyleTreeMenu = function(tree, expandedFolders, fixedPosition) {
-                    const self = this;
                     const currentScroll = self.menuScrollPosition || 0;
                     
+                    const existingMenu = document.getElementById("rayko-style-menu");
+                    if (existingMenu) existingMenu.remove();
+                    
                     const menu = document.createElement("div");
-                    menu.style.cssText = `position:fixed;background:#1a1a1a;border:1px solid #444;border-radius:6px;max-height:400px;overflow-y:auto;z-index:10001;box-shadow:0 4px 20px rgba(0,0,0,0.5);min-width:250px;`;
                     menu.id = "rayko-style-menu";
+                    menu.style.cssText = `position:fixed;background:#1a1a1a;border:1px solid #444;border-radius:6px;max-height:400px;overflow-y:auto;z-index:10001;box-shadow:0 4px 20px rgba(0,0,0,0.5);min-width:250px;`;
                     
                     const header = document.createElement("div");
                     header.textContent = `📁 ${self.data.active_csv_file}`;
@@ -400,6 +425,20 @@ app.registerExtension({
                     const contentContainer = document.createElement("div");
                     contentContainer.id = "rayko-style-content";
                     menu.appendChild(contentContainer);
+                    
+                    const closeMenu = () => {
+                        self.menuPosition = null;
+                        self.menuScrollPosition = 0;
+                        menu.remove();
+                        document.removeEventListener("pointerdown", closeOutside, true);
+                        document.removeEventListener("keydown", closeEsc, true);
+                    };
+                    const closeOutside = (ev) => {
+                        if (!menu.contains(ev.target)) closeMenu();
+                    };
+                    const closeEsc = (ev) => {
+                        if (ev.key === "Escape") closeMenu();
+                    };
                     
                     function renderContent() {
                         contentContainer.innerHTML = "";
@@ -412,7 +451,7 @@ app.registerExtension({
                                 item.style.backgroundColor = "#1a1a1a";
                                 item.onmouseover = () => item.style.backgroundColor = "#333";
                                 item.onmouseout = () => item.style.backgroundColor = "#1a1a1a";
-                                item.onclick = (ev) => { ev.stopPropagation(); self.addStyleRow(styleObj.fullName, styleObj.displayName); menu.remove(); };
+                                item.onclick = (ev) => { ev.stopPropagation(); self.addStyleRow(styleObj.fullName, styleObj.displayName); closeMenu(); };
                                 contentContainer.appendChild(item);
                             }
                             const separator = document.createElement("div");
@@ -454,7 +493,7 @@ app.registerExtension({
                                     styleItem.style.backgroundColor = "#1a1a1a";
                                     styleItem.onmouseover = () => styleItem.style.backgroundColor = "#333";
                                     styleItem.onmouseout = () => styleItem.style.backgroundColor = "#1a1a1a";
-                                    styleItem.onclick = (ev) => { ev.stopPropagation(); self.addStyleRow(styleObj.fullName, styleObj.displayName); menu.remove(); };
+                                    styleItem.onclick = (ev) => { ev.stopPropagation(); self.addStyleRow(styleObj.fullName, styleObj.displayName); closeMenu(); };
                                     container.appendChild(styleItem);
                                 }
                             }
@@ -493,19 +532,12 @@ app.registerExtension({
                         self.menuScrollPosition = menu.scrollTop;
                     });
                     
-                    setTimeout(() => {
-                        const closeHandler = (ev) => { 
-                            if (!menu.contains(ev.target)) { 
-                                self.menuPosition = null;
-                                self.menuScrollPosition = 0;
-                                menu.remove(); 
-                                document.removeEventListener("mousedown", closeHandler); 
-                            } 
-                        };
-                        document.addEventListener("mousedown", closeHandler);
-                    }, 100);
+                    // pointerdown + capture guarantees execution before LiteGraph consumes the event
+                    document.addEventListener("pointerdown", closeOutside, true);
+                    document.addEventListener("keydown", closeEsc, true);
                 };
 
+                // --- Core Logic ---
                 this.addStyleRow = function(styleFullName, styleDisplayName) {
                     const exists = self.data.styles.some(row => row.name === styleFullName && row.file === self.data.active_csv_file);
                     if (exists) { alert("⚠️ Already added!"); return; }

@@ -1,4 +1,4 @@
-__version__ = "0.15.10"
+__version__ = "0.15.11"
 import importlib
 import logging
 from pathlib import Path

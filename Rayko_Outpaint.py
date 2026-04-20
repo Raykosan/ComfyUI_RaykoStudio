@@ -265,5 +265,3 @@ async def rs_outpaint_heartbeat(request):
         return web.Response(status=404, text="Not found")
     except Exception as e:
         return web.Response(status=500, text=str(e))
-
-print("🦊 [RS Outpaint] ✅ Routes registered")

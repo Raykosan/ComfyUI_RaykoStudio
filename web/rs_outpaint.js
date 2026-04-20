@@ -9,7 +9,7 @@ const MARGIN      = 22;
 const GRID        = 16;
 const OVERHANG    = 1;
 const CTRL_H      = 240; 
-const DRAG_SENSITIVITY = 0.6;
+const DRAG_SENSITIVITY = 0.4;
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function crToSrc(cr, sf, scale) {
@@ -249,6 +249,34 @@ function setArLocked(st, dom, locked) {
     dom.arBtn._active = locked;
 }
 
+// 🔑 ВОССТАНОВЛЕННАЯ ФУНКЦИЯ wireColors
+function wireColors(st, dom, widgets, node) {
+    const bind = (inputObj, stateKey) => {
+        inputObj.picker.addEventListener("input", (e) => {
+            st[stateKey] = e.target.value;
+            inputObj.swatch.style.background = e.target.value;
+            inputObj.hexInput.value = e.target.value.toUpperCase();
+            updateMaskColors(st, dom);
+            // 🔑 ИСПРАВЛЕНИЕ: Используем реальные widgets и node
+            syncWidgets(st, widgets, node);
+        });
+        inputObj.hexInput.addEventListener("change", (e) => {
+            let val = e.target.value;
+            if (!val.startsWith("#")) val = "#" + val;
+            if (/^#[0-9A-F]{6}$/i.test(val)) {
+                st[stateKey] = val;
+                inputObj.picker.value = val;
+                inputObj.swatch.style.background = val;
+                updateMaskColors(st, dom);
+                // 🔑 ИСПРАВЛЕНИЕ: Используем реальные widgets и node
+                syncWidgets(st, widgets, node);
+            }
+        });
+    };
+    bind(dom.maskColorInput, 'maskColor');
+    bind(dom.bgColorInput, 'bgColor');
+}
+
 function wireInteractions(st, dom, widgets, node, nodeId) {
     const { wrap, arBtn, snapBtns, wInput, hInput, resetBtn, chipBtns, outWInput, outHInput } = dom;
     arBtn.addEventListener("click", () => setArLocked(st, dom, !st.arLocked));
@@ -449,16 +477,19 @@ app.registerExtension({
             const result = origOnNodeCreated?.apply(this, arguments);
             const node = this;
             const widgets = { cropState: node.widgets?.find(w => w.name === "crop_state") };
-
+            
             if (widgets.cropState) {
                 widgets.cropState.hidden = true;
                 widgets.cropState.computeSize = () => [0, -4];
             }
-    
-            if (node.inputs) { for (let i = node.inputs.length - 1; i >= 0; i--) { if (node.inputs[i].name === "crop_state") node.removeInput(i); } }
+            
             if (node.inputs) { for (let i = node.inputs.length - 1; i >= 0; i--) { if (node.inputs[i].name === "crop_state") node.removeInput(i); } }
             const st = createState();
             const dom = buildUI();
+            
+            // 🔑 ИСПРАВЛЕНИЕ: Передаем widgets и node в wireColors
+            wireColors(st, dom, widgets, node);
+            
             const domWidget = node.addDOMWidget("rs_outpaint_canvas", "custom", dom.root, { serialize: false, hideOnZoom: false });
             domWidget.computeSize = () => [440, CANVAS_H + CTRL_H];
             node.setSize([Math.max(node.size[0], 520), Math.max(node.size[1], CANVAS_H + CTRL_H + 72)]);

@@ -1,6 +1,6 @@
 {
   "name": "ComfyUI_RaykoStudio",
-  "version": "0.15.9",
+  "version": "0.15.10",
   "description": "Set of custom nodes for ComfyUI providing additional image processing capabilities",
   "author": "Raykosan",
   "license": "MIT",

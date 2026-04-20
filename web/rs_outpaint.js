@@ -8,23 +8,38 @@ const CANVAS_H    = 320;
 const MARGIN      = 22;
 const GRID        = 16;
 const OVERHANG    = 1;
-const CTRL_H      = 240; 
-const DRAG_SENSITIVITY = 0.4;
+const CTRL_H      = 240;
+const MIN_DRAG_PX = GRID;
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
 function crToSrc(cr, sf, scale) {
-    return { x: Math.round((cr.x - sf.x) / scale), y: Math.round((cr.y - sf.y) / scale), w: Math.round(cr.w / scale), h: Math.round(cr.h / scale) };
-}
-function srcToCr(s, sf, scale) {
-    return { x: sf.x + s.x * scale, y: sf.y + s.y * scale, w: s.w * scale, h: s.h * scale };
-}
-function quantizeSrc(s) {
     return {
-        x: Math.round(s.x / GRID) * GRID, y: Math.round(s.y / GRID) * GRID,
-        w: Math.max(GRID, Math.round(s.w / GRID) * GRID), h: Math.max(GRID, Math.round(s.h / GRID) * GRID)
+        x: (cr.x - sf.x) / scale,
+        y: (cr.y - sf.y) / scale,
+        w: cr.w / scale,
+        h: cr.h / scale,
     };
 }
-function defaultOut(_st) { return { w: 1280, h: 720 }; }
+
+function srcToCr(s, sf, scale) {
+    return {
+        x: sf.x + s.x * scale,
+        y: sf.y + s.y * scale,
+        w: s.w * scale,
+        h: s.h * scale,
+    };
+}
+
+function quantizeSrc(s) {
+    return {
+        x: Math.round(s.x / GRID) * GRID,
+        y: Math.round(s.y / GRID) * GRID,
+        w: Math.max(GRID, Math.round(s.w / GRID) * GRID),
+        h: Math.max(GRID, Math.round(s.h / GRID) * GRID),
+    };
+}
+
 function clampToValid(s, srcW, srcH) {
     const c = { ...s };
     if (c.x >= srcW - OVERHANG) c.x = srcW - OVERHANG;
@@ -34,21 +49,36 @@ function clampToValid(s, srcW, srcH) {
     return c;
 }
 
-function syncOutputToBox(st, dom, widgets) {
-    const s = crToSrc(st.cr, st.sf, st.scale);
-    st.outW = s.w; st.outH = s.h;
-    if (document.activeElement !== dom.outWInput) dom.outWInput.value = s.w;
-    if (document.activeElement !== dom.outHInput) dom.outHInput.value = s.h;
-    syncWidgets(st, widgets, { graph: null });
+function applyCanvasCr(canvasCr, st) {
+    let s = crToSrc(canvasCr, st.sf, st.scale);
+    s = quantizeSrc(s);
+    s = clampToValid(s, st.srcW, st.srcH);
+    st.cr = srcToCr(s, st.sf, st.scale);
 }
 
+function toWorld(e, wrapEl, view) {
+    const rect = wrapEl.getBoundingClientRect();
+    return {
+        x: (e.clientX - rect.left  - view.panX) / view.zoom,
+        y: (e.clientY - rect.top   - view.panY) / view.zoom,
+    };
+}
+
+function defaultOut(_st) { return { w: 1280, h: 720 }; }
+
 function createState() {
-    return { 
-        srcW: 1280, srcH: 720, _lastW: 1280, _lastH: 720, scale: 1, 
-        sf: { x: 0, y: 0, w: 0, h: 0 }, cr: { x: 0, y: 0, w: 0, h: 0 }, 
-        cropAR: 16/9, arLocked: true, initialized: false, 
-        view: { zoom: 1.0, panX: 0, panY: 0 }, outW: 0, outH: 0,
-        maskColor: "#ff0000", bgColor: "#141414"
+    return {
+        srcW: 1280, srcH: 720,
+        scale: 1,
+        sf: { x: 0, y: 0, w: 0, h: 0 },
+        cr: { x: 0, y: 0, w: 0, h: 0 },
+        cropAR: 16 / 9,
+        arLocked: true,
+        initialized: false,
+        view: { zoom: 1.0, panX: 0, panY: 0 },
+        outW: 0, outH: 0,
+        maskColor: "#ff0000",
+        bgColor: "#141414",
     };
 }
 
@@ -86,17 +116,36 @@ function resetNodeState(st, dom, widgets) {
 }
 
 function initLayout(st, wrapEl) {
-    const W = wrapEl.clientWidth; if (W <= 0) return false;
-    const maxW = W - MARGIN * 2, maxH = wrapEl.clientHeight - MARGIN * 2, ar = st.srcW / st.srcH;
-    let sfW, sfH; if (maxW / ar <= maxH) { sfW = maxW; sfH = Math.round(maxW / ar); } else { sfH = maxH; sfW = Math.round(maxH * ar); }
-    const sfX = Math.round((W - sfW) / 2), sfY = Math.max(MARGIN, Math.round((wrapEl.clientHeight - sfH) / 2));
-    st.sf = { x: sfX, y: sfY, w: sfW, h: sfH }; st.scale = sfW / st.srcW; st.view = { zoom: 1.0, panX: 0, panY: 0 };
-    const defW = Math.max(GRID, Math.round(st.srcW * 0.8 / GRID) * GRID);
-    const defH = Math.max(GRID, Math.round(st.srcH * 0.8 / GRID) * GRID);
-    const defX = Math.round((st.srcW - defW) / 2 / GRID) * GRID;
-    const defY = Math.round((st.srcH - defH) / 2 / GRID) * GRID;
+    const W = wrapEl.clientWidth;
+    if (W <= 0) return false;
+    const maxW = W - MARGIN * 2;
+    const maxH = wrapEl.clientHeight - MARGIN * 2;
+    const ar   = st.srcW / st.srcH;
+    let sfW, sfH;
+    if (maxW / ar <= maxH) {
+        sfW = maxW;
+        sfH = Math.round(maxW / ar);
+    } else {
+        sfH = maxH;
+        sfW = Math.round(maxH * ar);
+    }
+    const sfX = Math.round((W - sfW) / 2);
+    const sfY = Math.max(MARGIN, Math.round((wrapEl.clientHeight - sfH) / 2));
+    st.sf = { x: sfX, y: sfY, w: sfW, h: sfH };
+    st.scale = sfW / st.srcW;
+    st.view = { zoom: 1.0, panX: 0, panY: 0 };
+    
+    // Dynamic default size: match source image dimensions, quantized to grid
+    const defW = Math.max(GRID, Math.round(st.srcW / GRID) * GRID);
+    const defH = Math.max(GRID, Math.round(st.srcH / GRID) * GRID);
+    
+    const defX = Math.round((st.srcW - defW) / (2 * GRID)) * GRID;
+    const defY = Math.round((st.srcH - defH) / (2 * GRID)) * GRID;
     const def = clampToValid({ x: defX, y: defY, w: defW, h: defH }, st.srcW, st.srcH);
-    st.cr = srcToCr(def, st.sf, st.scale); st.cropAR = def.w / def.h; st.initialized = true; return true;
+    st.cr = srcToCr(def, st.sf, st.scale);
+    st.cropAR = def.w / def.h;
+    st.initialized = true;
+    return true;
 }
 
 function mkEl(tag, css, extra) { const el = document.createElement(tag); if (css) el.style.cssText = css; if (extra) Object.assign(el, extra); return el; }
@@ -122,14 +171,14 @@ function buildUI() {
     noDataMsg.textContent = "1280×720 (default placeholder)";
     const waitingMsg = mkEl("div", "position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:12px;color:rgba(255,200,100,0.8);pointer-events:none;text-align:center;padding:8px;font-weight:600;"); waitingMsg.textContent = "⏳ Adjust mask & click ACCEPT...";
     sfEl.append(imageEl, srcLabel, noDataMsg, waitingMsg);
-    const mkMask = () => mkEl("div", "position:absolute;pointer-events:none;display:none;");
+    const mkMask = () => mkEl("div", "position:absolute;background:rgba(210,70,70,0.28);pointer-events:none;display:none;");
     const [maskTop, maskBot, maskLeft, maskRight] = [mkMask(), mkMask(), mkMask(), mkMask()];
     const cropBox = mkEl("div", "position:absolute;cursor:move;border:2px solid rgba(80,150,255,0.9);background:rgba(50,120,200,0.08);will-change:left,top,width,height;");
     const HBASE = "position:absolute;width:11px;height:11px;background:#ddd;border:1.5px solid rgba(60,120,200,0.85);border-radius:2px;";
     const corners = { tl: mkEl("div", HBASE+"top:0;left:0;transform:translate(-50%,-50%);cursor:nw-resize;"), tr: mkEl("div", HBASE+"top:0;right:0;transform:translate(50%,-50%);cursor:ne-resize;"), bl: mkEl("div", HBASE+"bottom:0;left:0;transform:translate(-50%,50%);cursor:sw-resize;"), br: mkEl("div", HBASE+"bottom:0;right:0;transform:translate(50%,50%);cursor:se-resize;") };
     for (const [dir, el] of Object.entries(corners)) { el.dataset.dir = dir; cropBox.appendChild(el); }
     const sizeLabel = mkEl("div", "position:absolute;font-family:monospace;font-size:11px;font-weight:600;color:rgba(255,255,255,0.85);background:rgba(0,0,0,0.45);padding:1px 6px;border-radius:3px;pointer-events:none;white-space:nowrap;transform:translateX(-50%);");
-    const PAD_CSS = "position:absolute;font-family:monospace;font-size:10px;pointer-events:none;white-space:nowrap;";
+    const PAD_CSS = "position:absolute;font-family:monospace;font-size:10px;color:rgba(255,200,200,0.80);pointer-events:none;white-space:nowrap;";
     const padLabelT = mkEl("div", PAD_CSS), padLabelB = mkEl("div", PAD_CSS), padLabelL = mkEl("div", PAD_CSS), padLabelR = mkEl("div", PAD_CSS);
     const EBASE = "position:absolute;background:#ddd;border:1.5px solid rgba(60,120,200,0.85);border-radius:2px;pointer-events:auto;";
     const edges = { t: mkEl("div", EBASE+"width:18px;height:7px;top:0;left:50%;transform:translate(-50%,-50%);cursor:n-resize;"), b: mkEl("div", EBASE+"width:18px;height:7px;bottom:0;left:50%;transform:translate(-50%,50%);cursor:s-resize;"), l: mkEl("div", EBASE+"width:7px;height:18px;left:0;top:50%;transform:translate(-50%,-50%);cursor:w-resize;"), r: mkEl("div", EBASE+"width:7px;height:18px;right:0;top:50%;transform:translate(50%,-50%);cursor:e-resize;") };
@@ -196,7 +245,7 @@ function render(st, dom) {
     dom.cropBox.style.left = cr.x + "px"; dom.cropBox.style.top = cr.y + "px"; dom.cropBox.style.width = cr.w + "px"; dom.cropBox.style.height = cr.h + "px";
     const s = crToSrc(cr, sf, st.scale);
     const ix1 = Math.max(cr.x, sf.x), iy1 = Math.max(cr.y, sf.y), ix2 = Math.min(cr.x + cr.w, sf.x + sf.w), iy2 = Math.min(cr.y + cr.h, sf.y + sf.h);
-    const setMask = (el, x, y, w, h) => { if (w > 0 && h > 0) { el.style.cssText = `position:absolute;pointer-events:none;display:block;left:${x}px;top:${y}px;width:${w}px;height:${h}px;`; } else { el.style.display = "none"; } };
+    const setMask = (el, x, y, w, h) => { if (w > 0 && h > 0) { el.style.cssText = `position:absolute;background:rgba(210,70,70,0.28);pointer-events:none;display:block;left:${x}px;top:${y}px;width:${w}px;height:${h}px;`; } else { el.style.display = "none"; } };
     setMask(dom.maskTop, cr.x, cr.y, cr.w, Math.max(0, iy1 - cr.y));
     setMask(dom.maskBot, cr.x, iy2, cr.w, Math.max(0, cr.y + cr.h - iy2));
     setMask(dom.maskLeft, cr.x, iy1, Math.max(0, ix1 - cr.x), iy2 - iy1);
@@ -234,7 +283,8 @@ function fitCropInView(st, dom) {
 
 function syncWidgets(st, widgets, node) {
     const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale));
-    const mR = parseInt(st.maskColor.slice(1,3), 16), mG = parseInt(st.maskColor.slice(3,5), 16), mB = parseInt(st.maskColor.slice(5,7), 16);
+    const hex = st.maskColor.replace("#", "");
+    const mR = parseInt(hex.substring(0,2), 16), mG = parseInt(hex.substring(2,4), 16), mB = parseInt(hex.substring(4,6), 16);
     if (widgets.cropState) widgets.cropState.value = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH},${mR},${mG},${mB}`;
     if (node.graph) node.graph.setDirtyCanvas(true, true);
 }
@@ -249,7 +299,6 @@ function setArLocked(st, dom, locked) {
     dom.arBtn._active = locked;
 }
 
-// 🔑 ВОССТАНОВЛЕННАЯ ФУНКЦИЯ wireColors
 function wireColors(st, dom, widgets, node) {
     const bind = (inputObj, stateKey) => {
         inputObj.picker.addEventListener("input", (e) => {
@@ -257,7 +306,6 @@ function wireColors(st, dom, widgets, node) {
             inputObj.swatch.style.background = e.target.value;
             inputObj.hexInput.value = e.target.value.toUpperCase();
             updateMaskColors(st, dom);
-            // 🔑 ИСПРАВЛЕНИЕ: Используем реальные widgets и node
             syncWidgets(st, widgets, node);
         });
         inputObj.hexInput.addEventListener("change", (e) => {
@@ -268,7 +316,6 @@ function wireColors(st, dom, widgets, node) {
                 inputObj.picker.value = val;
                 inputObj.swatch.style.background = val;
                 updateMaskColors(st, dom);
-                // 🔑 ИСПРАВЛЕНИЕ: Используем реальные widgets и node
                 syncWidgets(st, widgets, node);
             }
         });
@@ -298,13 +345,13 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
         if (!st.arLocked) st.cropAR = s.w / s.h;
         fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node);
     });
-    resetBtn.addEventListener("click", () => { initLayout(st, dom.wrap); st.outW = 0; st.outH = 0; fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node); });
+    resetBtn.addEventListener("click", () => { initLayout(st, dom.wrap); const d = defaultOut(st); st.outW = d.w; st.outH = d.h; fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node); });
     outWInput.addEventListener("change", () => {
-        const v = parseInt(outWInput.value, 10); if (!isNaN(v) && v >= GRID) { st.outW = v; st.outH = Math.max(GRID, Math.round(v / st.cropAR / GRID) * GRID); } else { st.outW = 0; st.outH = 0; }
+        const v = parseInt(outWInput.value, 10); if (!isNaN(v) && v >= GRID) { st.outW = v; st.outH = Math.max(GRID, Math.round(v / st.cropAR / GRID) * GRID); } else { const d = defaultOut(st); st.outW = d.w; st.outH = d.h; }
         render(st, dom); syncWidgets(st, widgets, node);
     });
     outHInput.addEventListener("change", () => {
-        const v = parseInt(outHInput.value, 10); if (!isNaN(v) && v >= GRID) { st.outH = v; st.outW = Math.max(GRID, Math.round(v * st.cropAR / GRID) * GRID); } else { st.outW = 0; st.outH = 0; }
+        const v = parseInt(outHInput.value, 10); if (!isNaN(v) && v >= GRID) { st.outH = v; st.outW = Math.max(GRID, Math.round(v * st.cropAR / GRID) * GRID); } else { const d = defaultOut(st); st.outW = d.w; st.outH = d.h; }
         render(st, dom); syncWidgets(st, widgets, node);
     });
     
@@ -315,7 +362,8 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
         const area = s.w * s.h; s.w = Math.max(GRID, Math.round(Math.sqrt(area * chipAR) / GRID) * GRID); s.h = Math.max(GRID, Math.round(s.w / chipAR / GRID) * GRID);
         s.x = Math.round((cx - s.w / 2) / GRID) * GRID; s.y = Math.round((cy - s.h / 2) / GRID) * GRID; 
         if(s.x < -s.w) s.x = -s.w; if(s.y < -s.h) s.y = -s.h;
-        st.cr = srcToCr(s, st.sf, st.scale); st.outW = s.w; st.outH = s.h;
+        st.cr = srcToCr(s, st.sf, st.scale); 
+        if (st.outW < GRID || st.outH < GRID) { st.outW = rw; st.outH = rh; }
         fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node);
     }); }
 
@@ -335,14 +383,11 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
     dom.zoomIndicator.addEventListener("click", () => { st.view = { zoom: Infinity, panX: 0, panY: 0 }; fitCropInView(st, dom); render(st, dom); });
     
     let drag = null;
+    let pan = null;
 
     wrap.addEventListener("pointerdown", e => {
         if (e.button === 1) {
-            const pan = { sx: e.clientX, sy: e.clientY, ox: st.view.panX, oy: st.view.panY };
-            const onPanMove = (ev) => { st.view.panX = pan.ox + (ev.clientX - pan.sx); st.view.panY = pan.oy + (ev.clientY - pan.sy); render(st, dom); };
-            const onPanUp = () => { window.removeEventListener("pointermove", onPanMove); window.removeEventListener("pointerup", onPanUp); };
-            window.addEventListener("pointermove", onPanMove);
-            window.addEventListener("pointerup", onPanUp);
+            pan = { sx: e.clientX, sy: e.clientY, ox: st.view.panX, oy: st.view.panY };
             wrap.setPointerCapture(e.pointerId);
             e.preventDefault();
             return;
@@ -355,117 +400,104 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
         e.preventDefault();
         wrap.setPointerCapture(e.pointerId);
         
+        const wc = toWorld(e, wrap, st.view);
         drag = {
             type: handle ? "resize" : "move",
             dir: handle?.dataset.dir,
-            startX: e.clientX,
-            startY: e.clientY,
-            startLocalX: st.cr.x,
-            startLocalY: st.cr.y,
-            startLocalW: st.cr.w,
-            startLocalH: st.cr.h,
+            sx: wc.x,
+            sy: wc.y,
+            sb: { ...st.cr },
             ar: st.arLocked ? st.cropAR : null
         };
     });
 
     wrap.addEventListener("pointermove", e => {
+        if (pan) {
+            st.view.panX = pan.ox + (e.clientX - pan.sx);
+            st.view.panY = pan.oy + (e.clientY - pan.sy);
+            render(st, dom);
+            return;
+        }
         if (!drag) return;
         
-        const dxScreen = e.clientX - drag.startX;
-        const dyScreen = e.clientY - drag.startY;
-        
-        const dxLocal = (dxScreen / st.scale) * DRAG_SENSITIVITY;
-        const dyLocal = (dyScreen / st.scale) * DRAG_SENSITIVITY;
-        
-        let newX = drag.startLocalX;
-        let newY = drag.startLocalY;
-        let newW = drag.startLocalW;
-        let newH = drag.startLocalH;
+        const wc = toWorld(e, wrap, st.view);
+        const dx = wc.x - drag.sx;
+        const dy = wc.y - drag.sy;
+        const minPx = MIN_DRAG_PX;
 
         if (drag.type === "move") {
-            newX += dxLocal;
-            newY += dyLocal;
-        } else {
-            if (drag.dir === "br") { 
-                newW = Math.max(GRID, drag.startLocalW + dxLocal); 
-                newH = drag.ar ? newW / drag.ar : Math.max(GRID, drag.startLocalH + dyLocal); 
-            }
-            else if (drag.dir === "bl") { 
-                newW = Math.max(GRID, drag.startLocalW - dxLocal); 
-                newX = drag.startLocalX + drag.startLocalW - newW; 
-                newH = drag.ar ? newW / drag.ar : Math.max(GRID, drag.startLocalH + dyLocal); 
-            }
-            else if (drag.dir === "tr") { 
-                newW = Math.max(GRID, drag.startLocalW + dxLocal); 
-                newH = drag.ar ? newW / drag.ar : Math.max(GRID, drag.startLocalH - dyLocal); 
-                newY = drag.startLocalY + drag.startLocalH - newH; 
-            }
-            else if (drag.dir === "tl") { 
-                newW = Math.max(GRID, drag.startLocalW - dxLocal); 
-                newX = drag.startLocalX + drag.startLocalW - newW; 
-                newH = drag.ar ? newW / drag.ar : Math.max(GRID, drag.startLocalH - dyLocal); 
-                newY = drag.startLocalY + drag.startLocalH - newH; 
-            }
-            else if (drag.dir === "t") { 
-                newH = Math.max(GRID, drag.startLocalH - dyLocal); 
-                newY = drag.startLocalY + drag.startLocalH - newH; 
-                newW = drag.ar ? newH * drag.ar : newW;
-                if(drag.ar) newX = drag.startLocalX + (drag.startLocalW - newW)/2;
-            }
-            else if (drag.dir === "b") { 
-                newH = Math.max(GRID, drag.startLocalH + dyLocal); 
-                newW = drag.ar ? newH * drag.ar : newW;
-                if(drag.ar) newX = drag.startLocalX + (drag.startLocalW - newW)/2;
-            }
-            else if (drag.dir === "l") { 
-                newW = Math.max(GRID, drag.startLocalW - dxLocal); 
-                newX = drag.startLocalX + drag.startLocalW - newW; 
-                newH = drag.ar ? newW / drag.ar : newH;
-                if(drag.ar) newY = drag.startLocalY + (drag.startLocalH - newH)/2;
-            }
-            else if (drag.dir === "r") { 
-                newW = Math.max(GRID, drag.startLocalW + dxLocal); 
-                newH = drag.ar ? newW / drag.ar : newH;
-                if(drag.ar) newY = drag.startLocalY + (drag.startLocalH - newH)/2;
-            }
+            applyCanvasCr({ x: drag.sb.x + dx, y: drag.sb.y + dy, w: drag.sb.w, h: drag.sb.h }, st);
+            render(st, dom);
+            return;
         }
 
-        dom.cropBox.style.left = newX + "px";
-        dom.cropBox.style.top = newY + "px";
-        dom.cropBox.style.width = newW + "px";
-        dom.cropBox.style.height = newH + "px";
-        
-        drag.tempLocalX = newX;
-        drag.tempLocalY = newY;
-        drag.tempLocalW = newW;
-        drag.tempLocalH = newH;
+        let { x, y, w, h } = { ...drag.sb };
+        const { dir, ar } = drag;
+
+        if (dir === "br") {
+            w = Math.max(minPx, w + dx);
+            h = ar ? Math.round(w / ar) : Math.max(minPx, h + dy);
+        } else if (dir === "bl") {
+            const nw = Math.max(minPx, w - dx); x += w - nw; w = nw;
+            h = ar ? Math.round(w / ar) : Math.max(minPx, h + dy);
+        } else if (dir === "tr") {
+            w = Math.max(minPx, w + dx);
+            const nh = ar ? Math.round(w / ar) : Math.max(minPx, h - dy);
+            y += h - nh; h = nh;
+        } else if (dir === "tl") {
+            const nw = Math.max(minPx, w - dx); x += w - nw; w = nw;
+            const nh = ar ? Math.round(w / ar) : Math.max(minPx, h - dy);
+            y += h - nh; h = nh;
+        } else if (dir === "t") {
+            const nh = Math.max(minPx, h - dy);
+            const nw = ar ? Math.round(nh * ar) : w;
+            if (ar) x += Math.round((w - nw) / 2);
+            y += h - nh; h = nh; w = nw;
+        } else if (dir === "b") {
+            const nh = Math.max(minPx, h + dy);
+            const nw = ar ? Math.round(nh * ar) : w;
+            if (ar) x += Math.round((w - nw) / 2);
+            h = nh; w = nw;
+        } else if (dir === "l") {
+            const nw = Math.max(minPx, w - dx);
+            const nh = ar ? Math.round(nw / ar) : h;
+            if (ar) y += Math.round((h - nh) / 2);
+            x += w - nw; w = nw; h = nh;
+        } else if (dir === "r") {
+            const nw = Math.max(minPx, w + dx);
+            const nh = ar ? Math.round(nw / ar) : h;
+            if (ar) y += Math.round((h - nh) / 2);
+            w = nw; h = nh;
+        }
+
+        applyCanvasCr({ x, y, w, h }, st);
+        render(st, dom);
     });
 
     wrap.addEventListener("pointerup", e => {
+        if (pan) { pan = null; return; }
         if (!drag) return;
         
-        const finalVisualX = drag.tempLocalX !== undefined ? drag.tempLocalX : drag.startLocalX;
-        const finalVisualY = drag.tempLocalY !== undefined ? drag.tempLocalY : drag.startLocalY;
-        const finalVisualW = drag.tempLocalW !== undefined ? drag.tempLocalW : drag.startLocalW;
-        const finalVisualH = drag.tempLocalH !== undefined ? drag.tempLocalH : drag.startLocalH;
-
-        const srcX = (finalVisualX - st.sf.x) / st.scale;
-        const srcY = (finalVisualY - st.sf.y) / st.scale;
-        const srcW = finalVisualW / st.scale;
-        const srcH = finalVisualH / st.scale;
-
-        const snapped = quantizeSrc({ x: srcX, y: srcY, w: srcW, h: srcH });
+        const type = drag.type;
+        if (type === "resize" && st.arLocked) {
+            let s = crToSrc(st.cr, st.sf, st.scale);
+            s = quantizeSrc(s);
+            s.h = Math.max(GRID, Math.round(s.w / st.cropAR / GRID) * GRID);
+            s = clampToValid(s, st.srcW, st.srcH);
+            st.cr = srcToCr(s, st.sf, st.scale);
+        }
+        if (type === "resize" && !st.arLocked) {
+            const s = crToSrc(st.cr, st.sf, st.scale);
+            st.cropAR = s.w / s.h;
+        }
+        if (type === "resize") fitCropInView(st, dom);
         
-        st.cr = srcToCr(snapped, st.sf, st.scale);
         drag = null;
-
-        syncOutputToBox(st, dom, widgets);
-        syncWidgets(st, widgets, node);
-        fitCropInView(st, dom);
         render(st, dom);
+        syncWidgets(st, widgets, node);
     });
     
-    wrap.addEventListener("pointercancel", () => { drag = null; });
+    wrap.addEventListener("pointercancel", () => { pan = null; drag = null; });
 }
 
 app.registerExtension({
@@ -487,7 +519,6 @@ app.registerExtension({
             const st = createState();
             const dom = buildUI();
             
-            // 🔑 ИСПРАВЛЕНИЕ: Передаем widgets и node в wireColors
             wireColors(st, dom, widgets, node);
             
             const domWidget = node.addDOMWidget("rs_outpaint_canvas", "custom", dom.root, { serialize: false, hideOnZoom: false });
@@ -545,6 +576,17 @@ app.registerExtension({
             });
 
             wireInteractions(st, dom, widgets, node, String(node.id));
+            
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (!st.initialized && initLayout(st, dom.wrap)) {
+                        fitCropInView(st, dom);
+                        render(st, dom);
+                        syncWidgets(st, widgets, node);
+                    }
+                });
+            });
+            
             node._outpaintCleanup = () => { api.removeEventListener("rs_outpaint.show", onShow); node.stopHeartbeat(); fetch("/rs_outpaint/cleanup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id) }) }).catch(() => {}); };
             const origOnRemoved = node.onRemoved;
             node.onRemoved = function () { node._outpaintCleanup?.(); if (origOnRemoved) origOnRemoved.call(this); };

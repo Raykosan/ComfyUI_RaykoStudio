@@ -239,7 +239,7 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 ---
 ---
 
-# 🦊 RS Models Loader (experimentally)  
+# 🦊 RS Models Loader  
 **Combined node for loading models**  
 
 ![Screenshot_1](https://github.com/user-attachments/assets/fdca35c0-6554-4cfd-9ddf-805aebbdb2cd)

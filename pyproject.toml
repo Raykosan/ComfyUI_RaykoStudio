@@ -9,6 +9,6 @@ dependencies = ["torch>=1.7.0", "numpy>=1.19.0", "Pillow>=8.0.0", "freetype-py>=
 Repository = "https://github.com/Raykosan/ComfyUI_RaykoStudio"
 
 [tool.comfy]
-PublisherId = "Raykosan"
+PublisherId = "raykosan"
 DisplayName = "ComfyUI_RaykoStudio"
 Icon = "https://raw.githubusercontent.com/Raykosan/ComfyUI_RaykoStudio/main/icon.png"

@@ -11,4 +11,4 @@ Repository = "https://github.com/Raykosan/ComfyUI_RaykoStudio"
 [tool.comfy]
 PublisherId = "Raykosan"
 DisplayName = "ComfyUI_RaykoStudio"
-Icon = ""
+Icon = "https://raw.githubusercontent.com/Raykosan/ComfyUI_RaykoStudio/main/icon.png"

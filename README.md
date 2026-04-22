@@ -2,12 +2,23 @@
 Set of custom nodes for ComfyUI providing additional image processing capabilities  
 ---  
 Nodes do not require the installation of additional Python packages.  
-Performance has been tested for:  
-- ComfyUI 0.15*-0.18*  
+🖥️ Performance has been tested for:  
+
+- ComfyUI 0.15*-0.19*  
 - Python 3.10-3.13  
 - Torch 2.8-2.10 
 - Cuda 12.4-13.0  
----  
+
+---
+
+### 📃 Requirements  
+
+- torch>=1.7.0  
+- numpy>=1.19.0  
+- Pillow>=8.0.0  
+- freetype-py>=2.5.1  
+
+---
 ### 🛠 Installation  
 Set of nodes can be installed in several ways:  
 - Clone repository to `ComfyUI/custom_nodes/` folder:  
@@ -171,8 +182,8 @@ Connect the node with the text Crop Data.
 ### ⚠️ Reminder  
 **The generation process will be suspended indefinitely until you click "✔️ ACCEPT", "❌ CANCEL" or close the workflow or the ComfyUI page.**  
 
----  
----  
+---
+---
 
 # 🦊 RS Styles Loader  
 **Node for uploading and managing styles from CSV files**  
@@ -284,7 +295,7 @@ Place the font files in the fonts folder (.ttf, .otf, .ttc)
 Restart ComfyUI  
 
 ### 🪛 Usage  
-  
+
 | Parameter          | Description                          | Range                 |
 |--------------------|--------------------------------------|-----------------------|
 | TEXT               | Text to display (supports multiline) |                       |
@@ -309,13 +320,13 @@ Restart ComfyUI
 | SUPERSAMPLING      | Enable supersampling                 | ON/OFF                |
 | SUPERSAMPLE FACTOR | Magnification factor                 | 2 - 4                 |
 | EDGE SMOOTHING     | Smoothing the edges                  | ON/OFF                |
- 
+
 ---
 ---
 
 # 🦊 RS Color Picker  
 **A node for selecting a color and displaying its HEX parameters**  
- 
+
 <img width="372" height="416" alt="Screenshot_3" src="https://github.com/user-attachments/assets/ab1681d0-0276-4ef6-a34d-56f181661034" />  
 
 ### 🪛 Usage  
@@ -339,7 +350,7 @@ A HEX of this color will appear in the text field, which you can copy to the cli
 ### 🪛 Usage  
 ![RS Safe Saturation](https://github.com/user-attachments/assets/a46ad5c2-2a79-4f2a-bd8f-1f4dcec5084b)
 
-  
+
 | Range      | Processing Type               | Use Case                    |
 |------------|-------------------------------|-----------------------------|
 | 0.0-0.9    | Toning/desaturation           | Gradual color removal       |
@@ -348,7 +359,7 @@ A HEX of this color will appear in the text field, which you can copy to the cli
 | 2.0-3.0    | Maximum saturation            | Cinematic effects           |
 
 ### ⚙️ Technical Details  
- 
+
 Algorithm workflow:  
 Luminance space conversion  
 Non-linear adjustment:  
@@ -356,7 +367,7 @@ Values <1.0: Linear interpolation
 Values >1.0: Adaptive S-curve  
 Auto highlight recovery  
 
---- 
+---
 ---
 
 # 🦊 RS Save Image  
@@ -373,7 +384,7 @@ dark - black background, white text.
 
 ---
 ---
-	
+
 # 🦊 RS Save Image Pair  
 **The node is used to save the original and final images in a single image, while maintaining the workflow within the image**  
 
@@ -409,8 +420,8 @@ Read - reads the text you wrote earlier in the uploaded image, sends the text an
 
 Link to the video: https://youtu.be/1s26hUcVXX4  
 
----  
----  
+---
+---
 
 # 🦊 RS Loop Switch  
 **A combined node for generating a sequence of values with automatic switching**  
@@ -425,8 +436,8 @@ The node generates a list of INT values, automatically switching between 10 pres
 - RS Loop Switch (output) → KSampler (steps)  
 - RS Loop Switch (output) → any INT input  
 
----  
----  
+---
+---
 
 ## 🤝 Bug Reporting  
 

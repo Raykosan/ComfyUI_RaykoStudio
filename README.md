@@ -32,20 +32,25 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 ---
 
 # 🦊 RS Outpaint  
-**Interactive node for precise control of the outpainting area with a visual mask editor** 
+**Interactive outpainting mask node with visual crop controls, preset management, and batch workflow support** 
 
-![Screenshot_8](https://github.com/user-attachments/assets/253d46bc-4bf3-436a-9e61-6531fd623ffc)
-![Screenshot_9](https://github.com/user-attachments/assets/9e9d929d-2ccb-441b-ab50-4a987493d583)
+<img width="1419" height="709" alt="Screenshot_2" src="https://github.com/user-attachments/assets/625b6043-688f-4bb2-a8eb-7a486f5f02f8" />  
+<br>
+<img width="1477" height="681" alt="Screenshot_1" src="https://github.com/user-attachments/assets/3d02cef1-b686-4714-8dcd-02dfba4da73a" />  
 
 ### 🔥 Features  
+RS Outpaint is a custom ComfyUI node that turns mask/crop definition into an interactive, visual process. Instead of manually calculating coordinates or relying on static crops, you can drag, resize, and pan the crop region directly on the preview canvas.  
+The node pauses the queue until you confirm the settings, then outputs a ready-to-use control image, alpha mask, and precise dimensions. It also includes a batch preset system that remembers your crop settings and applies them automatically to subsequent images in a sequence.  
 - **Visual Mask Editor** — Drag, resize, and position the crop area directly on the image preview  
 - **Pause & Approve** — Workflow pauses after first execution, waiting for your confirmation  
+- **Batch Mode** – Apply saved presets automatically to the next images in a queue. Auto-resets when the queue finishes  
+- **Preset System** – Save, load, rename, and delete presets crop configurations  
 - **Grid Snapping** — All dimensions snap to 16px grid for clean, model-friendly outputs  
-- **Aspect Ratio Lock** — Toggle to preserve crop proportions while resizing  
+- **Aspect Ratio Lock** —  Switching 🔒🔓 between maintaining crop proportions and freely choosing the mask size   
 - **Quick Presets** — One-click aspect ratios: 16:9, 9:16, 21:9, 4:3, 1:1, and more  
 - **Smart Snapping** — Align crop to center, edges, or fit source dimensions  
 - **Output Resolution Control** — Set target resolution with optional upscaling/downscaling  
-- **Zoom & Pan** — Navigate large images with mouse wheel and middle-drag  
+- **Real-time UI** – Zoom (scroll), pan (middle-drag), instant dimension readouts, and padding indicators  
 - **Color Mask and Background** — Selecting the color for the mask and background when using the mask_image output  
 - **Padding Indicators** — Visual labels show generated padding areas (▲▼◀▶)  
 - **Keyboard Shortcuts** — Arrow keys to nudge crop box (Shift for 4× step)  
@@ -53,19 +58,29 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - **Instant reset** — reset of the state after each generation  
 
 ### 🪛 Usage  
-**Basic Workflow**  
-First Execution: Node pauses and displays interactive canvas  
-Adjust Mask:  
-Drag the blue-bordered box to reposition  
-Use corner/edge handles to resize  
-Toggle 🔒 to lock/unlock aspect ratio  
-Select preset ratios or snap to position  
-Set Output Resolution - is the target output resolution (by default, it is equal to the frame size). You can manually set the upscale/downscale of the result, if the fields are empty, the frame size is used  
-Select colors for the mask and background if you will be using the result of the mask_image function  
-Click ✔️ ACCEPT to continue generation with your mask  
-Click ❌ CANCEL to interrupt the generation process  
+❗ The ⚙️ BATCH, ✔️ ACCEPT, and ❌ CANCEL buttons appear only after the generation is started.  
 
-💡Tip: For precise positioning, use the arrow keys on your keyboard (hold Shift to move faster)
+**Single mode**  
+Add the node to your workflow and connect an IMAGE input.  
+Start the generation with the RUN button. After reaching the node, the generation will pause.  
+Adjust the crop region using the handles or numeric inputs.  
+Set output resolution manually or leave as auto to match crop dimensions.  
+Click ✔️ ACCEPT to send the configuration to the backend.  
+Use the outputs in your downstream nodes (ControlNet, mask blending, etc.).  
+If you are not satisfied with something, you can click ❌ CANCEL to interrupt the generation process.  
+
+**Batch mode**  
+Add the node to your workflow and connect an IMAGE input.  
+Select the number of passes in the generation queue.  
+Start the generation with the RUN button. After reaching the node, the generation will pause.  
+Adjust the crop region using the handles or numeric inputs.  
+Set output resolution manually or leave as auto to match crop dimensions.  
+Click the ⚙️ BATCH, it should turn green.  
+Click ✔️ ACCEPT to send the configuration to the backend.  
+Use the outputs in your downstream nodes (ControlNet, mask blending, etc.).  
+If you are not satisfied with something, you can click ❌ CANCEL to interrupt the generation process.  
+
+💡Tip: For precise positioning, use the arrow keys on your keyboard (hold Shift to move faster)  
 
 ### ↔️ Inputs and Outputs:  
 **Input** :  

@@ -41,6 +41,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 ### 🔥 Features  
 RS Outpaint is a custom ComfyUI node that turns mask/crop definition into an interactive, visual process. Instead of manually calculating coordinates or relying on static crops, you can drag, resize, and pan the crop region directly on the preview canvas.  
 The node pauses the queue until you confirm the settings, then outputs a ready-to-use control image, alpha mask, and precise dimensions. It also includes a batch preset system that remembers your crop settings and applies them automatically to subsequent images in a sequence.  
+❗ All changes in the node (setting the mask, creating and applying presets, replacing colors, etc. settings) are available only when it is on pause in generation - "foolproof"  
 - **Visual Mask Editor** — Drag, resize, and position the crop area directly on the image preview  
 - **Pause & Approve** — Workflow pauses after first execution, waiting for your confirmation  
 - **Batch Mode** – Apply saved presets automatically to the next images in a queue. Auto-resets when the queue finishes  

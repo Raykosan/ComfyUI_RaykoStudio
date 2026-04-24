@@ -66,6 +66,7 @@ Add the node to your workflow and connect an IMAGE input.
 Start the generation with the RUN button. After reaching the node, the generation will pause.  
 Adjust the crop region using the handles or numeric inputs.  
 Set output resolution manually or leave as auto to match crop dimensions.  
+You can create or apply a previously created preset of settings.  
 Click ✔️ ACCEPT to send the configuration to the backend.  
 Use the outputs in your downstream nodes (ControlNet, mask blending, etc.).  
 If you are not satisfied with something, you can click ❌ CANCEL to interrupt the generation process.  
@@ -76,6 +77,7 @@ Select the number of passes in the generation queue.
 Start the generation with the RUN button. After reaching the node, the generation will pause.  
 Adjust the crop region using the handles or numeric inputs.  
 Set output resolution manually or leave as auto to match crop dimensions.  
+You can create or apply a previously created preset of settings.  
 Click the ⚙️ BATCH, it should turn green.  
 Click ✔️ ACCEPT to send the configuration to the backend.  
 Use the outputs in your downstream nodes (ControlNet, mask blending, etc.).  

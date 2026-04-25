@@ -475,18 +475,26 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
             const targetAR = parseFloat(btn.dataset.chipAR);
             setArLocked(st, dom, true);
             st.cropAR = targetAR;
+        
+           // Рассчитываем новые размеры от ИСХОДНИКА, а не от текущей рамки
             const { w: newW, h: newH } = calcSizeByRatio(st.srcW, st.srcH, targetAR);
             st.outW = newW;
             st.outH = newH;
-            let s = crToSrc(st.cr, st.sf, st.scale);
-            const cx = s.x + s.w / 2;
-            const cy = s.y + s.h / 2;
-            s.w = newW;
-            s.h = newH;
-            s.x = Math.round((cx - s.w / 2) / GRID) * GRID;
-            s.y = Math.round((cy - s.h / 2) / GRID) * GRID;
+        
+            // Центрируем относительно ИСХОДНОГО изображения, а не текущей рамки
+            const centerX = st.srcW / 2;
+            const centerY = st.srcH / 2;
+        
+            let s = {
+                x: Math.round((centerX - newW / 2) / GRID) * GRID,
+                y: Math.round((centerY - newH / 2) / GRID) * GRID,
+                w: newW,
+                h: newH
+            };
+        
             s = clampToValid(quantizeSrc(s), st.srcW, st.srcH);
             st.cr = srcToCr(s, st.sf, st.scale);
+        
             fitCropInView(st, dom); 
             render(st, dom); 
             syncWidgets(st, widgets, node); 

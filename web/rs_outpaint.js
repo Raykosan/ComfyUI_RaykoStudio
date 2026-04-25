@@ -6,7 +6,7 @@ const CANVAS_H    = 320;
 const MARGIN      = 22;
 const GRID        = 16;
 const OVERHANG    = 1;
-const CTRL_H      = 260;
+const CTRL_H      = 240;
 const MIN_DRAG_PX = GRID;
 
 let queueWasRunning = false;
@@ -71,13 +71,6 @@ function setUIActive(dom, isActive) {
     dom.hInput.style.opacity = opacity;
     dom.hInput.style.pointerEvents = pointerEvents;
     
-    // Поля output resolution
-    dom.outWInput.style.opacity = opacity;
-    dom.outWInput.style.pointerEvents = pointerEvents;
-    
-    dom.outHInput.style.opacity = opacity;
-    dom.outHInput.style.pointerEvents = pointerEvents;
-    
     // Цвета (mask)
     dom.maskColorInput.picker.style.opacity = opacity;
     dom.maskColorInput.picker.style.pointerEvents = pointerEvents;
@@ -105,7 +98,6 @@ function resetNodeState(st, dom, widgets) {
     st.arLocked = false;
     dom.arBtn.textContent = "🔓"; dom.arBtn.style.border = "1px solid #444"; dom.arBtn.style.background = "#2a2a2a"; dom.arBtn.style.color = "#bbb"; dom.arBtn._active = false;
     if(dom.wInput) dom.wInput.value = ""; if(dom.hInput) dom.hInput.value = "";
-    if(dom.outWInput) dom.outWInput.value = ""; if(dom.outHInput) dom.outHInput.value = "";
     if(dom.maskColorInput) { st.maskColor = "#ff0000"; dom.maskColorInput.picker.value = st.maskColor; dom.maskColorInput.swatch.style.background = st.maskColor; dom.maskColorInput.hexInput.value = st.maskColor.toUpperCase(); }
     if(dom.bgColorInput) { st.bgColor = "#141414"; dom.bgColorInput.picker.value = st.bgColor; dom.bgColorInput.swatch.style.background = st.bgColor; dom.bgColorInput.hexInput.value = st.bgColor.toUpperCase(); }
     if(dom.waitingMsg) dom.waitingMsg.style.display = "none";
@@ -146,6 +138,7 @@ function initLayout(st, wrapEl) {
     st.cr = srcToCr(def, st.sf, st.scale);
     st.cropAR = defW / defH;
     
+    // Output resolution теперь всегда 0 (используем размер рамки)
     st.outW = 0;
     st.outH = 0;
     st.arLocked = false; 
@@ -235,13 +228,10 @@ function buildUI() {
     const SNAP_DEFS = [["center","center"],["top","top"],["bottom","bottom"],["left","left"],["right","right"],["fitW","fit W"],["fitH","fit H"]];
     const snapBtns = SNAP_DEFS.map(([key, label], i) => { const isFirst = i===0, isLast = i===SNAP_DEFS.length-1; const radius = isFirst ? "4px 0 0 4px" : (isLast ? "0 4px 4px 0" : "0"); const bl = isFirst ? "1px solid #444" : "none"; const b = mkEl("button", `padding:2px 7px;font-size:10px;border:1px solid #444;border-left:${bl};border-radius:${radius};background:#2a2a2a;color:#bbb;cursor:pointer;white-space:nowrap;`); b.textContent = label; b.dataset.snap = key; return b; });
     snapRow.append(snapLabel, ...snapBtns);
-    const outSizeRow = mkEl("div", "display:flex;align-items:center;gap:5px;flex-wrap:wrap;");
-    const outLabel = mkEl("span", "font-size:10px;color:#999;"); outLabel.textContent = "output resolution:";
-    const outWInput = mkEl("input", INPUT_CSS, { type: "number", min: 0, step: GRID, value: "" }); outWInput.placeholder = "auto";
-    const outXLabel = mkEl("span", "font-size:10px;color:#999;"); outXLabel.textContent = "×";
-    const outHInput = mkEl("input", INPUT_CSS, { type: "number", min: 0, step: GRID, value: "" }); outHInput.placeholder = "auto";
-    outSizeRow.append(outLabel, outWInput, outXLabel, outHInput);
-    ctrl.append(cropSizeRow, presetRow, snapRow, outSizeRow);
+    
+    // Удален виджет output_resolution из UI
+    ctrl.append(cropSizeRow, presetRow, snapRow);
+    
     const maskColorInput = mkColorInput("mask:", "#ff0000");
     const bgColorInput = mkColorInput("bg:", "#141414");
     const colorRow = mkEl("div", "display:flex;align-items:center;gap:8px;flex-wrap:wrap;");
@@ -255,7 +245,7 @@ function buildUI() {
     const cancelBtn = mkEl("button", "padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #884444;border-radius:4px;background:#2a1a1a;color:#ffaaaa;cursor:pointer;width:100%;text-align:center;display:none;margin-top:2px;");
     cancelBtn.textContent = "❌ CANCEL"; ctrl.appendChild(cancelBtn);
     root.append(wrap, ctrl);
-    return { root, wrap, viewport, zoomIndicator, sfEl, imageEl, srcLabel, noDataMsg, waitingMsg, maskTop, maskBot, maskLeft, maskRight, cropBox, arBtn, snapBtns, wInput, hInput, resetBtn, chipBtns, sizeLabel, padLabelT, padLabelB, padLabelL, padLabelR, edges, outWInput, outHInput, acceptBtn, cancelBtn, batchBtn, presetListOverlay, savePresetBtn, applyPresetBtn, presetNameInput, inputField, inputOk, inputCancel, maskColorInput, bgColorInput };
+    return { root, wrap, viewport, zoomIndicator, sfEl, imageEl, srcLabel, noDataMsg, waitingMsg, maskTop, maskBot, maskLeft, maskRight, cropBox, arBtn, snapBtns, wInput, hInput, resetBtn, chipBtns, sizeLabel, padLabelT, padLabelB, padLabelL, padLabelR, edges, acceptBtn, cancelBtn, batchBtn, presetListOverlay, savePresetBtn, applyPresetBtn, presetNameInput, inputField, inputOk, inputCancel, maskColorInput, bgColorInput };
 }
 
 function updateMaskColors(st, dom) { if (!dom) return; const maskColor = st.maskColor, alpha = "45"; const applyColor = (el) => { if(el) el.style.backgroundColor = maskColor + alpha; }; applyColor(dom.maskTop); applyColor(dom.maskBot); applyColor(dom.maskLeft); applyColor(dom.maskRight); dom.padLabelT.style.color = maskColor; dom.padLabelB.style.color = maskColor; dom.padLabelL.style.color = maskColor; dom.padLabelR.style.color = maskColor; }
@@ -275,17 +265,16 @@ function render(st, dom) {
     setMask(dom.maskTop, cr.x, cr.y, cr.w, Math.max(0, iy1 - cr.y)); setMask(dom.maskBot, cr.x, iy2, cr.w, Math.max(0, cr.y + cr.h - iy2)); setMask(dom.maskLeft, cr.x, iy1, Math.max(0, ix1 - cr.x), iy2 - iy1); setMask(dom.maskRight, ix2, iy1, Math.max(0, cr.x + cr.w - ix2), iy2 - iy1);
     const padT = Math.max(0, -s.y), padB = Math.max(0, s.y + s.h - srcH), padL = Math.max(0, -s.x), padR = Math.max(0, s.x + s.w - srcW);
     const outW = Math.round(s.w), outH = Math.round(s.h);
-    const hasOutScale = st.outW >= GRID && st.outH >= GRID && (Math.abs(st.outW - outW) > 1 || Math.abs(st.outH - outH) > 1);
-    dom.sizeLabel.textContent = hasOutScale ? `${outW}×${outH} → ${st.outW}×${st.outH}` : `${outW} × ${outH}`;
+    // Выходной размер теперь всегда равен размеру рамки (0 означает авто в бэкенде)
+    dom.sizeLabel.textContent = `${outW} × ${outH}`;
     dom.sizeLabel.style.display = "block"; dom.sizeLabel.style.left = (cr.x + cr.w / 2) + "px"; dom.sizeLabel.style.top = (cr.y + cr.h - 18) + "px";
     const showPad = (el, text, show, cx, cy) => { el.textContent = text; el.style.display = show ? "block" : "none"; if (show) { el.style.left = cx + "px"; el.style.top = cy + "px"; el.style.transform = "translate(-50%,-50%)"; } };
-    // ИЗМЕНЕНИЕ: > 0.5 чтобы избежать микро-ошибок округления
     showPad(dom.padLabelT, `▲ ${Math.round(padT)}`, padT > 0.5, cr.x + cr.w / 2, cr.y + (padT * st.scale) / 2); 
     showPad(dom.padLabelB, `▼ ${Math.round(padB)}`, padB > 0.5, cr.x + cr.w / 2, cr.y + cr.h - (padB * st.scale) / 2); 
     showPad(dom.padLabelL, `◀ ${Math.round(padL)}`, padL > 0.5, cr.x + (padL * st.scale) / 2, cr.y + cr.h / 2); 
     showPad(dom.padLabelR, `▶ ${Math.round(padR)}`, padR > 0.5, cr.x + cr.w - (padR * st.scale) / 2, cr.y + cr.h / 2);
     
-    if (document.activeElement !== dom.wInput) dom.wInput.value = outW || ""; if (document.activeElement !== dom.hInput) dom.hInput.value = outH || ""; if (document.activeElement !== dom.outWInput) dom.outWInput.value = st.outW || ""; if (document.activeElement !== dom.outHInput) dom.outHInput.value = st.outH || "";
+    if (document.activeElement !== dom.wInput) dom.wInput.value = outW || ""; if (document.activeElement !== dom.hInput) dom.hInput.value = outH || "";
     const actualAR = st.arLocked ? st.cropAR : s.w / s.h;
     for (const btn of dom.chipBtns) { const chipAR = parseFloat(btn.dataset.chipAR); const active = Math.abs(chipAR - actualAR) < 0.005; btn.style.borderColor = active ? "#5090cc" : "#444"; btn.style.color = active ? "#aadaff" : "#999"; btn.style.background = active ? "#1a3050" : "#222"; }
     if (document.activeElement !== dom.maskColorInput.hexInput) { dom.maskColorInput.picker.value = st.maskColor; dom.maskColorInput.swatch.style.background = st.maskColor; dom.maskColorInput.hexInput.value = st.maskColor.toUpperCase(); }
@@ -294,7 +283,10 @@ function render(st, dom) {
 }
 
 function fitCropInView(st, dom) { const wrapW = dom.wrap.clientWidth, wrapH = dom.wrap.clientHeight; if (wrapW <= 0 || wrapH <= 0) return; const pad = MARGIN; const bx1 = Math.min(st.sf.x, st.cr.x), by1 = Math.min(st.sf.y, st.cr.y), bx2 = Math.max(st.sf.x + st.sf.w, st.cr.x + st.cr.w), by2 = Math.max(st.sf.y + st.sf.h, st.cr.y + st.cr.h); const bw = bx2 - bx1, bh = by2 - by1; const fitZoom = Math.min((wrapW - pad * 2) / bw, (wrapH - pad * 2) / bh); const needsZoomOut = fitZoom < st.view.zoom; const z = needsZoomOut ? Math.max(0.15, fitZoom) : st.view.zoom; const scL = bx1 * z + st.view.panX, scT = by1 * z + st.view.panY, scR = bx2 * z + st.view.panX, scB = by2 * z + st.view.panY; const outOfBounds = scL < 0 || scT < 0 || scR > wrapW || scB > wrapH; if (!needsZoomOut && !outOfBounds) return; st.view.zoom = z; st.view.panX = (wrapW - bw * z) / 2 - bx1 * z; st.view.panY = (wrapH - bh * z) / 2 - by1 * z; }
-function syncWidgets(st, widgets, node) { const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale)); const hex = st.maskColor.replace("#", ""); const mR = parseInt(hex.substring(0,2), 16), mG = parseInt(hex.substring(2,4), 16), mB = parseInt(hex.substring(4,6), 16); if (widgets.cropState) widgets.cropState.value = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH},${mR},${mG},${mB}`; if (node.graph) node.graph.setDirtyCanvas(true, true); }
+function syncWidgets(st, widgets, node) { const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale)); const hex = st.maskColor.replace("#", ""); const mR = parseInt(hex.substring(0,2), 16), mG = parseInt(hex.substring(2,4), 16), mB = parseInt(hex.substring(4,6), 16); 
+    // outW/outH всегда 0, чтобы бэкенд брал размеры рамки
+    if (widgets.cropState) widgets.cropState.value = `${s.x},${s.y},${s.w},${s.h},0,0,${mR},${mG},${mB}`; 
+    if (node.graph) node.graph.setDirtyCanvas(true, true); }
 function setArLocked(st, dom, locked) { st.arLocked = locked; if (locked && st.cr.h > 0) st.cropAR = st.cr.w / st.cr.h; dom.arBtn.textContent = locked ? "🔒" : "🔓"; dom.arBtn.style.border = `1px solid ${locked ? "#99c0ee" : "#444"}`; dom.arBtn.style.background = locked ? "#1a3a5a" : "#2a2a2a"; dom.arBtn.style.color = locked ? "#aadaff" : "#bbb"; dom.arBtn._active = locked; }
 function wireColors(st, dom, widgets, node) { const bind = (inputObj, stateKey) => { inputObj.picker.addEventListener("input", (e) => { st[stateKey] = e.target.value; inputObj.swatch.style.background = e.target.value; inputObj.hexInput.value = e.target.value.toUpperCase(); updateMaskColors(st, dom); syncWidgets(st, widgets, node); }); inputObj.hexInput.addEventListener("change", (e) => { let val = e.target.value; if (!val.startsWith("#")) val = "#" + val; if (/^#[0-9A-F]{6}$/i.test(val)) { st[stateKey] = val; inputObj.picker.value = val; inputObj.swatch.style.background = val; updateMaskColors(st, dom); syncWidgets(st, widgets, node); } }); }; bind(dom.maskColorInput, 'maskColor'); bind(dom.bgColorInput, 'bgColor'); }
 
@@ -314,7 +306,7 @@ function calcSizeByRatio(srcW, srcH, targetAR) {
 }
 
 function wireInteractions(st, dom, widgets, node, nodeId) {
-    const { wrap, arBtn, snapBtns, wInput, hInput, resetBtn, chipBtns, outWInput, outHInput, batchBtn, savePresetBtn, applyPresetBtn, presetListOverlay, presetNameInput, inputField, inputOk, inputCancel } = dom;
+    const { wrap, arBtn, snapBtns, wInput, hInput, resetBtn, chipBtns, batchBtn, savePresetBtn, applyPresetBtn, presetListOverlay, presetNameInput, inputField, inputOk, inputCancel } = dom;
     
     savePresetBtn.addEventListener("click", () => { dom.presetListOverlay.style.display = "none"; dom.presetNameInput.style.display = "block"; dom.inputField.value = ""; dom.inputField.focus(); });
     const performSave = () => { 
@@ -323,7 +315,8 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
         const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale)); 
         const hex = st.maskColor.replace("#", ""); 
         const mR = parseInt(hex.substring(0,2), 16), mG = parseInt(hex.substring(2,4), 16), mB = parseInt(hex.substring(4,6), 16); 
-        const presetData = { crop_state: `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH},${mR},${mG},${mB}`, maskColor: st.maskColor, bgColor: st.bgColor, outW: st.outW, outH: st.outH, cropAR: st.cropAR, arLocked: st.arLocked }; 
+        // outW/outH всегда 0
+        const presetData = { crop_state: `${s.x},${s.y},${s.w},${s.h},0,0,${mR},${mG},${mB}`, maskColor: st.maskColor, bgColor: st.bgColor, outW: 0, outH: 0, cropAR: st.cropAR, arLocked: st.arLocked }; 
         fetch("/rs_outpaint/save_preset", { 
             method: "POST", 
             headers: { "Content-Type": "application/json" }, 
@@ -366,11 +359,10 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
                         const res2 = await fetch("/rs_outpaint/load_preset", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ name }) });
                         if (!res2.ok) throw new Error("Load failed");
                         const data = await res2.json();
-                        st.maskColor = data.maskColor || "#ff0000"; st.bgColor = data.bgColor || "#141414"; st.outW = data.outW || 0; st.outH = data.outH || 0; st.cropAR = data.cropAR || 16/9; st.arLocked = data.arLocked !== undefined ? data.arLocked : true;
+                        st.maskColor = data.maskColor || "#ff0000"; st.bgColor = data.bgColor || "#141414"; st.outW = 0; st.outH = 0; st.cropAR = data.cropAR || 16/9; st.arLocked = data.arLocked !== undefined ? data.arLocked : true;
                         setArLocked(st, dom, st.arLocked);
                         dom.maskColorInput.picker.value = st.maskColor; dom.maskColorInput.swatch.style.background = st.maskColor; dom.maskColorInput.hexInput.value = st.maskColor.toUpperCase();
                         dom.bgColorInput.picker.value = st.bgColor; dom.bgColorInput.swatch.style.background = st.bgColor; dom.bgColorInput.hexInput.value = st.bgColor.toUpperCase();
-                        if(dom.outWInput) dom.outWInput.value = st.outW || ""; if(dom.outHInput) dom.outHInput.value = st.outH || "";
                         if(data.crop_state) { const parts = data.crop_state.split(',').map(Number); if(parts.length >= 4) { let s = { x: parts[0], y: parts[1], w: parts[2], h: parts[3] }; s = quantizeSrc(s); s = clampToValid(s, st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); } }
                         updateMaskColors(st, dom); fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node);
                     } catch(e) { dom.noDataMsg.textContent = "❌ " + e.message; dom.noDataMsg.style.display = "flex"; setTimeout(() => dom.noDataMsg.style.display = "none", 2000); }
@@ -408,8 +400,6 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
         s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); 
         st.cr = srcToCr(s, st.sf, st.scale); 
         if (!st.arLocked) st.cropAR = s.w / s.h; 
-        st.outW = Math.round(s.w);
-        st.outH = Math.round(s.h);
         fitCropInView(st, dom); 
         render(st, dom); 
         syncWidgets(st, widgets, node); 
@@ -426,8 +416,6 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
         s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); 
         st.cr = srcToCr(s, st.sf, st.scale); 
         if (!st.arLocked) st.cropAR = s.w / s.h; 
-        st.outW = Math.round(s.w);
-        st.outH = Math.round(s.h);
         fitCropInView(st, dom); 
         render(st, dom); 
         syncWidgets(st, widgets, node); 
@@ -435,37 +423,8 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
     
     resetBtn.addEventListener("click", () => { 
         initLayout(st, dom.wrap); 
-        const d = defaultOut(st); 
-        st.outW = d.w; 
-        st.outH = d.h; 
         setArLocked(st, dom, false); 
         fitCropInView(st, dom); 
-        render(st, dom); 
-        syncWidgets(st, widgets, node); 
-    });
-    
-    outWInput.addEventListener("change", () => { 
-        const v = parseInt(outWInput.value, 10); 
-        if (!isNaN(v) && v >= GRID) { 
-            st.outW = v; 
-            if (st.arLocked) st.outH = Math.max(GRID, Math.round(v / st.cropAR / GRID) * GRID); 
-        } else { 
-            st.outW = 0; 
-            st.outH = 0; 
-        } 
-        render(st, dom); 
-        syncWidgets(st, widgets, node); 
-    });
-    
-    outHInput.addEventListener("change", () => { 
-        const v = parseInt(outHInput.value, 10); 
-        if (!isNaN(v) && v >= GRID) { 
-            st.outH = v; 
-            if (st.arLocked) st.outW = Math.max(GRID, Math.round(v * st.cropAR / GRID) * GRID); 
-        } else { 
-            st.outW = 0; 
-            st.outH = 0; 
-        } 
         render(st, dom); 
         syncWidgets(st, widgets, node); 
     });
@@ -475,26 +434,24 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
             const targetAR = parseFloat(btn.dataset.chipAR);
             setArLocked(st, dom, true);
             st.cropAR = targetAR;
-        
-           // Рассчитываем новые размеры от ИСХОДНИКА, а не от текущей рамки
+            
+            // Рассчитываем новые размеры от ИСХОДНИКА
             const { w: newW, h: newH } = calcSizeByRatio(st.srcW, st.srcH, targetAR);
-            st.outW = newW;
-            st.outH = newH;
-        
-            // Центрируем относительно ИСХОДНОГО изображения, а не текущей рамки
+            
+            // Центрируем относительно ИСХОДНОГО изображения
             const centerX = st.srcW / 2;
             const centerY = st.srcH / 2;
-        
+            
             let s = {
                 x: Math.round((centerX - newW / 2) / GRID) * GRID,
                 y: Math.round((centerY - newH / 2) / GRID) * GRID,
                 w: newW,
                 h: newH
             };
-        
+            
             s = clampToValid(quantizeSrc(s), st.srcW, st.srcH);
             st.cr = srcToCr(s, st.sf, st.scale);
-        
+            
             fitCropInView(st, dom); 
             render(st, dom); 
             syncWidgets(st, widgets, node); 
@@ -581,7 +538,6 @@ app.registerExtension({
             const dom = buildUI();
             wireColors(st, dom, widgets, node);
             
-            // ИЗМЕНЕНИЕ: Блокируем UI сразу при создании ноды
             setUIActive(dom, false);
             
             const domWidget = node.addDOMWidget("rs_outpaint_canvas", "custom", dom.root, { serialize: false, hideOnZoom: false });
@@ -597,7 +553,7 @@ app.registerExtension({
                 setUIActive(dom, true);
             } };
             api.addEventListener("rs_outpaint.show", onShow);
-            dom.acceptBtn.addEventListener("click", async () => { const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale)); const mR = parseInt(st.maskColor.slice(1,3), 16), mG = parseInt(st.maskColor.slice(3,5), 16), mB = parseInt(st.maskColor.slice(5,7), 16); const cropState = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH},${mR},${mG},${mB}`; dom.acceptBtn.textContent = "⏳ Sending..."; dom.acceptBtn.disabled = true; try { const resp = await fetch("/rs_outpaint/decision", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id), decision: "approve", crop_state: cropState, batch_mode: st.batchMode }) }); if (resp.ok) { node.stopHeartbeat(); if (st.batchMode) { st.hasPreset = true; dom.waitingMsg.style.display = "none"; dom.acceptBtn.style.display = "none"; dom.cancelBtn.style.display = "none"; dom.batchBtn.style.display = "none"; dom.noDataMsg.textContent = "💾 Crop preset saved! Ready for batch."; dom.noDataMsg.style.display = "flex"; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 2000); } else { resetNodeState(st, dom, widgets); dom.noDataMsg.textContent = "✅ Approved! Continuing..."; dom.noDataMsg.style.display = "flex"; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 1500); fetch("/rs_outpaint/clear_preset", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id) }) }).catch(()=>{}); } 
+            dom.acceptBtn.addEventListener("click", async () => { const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale)); const mR = parseInt(st.maskColor.slice(1,3), 16), mG = parseInt(st.maskColor.slice(3,5), 16), mB = parseInt(st.maskColor.slice(5,7), 16); const cropState = `${s.x},${s.y},${s.w},${s.h},0,0,${mR},${mG},${mB}`; dom.acceptBtn.textContent = "⏳ Sending..."; dom.acceptBtn.disabled = true; try { const resp = await fetch("/rs_outpaint/decision", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id), decision: "approve", crop_state: cropState, batch_mode: st.batchMode }) }); if (resp.ok) { node.stopHeartbeat(); if (st.batchMode) { st.hasPreset = true; dom.waitingMsg.style.display = "none"; dom.acceptBtn.style.display = "none"; dom.cancelBtn.style.display = "none"; dom.batchBtn.style.display = "none"; dom.noDataMsg.textContent = "💾 Crop preset saved! Ready for batch."; dom.noDataMsg.style.display = "flex"; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 2000); } else { resetNodeState(st, dom, widgets); dom.noDataMsg.textContent = "✅ Approved! Continuing..."; dom.noDataMsg.style.display = "flex"; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 1500); fetch("/rs_outpaint/clear_preset", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id) }) }).catch(()=>{}); } 
                 
                 setUIActive(dom, false);
             } } catch (err) { console.error("Accept failed:", err); } });

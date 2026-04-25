@@ -50,7 +50,6 @@ The node pauses the queue until you confirm the settings, then outputs a ready-t
 - **Aspect Ratio Lock** —  Switching 🔒🔓 between maintaining crop proportions and freely choosing the mask size   
 - **Quick Presets** — One-click aspect ratios: 16:9, 9:16, 21:9, 4:3, 1:1, and more  
 - **Smart Snapping** — Align crop to center, edges, or fit source dimensions  
-- **Output Resolution Control** — Set target resolution with optional upscaling/downscaling  
 - **Real-time UI** – Zoom (scroll), pan (middle-drag), instant dimension readouts, and padding indicators  
 - **Color Mask and Background** — Selecting the color for the mask and background when using the mask_image output  
 - **Padding Indicators** — Visual labels show generated padding areas (▲▼◀▶)  
@@ -64,8 +63,7 @@ The node pauses the queue until you confirm the settings, then outputs a ready-t
 **Single mode**  
 Add the node to your workflow and connect an IMAGE input.  
 Start the generation with the RUN button. After reaching the node, the generation will pause.  
-Adjust the crop region using the handles or numeric inputs.  
-Set output resolution manually or leave as auto to match crop dimensions.  
+Adjust the crop area using the markers.  
 You can create or apply a previously created preset of settings.  
 Click ✔️ ACCEPT to send the configuration to the backend.  
 Use the outputs in your downstream nodes (ControlNet, mask blending, etc.).  
@@ -75,8 +73,7 @@ If you are not satisfied with something, you can click ❌ CANCEL to interrupt t
 Add the node to your workflow and connect an IMAGE input.  
 Select the number of passes in the generation queue.  
 Start the generation with the RUN button. After reaching the node, the generation will pause.  
-Adjust the crop region using the handles or numeric inputs.  
-Set output resolution manually or leave as auto to match crop dimensions.  
+Adjust the crop area using the markers.  
 You can create or apply a previously created preset of settings.  
 Click the ⚙️ BATCH, it should turn green.  
 Click ✔️ ACCEPT to send the configuration to the backend.  

@@ -41,6 +41,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 ### 🔥 Features  
 RS Outpaint is a custom ComfyUI node that turns mask/crop definition into an interactive, visual process. Instead of manually calculating coordinates or relying on static crops, you can drag, resize, and pan the crop region directly on the preview canvas.  
 The node pauses the queue until you confirm the settings, then outputs a ready-to-use control image, alpha mask, and precise dimensions. It also includes a batch preset system that remembers your crop settings and applies them automatically to subsequent images in a sequence.  
+
 ❗ *All changes in the node (setting the mask, creating and applying presets, replacing colors, etc. settings) are available only when it is on pause in generation - "foolproof"*  
 - **Visual Mask Editor** — Drag, resize, and position the crop area directly on the image preview  
 - **Pause & Approve** — Workflow pauses after first execution, waiting for your confirmation  
@@ -58,7 +59,7 @@ The node pauses the queue until you confirm the settings, then outputs a ready-t
 - **Instant reset** — reset of the state after each generation  
 
 ### 🪛 Usage  
-❗ The ⚙️ BATCH, ✔️ ACCEPT, and ❌ CANCEL buttons appear only after the generation is started.  
+❗ *The ⚙️ BATCH, ✔️ ACCEPT, and ❌ CANCEL buttons appear only after the generation is started.*  
 
 **Single mode**  
 Add the node to your workflow and connect an IMAGE input.  
@@ -79,6 +80,18 @@ Click the ⚙️ BATCH, it should turn green.
 Click ✔️ ACCEPT to send the configuration to the backend.  
 Use the outputs in your downstream nodes (ControlNet, mask blending, etc.).  
 If you are not satisfied with something, you can click ❌ CANCEL to interrupt the generation process.  
+
+<details>
+  <summary>✅ Update v0.16.3</summary>
+  
+ The logic of the RS Outpaint node interface has been changed.
+1. The default borders of the mask frame are strictly along the borders of the incoming image
+2. All node buttons are inactive until the process queue reaches the node and is paused. The buttons become inactive immediately after the generation continues or is canceled.
+3. All snapping presets (aspect ratio) now work without crop and without resizing the output resolution. The frame is closely adjacent to two opposite sides or to one of the sides of the image (why one? since the mask works on a 16px grid, small margins of the mask are possible, which are visually visible. This is done so that the output always results in an image with side sizes that are multiples of 16. These errors will still be masked.)
+4. By default, the Lock/Unlock aspect ratio button is unlocked (🔓) and you can immediately start working with the mask frame without saving the aspect ratio.
+5. When you press any snap preset button, the Lock/Unlock button is automatically locked (🔒) and all further actions with the mask frame will be performed while maintaining the selected aspect ratio until you unlock the button again.
+  
+</details>  
 
 💡Tip: For precise positioning, use the arrow keys on your keyboard (hold Shift to move faster)  
 

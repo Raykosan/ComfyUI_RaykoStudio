@@ -20,17 +20,91 @@ function quantizeSrc(s) { return { x: Math.round(s.x / GRID) * GRID, y: Math.rou
 function clampToValid(s, srcW, srcH) { const c = { ...s }; if (c.x >= srcW - OVERHANG) c.x = srcW - OVERHANG; if (c.y >= srcH - OVERHANG) c.y = srcH - OVERHANG; if (c.x + c.w <= OVERHANG) c.x = OVERHANG - c.w; if (c.y + c.h <= OVERHANG) c.y = OVERHANG - c.h; return c; }
 function applyCanvasCr(canvasCr, st) { let s = crToSrc(canvasCr, st.sf, st.scale); s = quantizeSrc(s); s = clampToValid(s, st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); }
 function toWorld(e, wrapEl, view) { const rect = wrapEl.getBoundingClientRect(); return { x: (e.clientX - rect.left - view.panX) / view.zoom, y: (e.clientY - rect.top - view.panY) / view.zoom }; }
-function defaultOut(_st) { return { w: 1280, h: 720 }; }
+function defaultOut(_st) { return { w: 0, h: 0 }; }
 
 function createState() {
-    return { srcW: 1280, srcH: 720, scale: 1, sf: { x: 0, y: 0, w: 0, h: 0 }, cr: { x: 0, y: 0, w: 0, h: 0 }, cropAR: 16 / 9, arLocked: true, initialized: false, view: { zoom: 1.0, panX: 0, panY: 0 }, outW: 0, outH: 0, maskColor: "#ff0000", bgColor: "#141414", batchMode: false, hasPreset: false };
+    return { srcW: 1280, srcH: 720, scale: 1, sf: { x: 0, y: 0, w: 0, h: 0 }, cr: { x: 0, y: 0, w: 0, h: 0 }, cropAR: 16 / 9, arLocked: false, initialized: false, view: { zoom: 1.0, panX: 0, panY: 0 }, outW: 0, outH: 0, maskColor: "#ff0000", bgColor: "#141414", batchMode: false, hasPreset: false };
+}
+
+function setUIActive(dom, isActive) {
+    const opacity = isActive ? "1" : "0.4";
+    const pointerEvents = isActive ? "auto" : "none";
+    const filter = isActive ? "none" : "grayscale(100%)";
+    
+    // Кнопки пресетов
+    dom.savePresetBtn.style.opacity = opacity;
+    dom.savePresetBtn.style.pointerEvents = pointerEvents;
+    dom.savePresetBtn.style.filter = filter;
+    
+    dom.applyPresetBtn.style.opacity = opacity;
+    dom.applyPresetBtn.style.pointerEvents = pointerEvents;
+    dom.applyPresetBtn.style.filter = filter;
+    
+    // Кнопки соотношений (chipBtns)
+    for (const btn of dom.chipBtns) {
+        btn.style.opacity = opacity;
+        btn.style.pointerEvents = pointerEvents;
+        btn.style.filter = filter;
+    }
+    
+    // Кнопки snap
+    for (const btn of dom.snapBtns) {
+        btn.style.opacity = opacity;
+        btn.style.pointerEvents = pointerEvents;
+        btn.style.filter = filter;
+    }
+    
+    // Кнопка замка
+    dom.arBtn.style.opacity = opacity;
+    dom.arBtn.style.pointerEvents = pointerEvents;
+    dom.arBtn.style.filter = filter;
+    
+    // Кнопка Reset
+    dom.resetBtn.style.opacity = opacity;
+    dom.resetBtn.style.pointerEvents = pointerEvents;
+    dom.resetBtn.style.filter = filter;
+    
+    // Поля ввода W/H
+    dom.wInput.style.opacity = opacity;
+    dom.wInput.style.pointerEvents = pointerEvents;
+    
+    dom.hInput.style.opacity = opacity;
+    dom.hInput.style.pointerEvents = pointerEvents;
+    
+    // Поля output resolution
+    dom.outWInput.style.opacity = opacity;
+    dom.outWInput.style.pointerEvents = pointerEvents;
+    
+    dom.outHInput.style.opacity = opacity;
+    dom.outHInput.style.pointerEvents = pointerEvents;
+    
+    // Цвета (mask)
+    dom.maskColorInput.picker.style.opacity = opacity;
+    dom.maskColorInput.picker.style.pointerEvents = pointerEvents;
+    dom.maskColorInput.hexInput.style.opacity = opacity;
+    dom.maskColorInput.hexInput.style.pointerEvents = pointerEvents;
+    dom.maskColorInput.swatch.style.opacity = opacity;
+    dom.maskColorInput.swatch.style.pointerEvents = pointerEvents;
+    
+    // Цвета (bg)
+    dom.bgColorInput.picker.style.opacity = opacity;
+    dom.bgColorInput.picker.style.pointerEvents = pointerEvents;
+    dom.bgColorInput.hexInput.style.opacity = opacity;
+    dom.bgColorInput.hexInput.style.pointerEvents = pointerEvents;
+    dom.bgColorInput.swatch.style.opacity = opacity;
+    dom.bgColorInput.swatch.style.pointerEvents = pointerEvents;
+    
+    // Batch кнопка
+    dom.batchBtn.style.opacity = opacity;
+    dom.batchBtn.style.pointerEvents = pointerEvents;
+    dom.batchBtn.style.filter = filter;
 }
 
 function resetNodeState(st, dom, widgets) {
     Object.assign(st, createState());
-    st.arLocked = true;
-    dom.arBtn.textContent = "🔒"; dom.arBtn.style.border = "1px solid #99c0ee"; dom.arBtn.style.background = "#1a3a5a"; dom.arBtn.style.color = "#aadaff"; dom.arBtn._active = true;
-    if(dom.wInput) dom.wInput.value = 1280; if(dom.hInput) dom.hInput.value = 720;
+    st.arLocked = false;
+    dom.arBtn.textContent = "🔓"; dom.arBtn.style.border = "1px solid #444"; dom.arBtn.style.background = "#2a2a2a"; dom.arBtn.style.color = "#bbb"; dom.arBtn._active = false;
+    if(dom.wInput) dom.wInput.value = ""; if(dom.hInput) dom.hInput.value = "";
     if(dom.outWInput) dom.outWInput.value = ""; if(dom.outHInput) dom.outHInput.value = "";
     if(dom.maskColorInput) { st.maskColor = "#ff0000"; dom.maskColorInput.picker.value = st.maskColor; dom.maskColorInput.swatch.style.background = st.maskColor; dom.maskColorInput.hexInput.value = st.maskColor.toUpperCase(); }
     if(dom.bgColorInput) { st.bgColor = "#141414"; dom.bgColorInput.picker.value = st.bgColor; dom.bgColorInput.swatch.style.background = st.bgColor; dom.bgColorInput.hexInput.value = st.bgColor.toUpperCase(); }
@@ -40,11 +114,13 @@ function resetNodeState(st, dom, widgets) {
     if(dom.batchBtn) { dom.batchBtn.style.display = "none"; dom.batchBtn.dataset.active = "false"; dom.batchBtn.style.borderColor = "#444"; dom.batchBtn.style.background = "#2a2a2a"; dom.batchBtn.style.color = "#bbb"; dom.batchBtn.textContent = "⚙️ BATCH"; }
     if(dom.presetNameInput) dom.presetNameInput.style.display = "none";
     if(dom.presetListOverlay) dom.presetListOverlay.style.display = "none";
-    if(dom.noDataMsg) { dom.noDataMsg.style.display = "flex"; dom.noDataMsg.textContent = "1280×720 (default placeholder)"; }
+    if(dom.noDataMsg) { dom.noDataMsg.style.display = "none"; dom.noDataMsg.textContent = ""; }
     if(dom.imageEl) { dom.imageEl.style.display = "none"; if (dom.imageEl.src && dom.imageEl.src.startsWith("blob:")) URL.revokeObjectURL(dom.imageEl.src); }
     updateMaskColors(st, dom);
     st.initialized = false;
     syncWidgets(st, widgets, { graph: null });
+    
+    setUIActive(dom, false);
 }
 
 function initLayout(st, wrapEl) {
@@ -60,13 +136,20 @@ function initLayout(st, wrapEl) {
     st.sf = { x: sfX, y: sfY, w: sfW, h: sfH };
     st.scale = sfW / st.srcW;
     st.view = { zoom: 1.0, panX: 0, panY: 0 };
-    const defW = Math.max(GRID, Math.round(st.srcW / GRID) * GRID);
-    const defH = Math.max(GRID, Math.round(st.srcH / GRID) * GRID);
-    const defX = Math.round((st.srcW - defW) / (2 * GRID)) * GRID;
-    const defY = Math.round((st.srcH - defH) / (2 * GRID)) * GRID;
+    
+    const defW = st.srcW;
+    const defH = st.srcH;
+    const defX = 0;
+    const defY = 0;
+    
     const def = clampToValid({ x: defX, y: defY, w: defW, h: defH }, st.srcW, st.srcH);
     st.cr = srcToCr(def, st.sf, st.scale);
-    st.cropAR = def.w / def.h;
+    st.cropAR = defW / defH;
+    
+    st.outW = 0;
+    st.outH = 0;
+    st.arLocked = false; 
+    
     st.initialized = true;
     return true;
 }
@@ -133,10 +216,10 @@ function buildUI() {
     const cropSizeRow = mkEl("div", "display:flex;align-items:center;gap:5px;flex-wrap:wrap;");
     const INPUT_CSS = "width:58px;padding:2px 5px;font-size:11px;font-family:monospace;background:#1e1e1e;color:#ccc;border:1px solid #444;border-radius:4px;text-align:right;";
     const wLabel = mkEl("span", "font-size:10px;color:#999;"); wLabel.textContent = "W";
-    const wInput = mkEl("input", INPUT_CSS, { type: "number", min: GRID, step: GRID, value: 1280 });
+    const wInput = mkEl("input", INPUT_CSS, { type: "number", min: GRID, step: GRID, value: "" });
     const hLabel = mkEl("span", "font-size:10px;color:#999;"); hLabel.textContent = "H";
-    const hInput = mkEl("input", INPUT_CSS, { type: "number", min: GRID, step: GRID, value: 720 });
-    const arBtn = mkEl("button", "padding:3px 9px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;"); arBtn.textContent = "🔒"; arBtn._active = true;
+    const hInput = mkEl("input", INPUT_CSS, { type: "number", min: GRID, step: GRID, value: "" });
+    const arBtn = mkEl("button", "padding:3px 9px;font-size:11px;border:1px solid #444;border-radius:5px;background:#2a2a2a;color:#bbb;cursor:pointer;"); arBtn.textContent = "🔓"; arBtn._active = false;
     const resetBtn = mkEl("button", "padding:3px 9px;font-size:11px;border:1px solid #444;border-radius:5px;background:#2a2a2a;color:#bbb;cursor:pointer;"); 
     resetBtn.textContent = "🔄️ Reset";
     resetBtn.onmouseenter = () => { resetBtn.style.background = "#3a3a3a"; };
@@ -154,9 +237,9 @@ function buildUI() {
     snapRow.append(snapLabel, ...snapBtns);
     const outSizeRow = mkEl("div", "display:flex;align-items:center;gap:5px;flex-wrap:wrap;");
     const outLabel = mkEl("span", "font-size:10px;color:#999;"); outLabel.textContent = "output resolution:";
-    const outWInput = mkEl("input", INPUT_CSS, { type: "number", min: 0, step: GRID, value: 0 }); outWInput.placeholder = "auto";
+    const outWInput = mkEl("input", INPUT_CSS, { type: "number", min: 0, step: GRID, value: "" }); outWInput.placeholder = "auto";
     const outXLabel = mkEl("span", "font-size:10px;color:#999;"); outXLabel.textContent = "×";
-    const outHInput = mkEl("input", INPUT_CSS, { type: "number", min: 0, step: GRID, value: 0 }); outHInput.placeholder = "auto";
+    const outHInput = mkEl("input", INPUT_CSS, { type: "number", min: 0, step: GRID, value: "" }); outHInput.placeholder = "auto";
     outSizeRow.append(outLabel, outWInput, outXLabel, outHInput);
     ctrl.append(cropSizeRow, presetRow, snapRow, outSizeRow);
     const maskColorInput = mkColorInput("mask:", "#ff0000");
@@ -196,8 +279,13 @@ function render(st, dom) {
     dom.sizeLabel.textContent = hasOutScale ? `${outW}×${outH} → ${st.outW}×${st.outH}` : `${outW} × ${outH}`;
     dom.sizeLabel.style.display = "block"; dom.sizeLabel.style.left = (cr.x + cr.w / 2) + "px"; dom.sizeLabel.style.top = (cr.y + cr.h - 18) + "px";
     const showPad = (el, text, show, cx, cy) => { el.textContent = text; el.style.display = show ? "block" : "none"; if (show) { el.style.left = cx + "px"; el.style.top = cy + "px"; el.style.transform = "translate(-50%,-50%)"; } };
-    showPad(dom.padLabelT, `▲ ${Math.round(padT)}`, padT > 0, cr.x + cr.w / 2, cr.y + (padT * st.scale) / 2); showPad(dom.padLabelB, `▼ ${Math.round(padB)}`, padB > 0, cr.x + cr.w / 2, cr.y + cr.h - (padB * st.scale) / 2); showPad(dom.padLabelL, `◀ ${Math.round(padL)}`, padL > 0, cr.x + (padL * st.scale) / 2, cr.y + cr.h / 2); showPad(dom.padLabelR, `▶ ${Math.round(padR)}`, padR > 0, cr.x + cr.w - (padR * st.scale) / 2, cr.y + cr.h / 2);
-    if (document.activeElement !== dom.wInput) dom.wInput.value = outW; if (document.activeElement !== dom.hInput) dom.hInput.value = outH; if (document.activeElement !== dom.outWInput) dom.outWInput.value = st.outW || ""; if (document.activeElement !== dom.outHInput) dom.outHInput.value = st.outH || "";
+    // ИЗМЕНЕНИЕ: > 0.5 чтобы избежать микро-ошибок округления
+    showPad(dom.padLabelT, `▲ ${Math.round(padT)}`, padT > 0.5, cr.x + cr.w / 2, cr.y + (padT * st.scale) / 2); 
+    showPad(dom.padLabelB, `▼ ${Math.round(padB)}`, padB > 0.5, cr.x + cr.w / 2, cr.y + cr.h - (padB * st.scale) / 2); 
+    showPad(dom.padLabelL, `◀ ${Math.round(padL)}`, padL > 0.5, cr.x + (padL * st.scale) / 2, cr.y + cr.h / 2); 
+    showPad(dom.padLabelR, `▶ ${Math.round(padR)}`, padR > 0.5, cr.x + cr.w - (padR * st.scale) / 2, cr.y + cr.h / 2);
+    
+    if (document.activeElement !== dom.wInput) dom.wInput.value = outW || ""; if (document.activeElement !== dom.hInput) dom.hInput.value = outH || ""; if (document.activeElement !== dom.outWInput) dom.outWInput.value = st.outW || ""; if (document.activeElement !== dom.outHInput) dom.outHInput.value = st.outH || "";
     const actualAR = st.arLocked ? st.cropAR : s.w / s.h;
     for (const btn of dom.chipBtns) { const chipAR = parseFloat(btn.dataset.chipAR); const active = Math.abs(chipAR - actualAR) < 0.005; btn.style.borderColor = active ? "#5090cc" : "#444"; btn.style.color = active ? "#aadaff" : "#999"; btn.style.background = active ? "#1a3050" : "#222"; }
     if (document.activeElement !== dom.maskColorInput.hexInput) { dom.maskColorInput.picker.value = st.maskColor; dom.maskColorInput.swatch.style.background = st.maskColor; dom.maskColorInput.hexInput.value = st.maskColor.toUpperCase(); }
@@ -209,6 +297,21 @@ function fitCropInView(st, dom) { const wrapW = dom.wrap.clientWidth, wrapH = do
 function syncWidgets(st, widgets, node) { const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale)); const hex = st.maskColor.replace("#", ""); const mR = parseInt(hex.substring(0,2), 16), mG = parseInt(hex.substring(2,4), 16), mB = parseInt(hex.substring(4,6), 16); if (widgets.cropState) widgets.cropState.value = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH},${mR},${mG},${mB}`; if (node.graph) node.graph.setDirtyCanvas(true, true); }
 function setArLocked(st, dom, locked) { st.arLocked = locked; if (locked && st.cr.h > 0) st.cropAR = st.cr.w / st.cr.h; dom.arBtn.textContent = locked ? "🔒" : "🔓"; dom.arBtn.style.border = `1px solid ${locked ? "#99c0ee" : "#444"}`; dom.arBtn.style.background = locked ? "#1a3a5a" : "#2a2a2a"; dom.arBtn.style.color = locked ? "#aadaff" : "#bbb"; dom.arBtn._active = locked; }
 function wireColors(st, dom, widgets, node) { const bind = (inputObj, stateKey) => { inputObj.picker.addEventListener("input", (e) => { st[stateKey] = e.target.value; inputObj.swatch.style.background = e.target.value; inputObj.hexInput.value = e.target.value.toUpperCase(); updateMaskColors(st, dom); syncWidgets(st, widgets, node); }); inputObj.hexInput.addEventListener("change", (e) => { let val = e.target.value; if (!val.startsWith("#")) val = "#" + val; if (/^#[0-9A-F]{6}$/i.test(val)) { st[stateKey] = val; inputObj.picker.value = val; inputObj.swatch.style.background = val; updateMaskColors(st, dom); syncWidgets(st, widgets, node); } }); }; bind(dom.maskColorInput, 'maskColor'); bind(dom.bgColorInput, 'bgColor'); }
+
+function calcSizeByRatio(srcW, srcH, targetAR) {
+    let newW, newH;
+    let tryH = srcW / targetAR;
+    if (tryH >= srcH) {
+        newW = srcW;
+        newH = tryH;
+    } else {
+        newH = srcH;
+        newW = srcH * targetAR;
+    }
+    newW = Math.max(GRID, Math.ceil(newW / GRID) * GRID);
+    newH = Math.max(GRID, Math.ceil(newH / GRID) * GRID);
+    return { w: newW, h: newH };
+}
 
 function wireInteractions(st, dom, widgets, node, nodeId) {
     const { wrap, arBtn, snapBtns, wInput, hInput, resetBtn, chipBtns, outWInput, outHInput, batchBtn, savePresetBtn, applyPresetBtn, presetListOverlay, presetNameInput, inputField, inputOk, inputCancel } = dom;
@@ -293,13 +396,123 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
     document.addEventListener("click", (e) => { if (!dom.presetListOverlay?.contains(e.target) && !dom.applyPresetBtn?.contains(e.target)) dom.presetListOverlay.style.display = "none"; if (!dom.presetNameInput?.contains(e.target) && e.target !== dom.savePresetBtn) dom.presetNameInput.style.display = "none"; });
     batchBtn.addEventListener("click", async () => { st.batchMode = !st.batchMode; dom.batchBtn.dataset.active = st.batchMode ? "true" : "false"; if (st.batchMode) { dom.batchBtn.style.borderColor = "#28a745"; dom.batchBtn.style.background = "#1a2a1a"; dom.batchBtn.style.color = "#aaffaa"; dom.batchBtn.textContent = "⚙️ BATCH ON"; } else { dom.batchBtn.style.borderColor = "#444"; dom.batchBtn.style.background = "#2a2a2a"; dom.batchBtn.style.color = "#bbb"; dom.batchBtn.textContent = "⚙️ BATCH"; } try { await fetch("/rs_outpaint/batch_toggle", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id), enabled: st.batchMode }) }); } catch(e) {} });
     arBtn.addEventListener("click", () => setArLocked(st, dom, !st.arLocked));
-    wInput.addEventListener("change", () => { const r = Math.max(GRID, Math.round(parseInt(wInput.value, 10) / GRID) * GRID) || GRID; let s = crToSrc(st.cr, st.sf, st.scale); const cx = s.x + s.w / 2, cy = s.y + s.h / 2; s.w = r; if (st.arLocked) s.h = Math.max(GRID, Math.round(r / st.cropAR / GRID) * GRID); s.x = Math.round((cx - s.w / 2) / GRID) * GRID; s.y = Math.round((cy - s.h / 2) / GRID) * GRID; s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); if (!st.arLocked) st.cropAR = s.w / s.h; fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node); });
-    hInput.addEventListener("change", () => { const r = Math.max(GRID, Math.round(parseInt(hInput.value, 10) / GRID) * GRID) || GRID; let s = crToSrc(st.cr, st.sf, st.scale); const cx = s.x + s.w / 2, cy = s.y + s.h / 2; s.h = r; if (st.arLocked) s.w = Math.max(GRID, Math.round(r * st.cropAR / GRID) * GRID); s.x = Math.round((cx - s.w / 2) / GRID) * GRID; s.y = Math.round((cy - s.h / 2) / GRID) * GRID; s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); if (!st.arLocked) st.cropAR = s.w / s.h; fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node); });
-    resetBtn.addEventListener("click", () => { initLayout(st, dom.wrap); const d = defaultOut(st); st.outW = d.w; st.outH = d.h; fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node); });
-    outWInput.addEventListener("change", () => { const v = parseInt(outWInput.value, 10); if (!isNaN(v) && v >= GRID) { st.outW = v; st.outH = Math.max(GRID, Math.round(v / st.cropAR / GRID) * GRID); } else { const d = defaultOut(st); st.outW = d.w; st.outH = d.h; } render(st, dom); syncWidgets(st, widgets, node); });
-    outHInput.addEventListener("change", () => { const v = parseInt(outHInput.value, 10); if (!isNaN(v) && v >= GRID) { st.outH = v; st.outW = Math.max(GRID, Math.round(v * st.cropAR / GRID) * GRID); } else { const d = defaultOut(st); st.outW = d.w; st.outH = d.h; } render(st, dom); syncWidgets(st, widgets, node); });
-    for (const btn of chipBtns) { btn.addEventListener("click", () => { const rw = parseInt(btn.dataset.chipW, 10), rh = parseInt(btn.dataset.chipH, 10); const chipAR = rw / rh; setArLocked(st, dom, true); st.cropAR = chipAR; let s = crToSrc(st.cr, st.sf, st.scale); const cx = s.x + s.w / 2, cy = s.y + s.h / 2; const area = s.w * s.h; s.w = Math.max(GRID, Math.round(Math.sqrt(area * chipAR) / GRID) * GRID); s.h = Math.max(GRID, Math.round(s.w / chipAR / GRID) * GRID); s.x = Math.round((cx - s.w / 2) / GRID) * GRID; s.y = Math.round((cy - s.h / 2) / GRID) * GRID; if(s.x < -s.w) s.x = -s.w; if(s.y < -s.h) s.y = -s.h; st.cr = srcToCr(s, st.sf, st.scale); if (st.outW < GRID || st.outH < GRID) { st.outW = rw; st.outH = rh; } fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node); }); }
-    for (const btn of snapBtns) { btn.addEventListener("click", () => { const mode = btn.dataset.snap; let s = crToSrc(st.cr, st.sf, st.scale); const { srcW, srcH } = st; if (mode === "center") { s.x = Math.round((srcW - s.w) / 2 / GRID) * GRID; s.y = Math.round((srcH - s.h) / 2 / GRID) * GRID; } else if (mode === "top") s.y = 0; else if (mode === "bottom") s.y = Math.round((srcH - s.h) / GRID) * GRID; else if (mode === "fitW") { s.w = srcW; if (st.arLocked) s.h = Math.round(s.w / st.cropAR / GRID) * GRID; s.x = 0; s.y = Math.round((srcH - s.h) / 2 / GRID) * GRID; } else if (mode === "fitH") { s.h = srcH; if (st.arLocked) s.w = Math.round(s.h * st.cropAR / GRID) * GRID; s.y = 0; s.x = Math.round((srcW - s.w) / 2 / GRID) * GRID; } else if (mode === "left") s.x = 0; else if (mode === "right") s.x = Math.round((srcW - s.w) / GRID) * GRID; s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); if (!st.arLocked) st.cropAR = s.w / s.h; render(st, dom); syncWidgets(st, widgets, node); }); }
+    
+    wInput.addEventListener("change", () => { 
+        const r = Math.max(GRID, Math.round(parseInt(wInput.value, 10) / GRID) * GRID) || GRID; 
+        let s = crToSrc(st.cr, st.sf, st.scale); 
+        const cx = s.x + s.w / 2, cy = s.y + s.h / 2; 
+        s.w = r; 
+        if (st.arLocked) s.h = Math.max(GRID, Math.round(r / st.cropAR / GRID) * GRID); 
+        s.x = Math.round((cx - s.w / 2) / GRID) * GRID; 
+        s.y = Math.round((cy - s.h / 2) / GRID) * GRID; 
+        s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); 
+        st.cr = srcToCr(s, st.sf, st.scale); 
+        if (!st.arLocked) st.cropAR = s.w / s.h; 
+        st.outW = Math.round(s.w);
+        st.outH = Math.round(s.h);
+        fitCropInView(st, dom); 
+        render(st, dom); 
+        syncWidgets(st, widgets, node); 
+    });
+    
+    hInput.addEventListener("change", () => { 
+        const r = Math.max(GRID, Math.round(parseInt(hInput.value, 10) / GRID) * GRID) || GRID; 
+        let s = crToSrc(st.cr, st.sf, st.scale); 
+        const cx = s.x + s.w / 2, cy = s.y + s.h / 2; 
+        s.h = r; 
+        if (st.arLocked) s.w = Math.max(GRID, Math.round(r * st.cropAR / GRID) * GRID); 
+        s.x = Math.round((cx - s.w / 2) / GRID) * GRID; 
+        s.y = Math.round((cy - s.h / 2) / GRID) * GRID; 
+        s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); 
+        st.cr = srcToCr(s, st.sf, st.scale); 
+        if (!st.arLocked) st.cropAR = s.w / s.h; 
+        st.outW = Math.round(s.w);
+        st.outH = Math.round(s.h);
+        fitCropInView(st, dom); 
+        render(st, dom); 
+        syncWidgets(st, widgets, node); 
+    });
+    
+    resetBtn.addEventListener("click", () => { 
+        initLayout(st, dom.wrap); 
+        const d = defaultOut(st); 
+        st.outW = d.w; 
+        st.outH = d.h; 
+        setArLocked(st, dom, false); 
+        fitCropInView(st, dom); 
+        render(st, dom); 
+        syncWidgets(st, widgets, node); 
+    });
+    
+    outWInput.addEventListener("change", () => { 
+        const v = parseInt(outWInput.value, 10); 
+        if (!isNaN(v) && v >= GRID) { 
+            st.outW = v; 
+            if (st.arLocked) st.outH = Math.max(GRID, Math.round(v / st.cropAR / GRID) * GRID); 
+        } else { 
+            st.outW = 0; 
+            st.outH = 0; 
+        } 
+        render(st, dom); 
+        syncWidgets(st, widgets, node); 
+    });
+    
+    outHInput.addEventListener("change", () => { 
+        const v = parseInt(outHInput.value, 10); 
+        if (!isNaN(v) && v >= GRID) { 
+            st.outH = v; 
+            if (st.arLocked) st.outW = Math.max(GRID, Math.round(v * st.cropAR / GRID) * GRID); 
+        } else { 
+            st.outW = 0; 
+            st.outH = 0; 
+        } 
+        render(st, dom); 
+        syncWidgets(st, widgets, node); 
+    });
+    
+    for (const btn of chipBtns) { 
+        btn.addEventListener("click", () => { 
+            const targetAR = parseFloat(btn.dataset.chipAR);
+            setArLocked(st, dom, true);
+            st.cropAR = targetAR;
+            const { w: newW, h: newH } = calcSizeByRatio(st.srcW, st.srcH, targetAR);
+            st.outW = newW;
+            st.outH = newH;
+            let s = crToSrc(st.cr, st.sf, st.scale);
+            const cx = s.x + s.w / 2;
+            const cy = s.y + s.h / 2;
+            s.w = newW;
+            s.h = newH;
+            s.x = Math.round((cx - s.w / 2) / GRID) * GRID;
+            s.y = Math.round((cy - s.h / 2) / GRID) * GRID;
+            s = clampToValid(quantizeSrc(s), st.srcW, st.srcH);
+            st.cr = srcToCr(s, st.sf, st.scale);
+            fitCropInView(st, dom); 
+            render(st, dom); 
+            syncWidgets(st, widgets, node); 
+        }); 
+    }
+    
+    for (const btn of snapBtns) { 
+        btn.addEventListener("click", () => { 
+            const mode = btn.dataset.snap; 
+            let s = crToSrc(st.cr, st.sf, st.scale); 
+            const { srcW, srcH } = st; 
+            if (mode === "center") { s.x = Math.round((srcW - s.w) / 2 / GRID) * GRID; s.y = Math.round((srcH - s.h) / 2 / GRID) * GRID; } 
+            else if (mode === "top") s.y = 0; 
+            else if (mode === "bottom") s.y = Math.round((srcH - s.h) / GRID) * GRID; 
+            else if (mode === "fitW") { s.w = srcW; if (st.arLocked) s.h = Math.round(s.w / st.cropAR / GRID) * GRID; s.x = 0; s.y = Math.round((srcH - s.h) / 2 / GRID) * GRID; } 
+            else if (mode === "fitH") { s.h = srcH; if (st.arLocked) s.w = Math.round(s.h * st.cropAR / GRID) * GRID; s.y = 0; s.x = Math.round((srcW - s.w) / 2 / GRID) * GRID; } 
+            else if (mode === "left") s.x = 0; 
+            else if (mode === "right") s.x = Math.round((srcW - s.w) / GRID) * GRID; 
+            s = clampToValid(quantizeSrc(s), st.srcW, st.srcH); 
+            st.cr = srcToCr(s, st.sf, st.scale); 
+            if (!st.arLocked) st.cropAR = s.w / s.h; 
+            render(st, dom); 
+            syncWidgets(st, widgets, node); 
+        }); 
+    }
+    
     wrap.addEventListener("wheel", e => { e.preventDefault(); const rect = wrap.getBoundingClientRect(); const sx = e.clientX - rect.left, sy = e.clientY - rect.top; const factor = e.deltaY < 0 ? 1.12 : (1 / 1.12); const newZoom = clamp(st.view.zoom * factor, 0.15, 5.0); st.view.panX = sx - (sx - st.view.panX) * (newZoom / st.view.zoom); st.view.panY = sy - (sy - st.view.panY) * (newZoom / st.view.zoom); st.view.zoom = newZoom; render(st, dom); }, { passive: false });
     dom.zoomIndicator.addEventListener("click", () => { st.view = { zoom: Infinity, panX: 0, panY: 0 }; fitCropInView(st, dom); render(st, dom); });
     let drag = null; let pan = null;
@@ -359,6 +572,10 @@ app.registerExtension({
             const st = createState();
             const dom = buildUI();
             wireColors(st, dom, widgets, node);
+            
+            // ИЗМЕНЕНИЕ: Блокируем UI сразу при создании ноды
+            setUIActive(dom, false);
+            
             const domWidget = node.addDOMWidget("rs_outpaint_canvas", "custom", dom.root, { serialize: false, hideOnZoom: false });
             domWidget.computeSize = () => [520, CANVAS_H + CTRL_H];
             node.setSize([Math.max(node.size[0], 540), Math.max(node.size[1], CANVAS_H + CTRL_H + 10)]);
@@ -367,10 +584,19 @@ app.registerExtension({
             node.stopHeartbeat = function() { if (this.heartbeatInterval) { clearInterval(this.heartbeatInterval); this.heartbeatInterval = null; } };
             allNodes.push({st, dom, widgets, node});
             
-            const onShow = (event) => { const data = event.detail || event; const { node_id, image_width, image_height } = data; if (String(node_id) !== String(node.id)) return; const hasActivePreset = st.batchMode && st.hasPreset; resetNodeState(st, dom, widgets); st.srcW = image_width; st.srcH = image_height; if (initLayout(st, dom.wrap)) { if (hasActivePreset) { dom.waitingMsg.style.display = "none"; dom.noDataMsg.style.display = "flex"; dom.noDataMsg.textContent = `🔄 Applying saved crop to ${image_width}×${image_height}...`; dom.acceptBtn.style.display = "none"; dom.cancelBtn.style.display = "none"; dom.batchBtn.style.display = "none"; const tempUrl = api.apiURL(`/view?filename=rsoutpaint_${node_id}.png&type=temp&subfolder=rsoutpaint&t=${Date.now()}`); const img = new Image(); img.onload = () => { dom.imageEl.src = tempUrl; dom.imageEl.style.display = "block"; fitCropInView(st, dom); render(st, dom); (async () => { try { await fetch("/rs_outpaint/decision", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id), decision: "approve", crop_state: "", batch_mode: true }) }); node.startHeartbeat(); dom.noDataMsg.textContent = `✅ Batch: ${image_width}×${image_height} processed`; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 1000); } catch (err) { console.error("Batch auto-approve failed:", err); } })(); }; img.src = tempUrl; node.startHeartbeat(); } else { dom.waitingMsg.style.display = "flex"; dom.noDataMsg.style.display = "none"; dom.acceptBtn.style.display = "block"; dom.cancelBtn.style.display = "block"; dom.batchBtn.style.display = "block"; dom.acceptBtn.disabled = false; dom.acceptBtn.textContent = "✔️ ACCEPT"; dom.batchBtn.textContent = "⚙️ BATCH"; dom.batchBtn.style.borderColor = "#444"; dom.batchBtn.style.background = "#2a2a2a"; dom.batchBtn.style.color = "#bbb"; dom.batchBtn.dataset.active = "false"; const tempUrl = api.apiURL(`/view?filename=rsoutpaint_${node_id}.png&type=temp&subfolder=rsoutpaint&t=${Date.now()}`); const img = new Image(); img.onload = () => { dom.imageEl.src = tempUrl; dom.imageEl.style.display = "block"; fitCropInView(st, dom); render(st, dom); }; img.src = tempUrl; node.startHeartbeat(); } } };
+            const onShow = (event) => { const data = event.detail || event; const { node_id, image_width, image_height } = data; if (String(node_id) !== String(node.id)) return; const hasActivePreset = st.batchMode && st.hasPreset; resetNodeState(st, dom, widgets); st.srcW = image_width; st.srcH = image_height; if (initLayout(st, dom.wrap)) { if (hasActivePreset) { dom.waitingMsg.style.display = "none"; dom.noDataMsg.style.display = "flex"; dom.noDataMsg.textContent = `🔄 Applying saved crop to ${image_width}×${image_height}...`; dom.acceptBtn.style.display = "none"; dom.cancelBtn.style.display = "none"; dom.batchBtn.style.display = "none"; const tempUrl = api.apiURL(`/view?filename=rsoutpaint_${node_id}.png&type=temp&subfolder=rsoutpaint&t=${Date.now()}`); const img = new Image(); img.onload = () => { dom.imageEl.src = tempUrl; dom.imageEl.style.display = "block"; fitCropInView(st, dom); render(st, dom); (async () => { try { await fetch("/rs_outpaint/decision", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id), decision: "approve", crop_state: "", batch_mode: true }) }); node.startHeartbeat(); dom.noDataMsg.textContent = `✅ Batch: ${image_width}×${image_height} processed`; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 1000); } catch (err) { console.error("Batch auto-approve failed:", err); } })(); }; img.src = tempUrl; node.startHeartbeat(); } else { dom.waitingMsg.style.display = "flex"; dom.noDataMsg.style.display = "none"; dom.acceptBtn.style.display = "block"; dom.cancelBtn.style.display = "block"; dom.batchBtn.style.display = "block"; dom.acceptBtn.disabled = false; dom.acceptBtn.textContent = "✔️ ACCEPT"; dom.batchBtn.textContent = "⚙️ BATCH"; dom.batchBtn.style.borderColor = "#444"; dom.batchBtn.style.background = "#2a2a2a"; dom.batchBtn.style.color = "#bbb"; dom.batchBtn.dataset.active = "false"; const tempUrl = api.apiURL(`/view?filename=rsoutpaint_${node_id}.png&type=temp&subfolder=rsoutpaint&t=${Date.now()}`); const img = new Image(); img.onload = () => { dom.imageEl.src = tempUrl; dom.imageEl.style.display = "block"; fitCropInView(st, dom); render(st, dom); }; img.src = tempUrl; node.startHeartbeat(); } 
+                
+                setUIActive(dom, true);
+            } };
             api.addEventListener("rs_outpaint.show", onShow);
-            dom.acceptBtn.addEventListener("click", async () => { const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale)); const mR = parseInt(st.maskColor.slice(1,3), 16), mG = parseInt(st.maskColor.slice(3,5), 16), mB = parseInt(st.maskColor.slice(5,7), 16); const cropState = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH},${mR},${mG},${mB}`; dom.acceptBtn.textContent = "⏳ Sending..."; dom.acceptBtn.disabled = true; try { const resp = await fetch("/rs_outpaint/decision", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id), decision: "approve", crop_state: cropState, batch_mode: st.batchMode }) }); if (resp.ok) { node.stopHeartbeat(); if (st.batchMode) { st.hasPreset = true; dom.waitingMsg.style.display = "none"; dom.acceptBtn.style.display = "none"; dom.cancelBtn.style.display = "none"; dom.batchBtn.style.display = "none"; dom.noDataMsg.textContent = "💾 Crop preset saved! Ready for batch."; dom.noDataMsg.style.display = "flex"; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 2000); } else { resetNodeState(st, dom, widgets); dom.noDataMsg.textContent = "✅ Approved! Continuing..."; dom.noDataMsg.style.display = "flex"; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 1500); fetch("/rs_outpaint/clear_preset", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id) }) }).catch(()=>{}); } } } catch (err) { console.error("Accept failed:", err); } });
-            dom.cancelBtn.addEventListener("click", async () => { node.stopHeartbeat(); resetNodeState(st, dom, widgets); try { await fetch("/rs_outpaint/cleanup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id) }) }); } catch(e){} try { await api.interrupt(); } catch(e){} });
+            dom.acceptBtn.addEventListener("click", async () => { const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale)); const mR = parseInt(st.maskColor.slice(1,3), 16), mG = parseInt(st.maskColor.slice(3,5), 16), mB = parseInt(st.maskColor.slice(5,7), 16); const cropState = `${s.x},${s.y},${s.w},${s.h},${st.outW},${st.outH},${mR},${mG},${mB}`; dom.acceptBtn.textContent = "⏳ Sending..."; dom.acceptBtn.disabled = true; try { const resp = await fetch("/rs_outpaint/decision", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id), decision: "approve", crop_state: cropState, batch_mode: st.batchMode }) }); if (resp.ok) { node.stopHeartbeat(); if (st.batchMode) { st.hasPreset = true; dom.waitingMsg.style.display = "none"; dom.acceptBtn.style.display = "none"; dom.cancelBtn.style.display = "none"; dom.batchBtn.style.display = "none"; dom.noDataMsg.textContent = "💾 Crop preset saved! Ready for batch."; dom.noDataMsg.style.display = "flex"; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 2000); } else { resetNodeState(st, dom, widgets); dom.noDataMsg.textContent = "✅ Approved! Continuing..."; dom.noDataMsg.style.display = "flex"; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 1500); fetch("/rs_outpaint/clear_preset", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id) }) }).catch(()=>{}); } 
+                
+                setUIActive(dom, false);
+            } } catch (err) { console.error("Accept failed:", err); } });
+            dom.cancelBtn.addEventListener("click", async () => { node.stopHeartbeat(); resetNodeState(st, dom, widgets); try { await fetch("/rs_outpaint/cleanup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id) }) }); } catch(e){} try { await api.interrupt(); } catch(e){} 
+            
+            setUIActive(dom, false);
+        });
             wireInteractions(st, dom, widgets, node, String(node.id));
             requestAnimationFrame(() => { requestAnimationFrame(() => { if (!st.initialized && initLayout(st, dom.wrap)) { fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node); } }); });
             

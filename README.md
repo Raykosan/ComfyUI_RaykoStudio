@@ -46,7 +46,7 @@ The node pauses the queue until you confirm the settings, then outputs a ready-t
 - **Visual Mask Editor** — Drag, resize, and position the crop area directly on the image preview  
 - **Pause & Approve** — Workflow pauses after first execution, waiting for your confirmation  
 - **Batch Mode** – Apply saved presets automatically to the next images in a queue. Auto-resets when the queue finishes  
-- **Preset System** – Save, load, rename, and delete presets crop configurations  
+- **Preset System** – Save, load, rename, and delete presets crop configurations.   
 - **Grid Snapping** — All dimensions snap to 16px grid for clean, model-friendly outputs  
 - **Aspect Ratio Lock** —  Switching 🔒🔓 between maintaining crop proportions and freely choosing the mask size   
 - **Quick Presets** — One-click aspect ratios: 16:9, 9:16, 21:9, 4:3, 1:1, and more  
@@ -80,6 +80,11 @@ Click the ⚙️ BATCH, it should turn green.
 Click ✔️ ACCEPT to send the configuration to the backend.  
 Use the outputs in your downstream nodes (ControlNet, mask blending, etc.).  
 If you are not satisfied with something, you can click ❌ CANCEL to interrupt the generation process.  
+
+📁 Preset Storage  
+Presets are stored as JSON files in the presets folder within the node's directory:  
+ComfyUI/custom_nodes/ComfyUI_RaykoStudio/presets/  
+The folder is created automatically the first time you save the preset.  
 
 <details>
   <summary>✅ Update v0.16.3</summary>
@@ -289,6 +294,35 @@ The node combines the loaders of the Model, Clip,VAE and LoRA.
 If you have downloaded a new LoRA, then you do not need to update the ComfyUI or the page - there is a button to update the LoRA list.  
 
 Link to the video: https://youtu.be/LxhVk5C_oas  
+
+---
+---
+
+# 🦊 RS Prompts  
+**A compact and efficient custom node for ComfyUI that combines Positive and Negative prompt encoding into a single interface. It also features a built-in preset manager to save and load your favorite prompts instantly**  
+
+<img width="503" height="420" alt="Screenshot_9" src="https://github.com/user-attachments/assets/accac09e-2f8f-4b20-9a13-0a0b72389a4f" />
+
+### 🔥 Features  
+- **Dual Prompting** - Input both Positive and Negative prompts in one node  
+- **Preset Management** - Save, load, and delete prompt configurations with a simple popup interface  
+- **Quick Clear** - One-click buttons to clear Positive or Negative text fields  
+- **Minimalist Design** - Compact layout that saves space in your workflow  
+- **External Connectivity** - Supports external text inputs via connectors (automatically disables local input when connected)  
+
+### 🪛 Usage  
+Connect CLIP: Connect your CLIP Loader's output to the node's input.  
+Enter Prompts: Type your prompts into the text fields.  
+Connect to Sampler: Connect POSITIVE and NEGATIVE outputs to your KSampler.  
+Manage Presets:  
+Click 💾 Save prompt to store current prompts under a custom name.  
+Click 📂 Select prompt to load a saved preset.  
+Click ❌ Clear buttons to reset fields.  
+
+📁 Prompts Storage  
+Prompts are stored as JSON files in the prompts folder within the node's directory:  
+ComfyUI/custom_nodes/ComfyUI_RaykoStudio/prompts/  
+The folder is created automatically the first time you save the prompt.
 
 ---
 ---

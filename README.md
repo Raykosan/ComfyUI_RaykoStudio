@@ -299,30 +299,45 @@ Link to the video: https://youtu.be/LxhVk5C_oas
 ---
 
 # 🦊 RS Prompts  
-**A compact and efficient custom node for ComfyUI that combines Positive and Negative prompt encoding into a single interface. It also features a built-in preset manager to save and load your favorite prompts instantly**  
+**Node that combines Positive and Negative prompt encoding into a single interface. It also features a built-in preset manager to save and load your favorite prompts instantly, and pause-for-edit mode for incoming prompts**  
 
-<img width="503" height="420" alt="Screenshot_9" src="https://github.com/user-attachments/assets/accac09e-2f8f-4b20-9a13-0a0b72389a4f" />
+<img width="717" height="733" alt="Screenshot_1" src="https://github.com/user-attachments/assets/ad8cc6d6-e333-47f8-a803-3f619c39008b" />
 
 ### 🔥 Features  
-- **Dual Prompting** - Input both Positive and Negative prompts in one node  
+- **Pause mode** - Edit LLM-generated prompts before sending to sampler  
+- **Multi-line prompt editor** - Editing directly in the node  
 - **Preset Management** - Save, load, and delete prompt configurations with a simple popup interface  
-- **Quick Clear** - One-click buttons to clear Positive or Negative text fields  
+- **Quick Clear** - One-click buttons to clear text field  
 - **Minimalist Design** - Compact layout that saves space in your workflow  
-- **External Connectivity** - Supports external text inputs via connectors (automatically disables local input when connected)  
+- **External Connectivity** - Supports external text input via connector  
 
 ### 🪛 Usage  
+**Basic usage (manual input)**  
 Connect CLIP: Connect your CLIP Loader's output to the node's input.  
-Enter Prompts: Type your prompts into the text fields.  
 Connect to Sampler: Connect POSITIVE and NEGATIVE outputs to your KSampler.  
+Enter Prompts: Type your prompts into the text area or select a prompt from the list of previously saved ones.  
+
+**Usage with LLM**  
+Connect your LLM output to the text_input slot  
+Enable the "⏸️ Pause for edit" toggle  
+Run the generation  
+When the overlay appears — edit the prompt  
+Click APPROVE (use edited) or REJECT (use original)  
+Generation continues with your chosen prompt  
+
 Manage Presets:  
 Click 💾 Save prompt to store current prompts under a custom name.  
 Click 📂 Select prompt to load a saved preset.  
 Click ❌ Clear buttons to reset fields.  
 
-📁 Prompts Storage  
+Prompts Storage  
 Prompts are stored as JSON files in the prompts folder within the node's directory:  
 ComfyUI/custom_nodes/ComfyUI_RaykoStudio/prompts/  
-The folder is created automatically the first time you save the prompt.
+The folder is created automatically the first time you save the prompt.  
+
+### 🐛 Known Issues & Solutions  
+Text not saving	- Check write permissions for prompts folder  
+Pause mode not working - Ensure toggle is ON before starting generation  
 
 ---
 ---

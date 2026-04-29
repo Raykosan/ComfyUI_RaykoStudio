@@ -77,13 +77,11 @@ class RaykoStylesCSVLoader:
         if not style_file or not style_name:
             return ("", "")
         
-        # SECURITY: Sanitize filename to prevent path traversal
         safe_filename = os.path.basename(style_file.strip())
         
         styles_folder = cls.get_styles_folder_path()
         file_path = os.path.join(styles_folder, safe_filename)
         
-        # SECURITY: Ensure resolved path stays within allowed folder
         if not os.path.realpath(file_path).startswith(os.path.realpath(styles_folder) + os.sep):
             logger.error(f"Path traversal attempt blocked: {style_file}")
             return ("", "")
@@ -120,7 +118,9 @@ class RaykoStylesCSVLoader:
     @classmethod
     def IS_CHANGED(cls, node_data="{}", **kwargs):
         import hashlib
-        return hashlib.md5(node_data.encode()).hexdigest()
+        if isinstance(node_data, str):
+            return hashlib.md5(node_data.encode()).hexdigest()
+        return hashlib.md5(json.dumps(node_data, sort_keys=True).encode()).hexdigest()
     
     def load_style(self, node_data: str = "{}") -> Tuple[str, str]:
         try:
@@ -159,20 +159,14 @@ class RaykoStylesCSVLoader:
 class RaykoServer:
     @classmethod
     def _sanitize_filename(cls, filename: str, allowed_folder: str) -> Optional[str]:
-        """
-        SECURITY: Prevent path traversal by sanitizing user-supplied filenames.
-        Returns safe filename or None if validation fails.
-        """
         if not filename:
             return None
         
-        # Strip any directory components from the filename
         safe_name = os.path.basename(filename.strip())
         
         if not safe_name or not safe_name.lower().endswith('.csv'):
             return None
         
-        # Ensure the final resolved path stays within the allowed folder
         target_path = os.path.join(allowed_folder, safe_name)
         real_target = os.path.realpath(target_path)
         real_base = os.path.realpath(allowed_folder)
@@ -211,14 +205,12 @@ class RaykoServer:
                     styles_folder = RaykoStylesCSVLoader.get_styles_folder_path()
                     os.makedirs(styles_folder, exist_ok=True)
                     
-                    # SECURITY: Sanitize filename before use
                     safe_filename = cls._sanitize_filename(original_filename, styles_folder)
                     if not safe_filename:
                         return web.json_response({'error': 'Invalid or unsafe filename'}, status=400)
                     
                     file_path = os.path.join(styles_folder, safe_filename)
                     
-                    # Write file content safely
                     try:
                         with open(file_path, 'wb') as f:
                             while True:
@@ -248,7 +240,6 @@ class RaykoServer:
                     if not filename:
                         return web.json_response({'error': 'No filename provided'}, status=400)
                     
-                    # SECURITY: Sanitize filename before use
                     safe_filename = cls._sanitize_filename(filename, RaykoStylesCSVLoader.get_styles_folder_path())
                     if not safe_filename:
                         return web.json_response({'error': 'Invalid filename'}, status=400)

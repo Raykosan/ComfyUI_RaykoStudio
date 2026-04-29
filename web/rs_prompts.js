@@ -28,7 +28,6 @@ styleBlock.innerHTML = `
         border: 1px solid #5090cc;
         text-align: center;
     }
-    /* Toggle switch styles */
     .rs-toggle-switch {
         position: relative;
         display: inline-flex;
@@ -74,10 +73,6 @@ styleBlock.innerHTML = `
         color: #ccc;
         user-select: none;
     }
-    .rs-toggle-active .rs-toggle-label {
-        color: #28a745;
-        font-weight: bold;
-    }
 `;
 document.head.appendChild(styleBlock);
 
@@ -98,6 +93,7 @@ app.registerExtension({
             const result = origOnNodeCreated?.apply(this, arguments);
             const node = this;
 
+            // Скрытие фантомного слота text
             const hidePhantomSlot = () => {
                 if (node.inputs) {
                     const textInput = node.inputs.find(i => i.name === "text");
@@ -116,7 +112,6 @@ app.registerExtension({
             
             if (pauseWidget) {
                 pauseWidget.hidden = true;
-                pauseWidget.serializeValue = () => toggleInput.checked;
             }
             
             if (textWidget) textWidget.hidden = true;
@@ -315,6 +310,10 @@ app.registerExtension({
             
             toggleInput.addEventListener("change", (e) => {
                 pauseModeEnabled = e.target.checked;
+                if (pauseWidget) {
+                    pauseWidget.value = e.target.checked;
+                    if (pauseWidget.callback) pauseWidget.callback(e.target.checked);
+                }
                 if (pauseModeEnabled) {
                     statusIndicator.innerHTML = "🔘 <span style='color:#ffaa44'>Pause ON</span>";
                     statusIndicator.style.background = "#3a2a1a";
@@ -463,14 +462,11 @@ app.registerExtension({
             
             updateUIForPauseMode(false);
             
-            if (pauseWidget) {
-                const savedValue = pauseWidget.value;
-                if (savedValue !== undefined) {
-                    toggleInput.checked = savedValue;
-                    if (savedValue) {
-                        statusIndicator.innerHTML = "🔘 <span style='color:#ffaa44'>Pause ON</span>";
-                        statusIndicator.style.background = "#3a2a1a";
-                    }
+            if (pauseWidget && pauseWidget.value !== undefined) {
+                toggleInput.checked = pauseWidget.value;
+                if (pauseWidget.value) {
+                    statusIndicator.innerHTML = "🔘 <span style='color:#ffaa44'>Pause ON</span>";
+                    statusIndicator.style.background = "#3a2a1a";
                 }
             }
 

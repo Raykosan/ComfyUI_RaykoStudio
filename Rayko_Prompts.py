@@ -31,8 +31,8 @@ class RSPrompts:
             }
         }
 
-    RETURN_TYPES = ("CONDITIONING", "CONDITIONING")
-    RETURN_NAMES = ("POSITIVE", "NEGATIVE")
+    RETURN_TYPES = ("CONDITIONING", "CONDITIONING", "STRING")
+    RETURN_NAMES = ("POSITIVE", "NEGATIVE", "PROMPT_STRING")
     FUNCTION = "encode_prompts"
     CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = "Text encoder with visual prompt controls and pause-for-edit mode."
@@ -88,7 +88,7 @@ class RSPrompts:
 
         return {
             "ui": {"text": [current_text]},
-            "result": (pos_cond, neg_cond)
+            "result": (pos_cond, neg_cond, current_text)
         }
 
     @classmethod

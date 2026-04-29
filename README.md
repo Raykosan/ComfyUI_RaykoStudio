@@ -324,6 +324,7 @@ Run the generation
 When the overlay appears — edit the prompt  
 Click APPROVE (use edited) or REJECT (use original)  
 Generation continues with your chosen prompt  
+If there has been no click on the send buttons in 10 minutes, the node will send the original, unedited text to the sampler  
 
 Manage Presets:  
 Click 💾 Save prompt to store current prompts under a custom name.  

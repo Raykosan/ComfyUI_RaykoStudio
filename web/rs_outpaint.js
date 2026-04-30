@@ -152,7 +152,7 @@ function mkBtn(label, css) { const b = mkEl("button", `padding:2px 7px;font-size
 function mkColorInput(label, defaultColor) {
     const row = mkEl("div", "display:flex;align-items:center;gap:6px;font-size:11px;color:#999;");
     const lbl = mkEl("span", ""); lbl.textContent = label;
-    const colorPicker = mkEl("input", "width:0;height:0;opacity:0;position:absolute;pointer-events:none;", { type: "color", value: defaultColor });
+    const colorPicker = mkEl("input", "width:0;height:0;opacity:0;position:absolute;pointer-events:none;appearance:none;-webkit-appearance:none;padding:0;border:0;", { type: "color", value: defaultColor });
     const swatch = mkEl("div", `width:22px;height:22px;border-radius:4px;border:1px solid #444;cursor:pointer;background:${defaultColor};`);
     const hexInput = mkEl("input", "width:76px;padding:2px 4px;font-size:10px;font-family:monospace;background:#1e1e1e;color:#ccc;border:1px solid #444;border-radius:4px;text-align:center;", { value: defaultColor.toUpperCase() });
     swatch.onclick = () => colorPicker.click();

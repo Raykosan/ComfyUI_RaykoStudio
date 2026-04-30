@@ -93,7 +93,6 @@ app.registerExtension({
             const result = origOnNodeCreated?.apply(this, arguments);
             const node = this;
 
-            // Скрытие фантомного слота text
             const hidePhantomSlot = () => {
                 if (node.inputs) {
                     const textInput = node.inputs.find(i => i.name === "text");
@@ -457,6 +456,16 @@ app.registerExtension({
                     if (textWidget) textWidget.value = event.detail.prompt;
                     updateUIForPauseMode(true);
                     node.graph?.setDirtyCanvas(true, true);
+                }
+            });
+
+            api.addEventListener("rs.prompt.update", (event) => {
+                if (event.detail.node_id == node.id) {
+                    setTimeout(() => {
+                        customTextarea.value = event.detail.prompt;
+                        if (textWidget) textWidget.value = event.detail.prompt;
+                        node.graph?.setDirtyCanvas(true, true);
+                    }, 10);
                 }
             });
             

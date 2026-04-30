@@ -40,6 +40,13 @@ class RSPrompts:
     def encode_prompts(self, clip, pause_for_edit=False, text="", text_input=None, unique_id=None):
         current_text = text_input if text_input is not None else text
         
+        if text_input is not None and not pause_for_edit and unique_id:
+            from server import PromptServer
+            PromptServer.instance.send_sync("rs.prompt.update", {
+                "node_id": unique_id,
+                "prompt": current_text
+            })
+        
         if pause_for_edit and text_input is not None and current_text and unique_id:
             print(f"[RS Prompts 🦊] Pause mode enabled for node {unique_id}")
             

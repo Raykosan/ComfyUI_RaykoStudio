@@ -65,8 +65,8 @@ app.registerExtension({
     },
     
     // ⚠️ Глобальный слушатель начала выполнения
-    setup() {
-        api.addEventListener("executing", (event) => {
+    setup(app) {
+        app.api.addEventListener("executing", (event) => {
             const nodeId = event.detail;
             if (nodeId) {
                 const node = app.graph.getNodeById(nodeId);

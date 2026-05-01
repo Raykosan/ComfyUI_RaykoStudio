@@ -24,6 +24,7 @@ class RSPrompts:
             },
             "optional": {
                 "text_input": ("STRING", {"forceInput": True}),
+                "disable_text_input": ("BOOLEAN", {"default": False, "label": "🔘 Disable text input"}),
                 "pause_for_edit": ("BOOLEAN", {"default": False, "label": "⏸️ Pause for manual edit"}),
             },
             "hidden": {
@@ -37,17 +38,22 @@ class RSPrompts:
     CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = "Text encoder with visual prompt controls and pause-for-edit mode."
 
-    def encode_prompts(self, clip, pause_for_edit=False, text="", text_input=None, unique_id=None):
-        current_text = text_input if text_input is not None else text
+    def encode_prompts(self, clip, disable_text_input=False, pause_for_edit=False, text="", text_input=None, unique_id=None):
+        if disable_text_input:
+            current_text = text
+            effective_text_input = None
+        else:
+            current_text = text_input if text_input is not None else text
+            effective_text_input = text_input
         
-        if text_input is not None and not pause_for_edit and unique_id:
+        if effective_text_input is not None and not pause_for_edit and unique_id:
             from server import PromptServer
             PromptServer.instance.send_sync("rs.prompt.update", {
                 "node_id": unique_id,
                 "prompt": current_text
             })
         
-        if pause_for_edit and text_input is not None and current_text and unique_id:
+        if pause_for_edit and effective_text_input is not None and effective_text_input and unique_id:
             print(f"[RS Prompts 🦊] Pause mode enabled for node {unique_id}")
             
             PENDING_PROMPTS[unique_id] = {

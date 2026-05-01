@@ -33,7 +33,7 @@ styleBlock.innerHTML = `
         display: inline-flex;
         align-items: center;
         cursor: pointer;
-        gap: 8px;
+        gap: 6px;
     }
     .rs-toggle-switch input {
         opacity: 0;
@@ -44,18 +44,18 @@ styleBlock.innerHTML = `
     .rs-toggle-slider {
         position: relative;
         display: inline-block;
-        width: 40px;
-        height: 20px;
+        width: 36px;
+        height: 18px;
         background-color: #444;
-        border-radius: 20px;
+        border-radius: 18px;
         transition: 0.3s;
         cursor: pointer;
     }
     .rs-toggle-slider:before {
         position: absolute;
         content: "";
-        height: 16px;
-        width: 16px;
+        height: 14px;
+        width: 14px;
         left: 2px;
         bottom: 2px;
         background-color: white;
@@ -66,7 +66,7 @@ styleBlock.innerHTML = `
         background-color: #28a745;
     }
     input:checked + .rs-toggle-slider:before {
-        transform: translateX(20px);
+        transform: translateX(18px);
     }
     .rs-toggle-label {
         font-size: 11px;
@@ -108,9 +108,14 @@ app.registerExtension({
 
             const textWidget = node.widgets?.find(w => w.name === "text");
             const pauseWidget = node.widgets?.find(w => w.name === "pause_for_edit");
+            const disableWidget = node.widgets?.find(w => w.name === "disable_text_input");
             
             if (pauseWidget) {
                 pauseWidget.hidden = true;
+            }
+            
+            if (disableWidget) {
+                disableWidget.hidden = true;
             }
             
             if (textWidget) textWidget.hidden = true;
@@ -127,6 +132,14 @@ app.registerExtension({
             node.onConnectionsChange = function(slotType, slotIndex, isConnected, link, linkInfo) {
                 if (origOnConnectionsChange) origOnConnectionsChange.apply(this, arguments);
                 setTimeout(enableWidgets, 50);
+                setTimeout(() => updateStatusIndicator(), 10);
+                setTimeout(() => {
+                    if (pauseModeEnabled && !canPauseBeActive()) {
+                        pauseModeEnabled = false;
+                        if (pauseWidget) pauseWidget.value = false;
+                        updateUIForPauseMode(false);
+                    }
+                }, 10);
             };
 
             let waitingOverlay = null;
@@ -158,7 +171,20 @@ app.registerExtension({
 
             const root = mkEl("div", "display:flex;flex-direction:column;height:100%;padding:0;margin:0;box-sizing:border-box;overflow:hidden;position:relative;");
             
-            const controlBar = mkEl("div", "display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:#1a1a1a;border-bottom:1px solid #333;gap:8px;");
+            const disableRow = mkEl("div", "display:flex;align-items:center;justify-content:flex-start;padding:4px 6px 2px 6px;background:#1a1a1a;");
+            const disableToggleContainer = mkEl("label", "rs-toggle-switch");
+            const disableToggleInput = document.createElement("input");
+            disableToggleInput.type = "checkbox";
+            const disableToggleSlider = mkEl("span", "rs-toggle-slider");
+            const disableToggleLabel = mkEl("span", "rs-toggle-label");
+            disableToggleLabel.textContent = "🔘 Disable text input";
+            
+            disableToggleContainer.appendChild(disableToggleInput);
+            disableToggleContainer.appendChild(disableToggleSlider);
+            disableToggleContainer.appendChild(disableToggleLabel);
+            disableRow.appendChild(disableToggleContainer);
+            
+            const pauseRow = mkEl("div", "display:flex;align-items:center;justify-content:space-between;padding:2px 6px 4px 6px;background:#1a1a1a;border-bottom:1px solid #333;gap:4px;");
             
             const toggleContainer = mkEl("label", "rs-toggle-switch");
             const toggleInput = document.createElement("input");
@@ -171,12 +197,14 @@ app.registerExtension({
             toggleContainer.appendChild(toggleSlider);
             toggleContainer.appendChild(toggleLabel);
             
-            const statusIndicator = mkEl("div", "font-size:10px;padding:2px 6px;border-radius:4px;background:#2a2a2a;color:#888;");
-            statusIndicator.textContent = "⚡ Normal mode";
+            const statusIndicator = mkEl("div", "font-size:10px;padding:2px 6px;border-radius:4px;background:#2a2a2a;color:#ccc;");
+            statusIndicator.textContent = "📝 Local prompt";
             
-            controlBar.appendChild(toggleContainer);
-            controlBar.appendChild(statusIndicator);
-            root.appendChild(controlBar);
+            pauseRow.appendChild(toggleContainer);
+            pauseRow.appendChild(statusIndicator);
+            
+            root.appendChild(disableRow);
+            root.appendChild(pauseRow);
             
             const customTextarea = document.createElement("textarea");
             customTextarea.className = "rs-custom-textarea";
@@ -258,6 +286,37 @@ app.registerExtension({
                 if (size[1] < 350) size[1] = 350;
             };
 
+            const hasTextInputConnection = () => {
+                return node.inputs?.some(i => i.name === "text_input" && i.link !== null) || false;
+            };
+
+            const canPauseBeActive = () => {
+                const hasConnection = hasTextInputConnection();
+                const isDisabled = disableToggleInput.checked;
+                return hasConnection && !isDisabled;
+            };
+
+            const updateStatusIndicator = () => {
+                if (pauseModeEnabled) {
+                    statusIndicator.innerHTML = `<span style='color:#28a745'>⏸️ WAITING FOR EDIT</span>`;
+                    statusIndicator.style.background = "#1a3a1a";
+                    return;
+                }
+                
+                const hasConnection = hasTextInputConnection();
+                const isDisabled = disableToggleInput.checked;
+                
+                if (!hasConnection) {
+                    statusIndicator.innerHTML = `<span style='color:#aadaff'>📝 Local prompt</span>`;
+                } else if (hasConnection && !isDisabled) {
+                    statusIndicator.innerHTML = `<span style='color:#aadaff'>🔌 External input</span>`;
+                } else if (hasConnection && isDisabled) {
+                    statusIndicator.innerHTML = `<span style='color:#aadaff'>📝 Local prompt</span>`;
+                }
+                
+                statusIndicator.style.background = "#2a2a2a";
+            };
+
             const updateUIForPauseMode = (isPaused) => {
                 if (isPaused) {
                     clearBtn.disabled = true;
@@ -278,8 +337,8 @@ app.registerExtension({
                     rejectEditBtn.style.cursor = "pointer";
                     
                     customTextarea.style.border = "2px solid #28a745";
-                    statusIndicator.innerHTML = "⏸️ <span style='color:#28a745'>WAITING FOR EDIT</span>";
-                    statusIndicator.style.background = "#1a3a1a";
+                    
+                    updateStatusIndicator();
                     
                     showWaitingOverlay();
                 } else {
@@ -301,25 +360,57 @@ app.registerExtension({
                     rejectEditBtn.style.cursor = "not-allowed";
                     
                     customTextarea.style.border = "1px solid #444";
-                    statusIndicator.innerHTML = "⚡ <span style='color:#aadaff'>Active</span>";
-                    statusIndicator.style.background = "#2a2a2a";
+                    
+                    updateStatusIndicator();
+                    
                     removeWaitingOverlay();
                 }
             };
             
+            if (disableWidget) {
+                disableToggleInput.checked = disableWidget.value;
+                
+                if (disableToggleInput.checked) {
+                    disableToggleLabel.textContent = "🔴 Disable text input";
+                } else {
+                    disableToggleLabel.textContent = "🔘 Disable text input";
+                }
+                
+                updateStatusIndicator();
+                
+                disableToggleInput.addEventListener("change", (e) => {
+                    disableWidget.value = e.target.checked;
+                    if (disableWidget.callback) disableWidget.callback(e.target.checked);
+                    
+                    if (e.target.checked) {
+                        disableToggleLabel.textContent = "🔴 Disable text input";
+                    } else {
+                        disableToggleLabel.textContent = "🔘 Disable text input";
+                    }
+                    
+                    if (pauseModeEnabled && !canPauseBeActive()) {
+                        pauseModeEnabled = false;
+                        if (pauseWidget) pauseWidget.value = false;
+                        toggleInput.checked = false;
+                        updateUIForPauseMode(false);
+                    }
+                    
+                    updateStatusIndicator();
+                    
+                    node.graph?.setDirtyCanvas(true, true);
+                });
+            }
+            
+            if (pauseWidget) {
+                toggleInput.checked = pauseWidget.value;
+            }
+            
             toggleInput.addEventListener("change", (e) => {
-                pauseModeEnabled = e.target.checked;
                 if (pauseWidget) {
                     pauseWidget.value = e.target.checked;
                     if (pauseWidget.callback) pauseWidget.callback(e.target.checked);
                 }
-                if (pauseModeEnabled) {
-                    statusIndicator.innerHTML = "🔘 <span style='color:#ffaa44'>Pause ON</span>";
-                    statusIndicator.style.background = "#3a2a1a";
-                } else {
-                    statusIndicator.innerHTML = "⚡ <span style='color:#aadaff'>Active</span>";
-                    statusIndicator.style.background = "#2a2a2a";
-                }
+                node.graph?.setDirtyCanvas(true, true);
             });
 
             acceptEditBtn.addEventListener("click", async () => {
@@ -332,6 +423,7 @@ app.registerExtension({
                         prompt: currentPrompt
                     })
                 });
+                pauseModeEnabled = false;
                 updateUIForPauseMode(false);
                 node.graph?.setDirtyCanvas(true, true);
             });
@@ -344,6 +436,7 @@ app.registerExtension({
                         node_id: node.id.toString()
                     })
                 });
+                pauseModeEnabled = false;
                 updateUIForPauseMode(false);
                 node.graph?.setDirtyCanvas(true, true);
             });
@@ -454,7 +547,12 @@ app.registerExtension({
                 if (event.detail.node_id == node.id) {
                     customTextarea.value = event.detail.prompt;
                     if (textWidget) textWidget.value = event.detail.prompt;
-                    updateUIForPauseMode(true);
+                    if (canPauseBeActive()) {
+                        pauseModeEnabled = true;
+                        toggleInput.checked = true;
+                        if (pauseWidget) pauseWidget.value = true;
+                        updateUIForPauseMode(true);
+                    }
                     node.graph?.setDirtyCanvas(true, true);
                 }
             });
@@ -471,14 +569,6 @@ app.registerExtension({
             
             updateUIForPauseMode(false);
             
-            if (pauseWidget && pauseWidget.value !== undefined) {
-                toggleInput.checked = pauseWidget.value;
-                if (pauseWidget.value) {
-                    statusIndicator.innerHTML = "🔘 <span style='color:#ffaa44'>Pause ON</span>";
-                    statusIndicator.style.background = "#3a2a1a";
-                }
-            }
-
             return result;
         };
     }

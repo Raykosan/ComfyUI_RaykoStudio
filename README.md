@@ -299,52 +299,83 @@ Link to the video: https://youtu.be/LxhVk5C_oas
 ---
 
 # 🦊 RS Prompts  
-**Node that combines Positive and Negative prompt encoding into a single interface. It also features a built-in preset manager to save and load your favorite prompts instantly, and pause-for-edit mode for incoming prompts**  
+**Node that provides enhanced prompt management with visual controls, pause-for-edit mode, and external input toggling**  
 
-<img width="679" height="646" alt="Screenshot_3" src="https://github.com/user-attachments/assets/8558ab74-41a1-4e92-9bb5-cc155ab0dc82" />
+<img width="669" height="680" alt="Screenshot_1" src="https://github.com/user-attachments/assets/b8fc95e9-a878-48e1-b1b7-66573aaaa6a0" />
 
 ### 🔥 Features  
-- **Pause mode** - Edit LLM-generated prompts before sending to sampler  
-- **Multi-line prompt editor** - Editing directly in the node  
-- **Preset Management** - Save, load, and delete prompt configurations with a simple popup interface  
-- **Quick Clear** - One-click buttons to clear text field  
-- **Minimalist Design** - Compact layout that saves space in your workflow  
-- **External Connectivity** - Supports external text input via connector
+- **Dual prompt sources** - Use internal textarea or external text input
+- **External input toggle** - Enable/disable external text input with one click
+- **Pause-for-edit mode** - Interrupt generation, edit prompts, and continue
+- **Visual status indicator** - Shows current prompt source and mode
+- **Prompt presets** - Save, load, and delete prompt templates
+- **Clean interface** - Minimal design that blends with ComfyUI
 
 ### ↔️ Input and output:  
-**Input**:  
-clip - Connect CLIP Loader's output  
-text_input - Сonnect any string output (LLM, text, etc.)  
+**Inputs**  
 
-**Output**:  
-POSITIVE - Connects directly to the sampler  
-NEGATIVE - Connects directly to the sampler  
-PROMPT_STRING - Connects to any node that accepts string values  
+| Name | Type | Description |
+|------|------|-------------|
+| clip | CLIP | CLIP model for encoding |
+| text_input | STRING (optional) | External prompt source |
+
+**Outputs**  
+
+| Name | Type | Description |
+|------|------|-------------|
+| POSITIVE | CONDITIONING | Encoded positive prompt |
+| NEGATIVE | CONDITIONING | Encoded negative prompt (empty) |
+| PROMPT_STRING | STRING | Final prompt text |
 
 ### 🪛 Usage  
-**Basic usage (manual input)**  
-Connect CLIP: Connect your CLIP Loader's output to the node's input.  
-Connect to Sampler: Connect POSITIVE and NEGATIVE outputs to your KSampler.  
-Enter Prompts: Type your prompts into the text area or select a prompt from the list of previously saved ones.  
-Run the generation.  
 
-**Use with LLM or with any node that returns string values**  
-Connect your LLM output to the text_input slot  
-Enable the "⏸️ Pause for edit" toggle if you are going to edit the promo after receiving it  
-Do not enable pause if you are not going to change anything in the prompt  
-Start the generation  
-If you have not selected a pause, generation will continue without delay, the promt will pass through the node unchanged, and the text of the promt will not be displayed in the text window  
-If you have selected pause, the node will pause, the prompt will appear in a text window and you can edit the resulting prompt  
-Click APPROVE (use edited) or REJECT (use original)  
-Generation continues with your chosen prompt  
-If there has been no click on the send buttons in 10 minutes, the node will send the original, unedited text to the sampler  
+### Prompt Sources  
+- **Local prompt**: Uses text from the internal textarea  
+- **External input**: Uses text from connected `text_input` node  
 
-Manage Presets:  
-Click 💾 Save prompt to store current prompts under a custom name.  
-Click 📂 Select prompt to load a saved preset.  
-Click ❌ Clear buttons to reset fields.  
+The `🔘 Disable text input` toggle lets you temporarily ignore external input without disconnecting cables.  
 
-Prompts Storage  
+### Pause Mode  
+1. Enable `⏸️ Pause for edit`  
+2. When external data arrives, the node pauses and shows an overlay  
+3. Edit the prompt as needed  
+4. Click `APPROVE` (use edited) or `REJECT` (use original)  
+5. Generation continues with your choice  
+
+The pause toggle stays enabled after approval, automatically pausing on next external data.  
+
+### Usage Examples  
+**Local Prompt Only**  
+- Leave `text_input` disconnected  
+- Or connect but enable `🔘 Disable text input`  
+- Write prompts directly in textarea  
+
+**External Prompt Source**  
+- Connect a text node to `text_input`  
+- Disable `🔘 Disable text input`  
+- Enable `⏸️ Pause for edit` for manual review  
+
+### Prompt Presets  
+1. Write your prompt  
+2. Click `💾 Save prompt` and enter a name  
+3. Later click `📂 Select prompt` to load  
+4. Delete presets via ❌ button in the list  
+
+### 🖥️ Node Interface  
+
+| Control | Description |
+|---------|-------------|
+| 🔘 Disable text input | Toggle external input on/off (🔴 when disabled) |
+| ⏸️ Pause for edit | Enable edit mode (activates when external data arrives) |
+| Status indicator | Shows: 📝 Local prompt / 🔌 External input / ⏸️ WAITING FOR EDIT |
+| Text area | Main prompt editor |
+| ❌ Clear prompt | Clear the text area |
+| 💾 Save prompt | Save current prompt as preset |
+| 📂 Select prompt | Load saved prompt preset |
+| ✔️ APPROVE & CONTINUE | Accept edited prompt and continue |
+| ❌ REJECT | Keep original prompt and continue | 
+
+### 📂 Prompts Storage  
 Prompts are stored as JSON files in the prompts folder within the node's directory:  
 ComfyUI/custom_nodes/ComfyUI_RaykoStudio/prompts/  
 The folder is created automatically the first time you save the prompt.  

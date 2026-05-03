@@ -47,7 +47,7 @@ def load_modules():
             logger.error(f"Required modules are not loaded: {missing_required}")
 
         if not failed_modules:
-            logger.info(f"✅ All modules 🦊 {PACKAGE_DISPLAY_NAME} loaded successfully")
+            logger.info(f"All modules 🦊 {PACKAGE_DISPLAY_NAME} \033[92mLOADED SUCCESSFULLY\033[0m")
         else:
             for mod_name, error in failed_modules:
                 logger.error(f"The module '{mod_name}' is not loaded: {error}")

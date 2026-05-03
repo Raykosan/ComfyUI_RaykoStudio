@@ -20,6 +20,7 @@
       "Rayko_Loop_Switch.py"
       "Rayko_Models_Loader.py"
       "Rayko_Outpaint.py"
+      "Rayko_Prompts.py"
       "Rayko_Saturation.py"
       "Rayko_Save_Image.py"
       "Rayko_Save_Image_Pair.py"

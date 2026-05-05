@@ -210,14 +210,31 @@ app.registerExtension({
             customTextarea.className = "rs-custom-textarea";
             customTextarea.style.cssText = "flex:1;width:100%;min-height:0;border:none;border-radius:4px;padding:8px;background:#111;color:#fff;font-family:system-ui,sans-serif;font-size:12px;resize:none;outline:none;box-sizing:border-box;";
             customTextarea.placeholder = "Enter your prompt here...";
-            if (textWidget) customTextarea.value = textWidget.value;
+            
+            const storageKey = `rs_prompt_${node.id}`;
+            
+            if (textWidget) {
+                const savedValue = localStorage.getItem(storageKey);
+                if (savedValue && !textWidget.value) {
+                    textWidget.value = savedValue;
+                }
+                customTextarea.value = textWidget.value || "";
+                textWidget.value = customTextarea.value;
+            } else {
+                const savedValue = localStorage.getItem(storageKey);
+                if (savedValue) {
+                    customTextarea.value = savedValue;
+                }
+            }
             
             customTextarea.addEventListener("input", () => {
                 if (textWidget) {
                     textWidget.value = customTextarea.value;
-                    node.graph?.setDirtyCanvas(true, true);
                 }
+                localStorage.setItem(storageKey, customTextarea.value);
+                node.graph?.setDirtyCanvas(true, true);
             });
+            
             root.appendChild(customTextarea);
 
             const buttonsWrapper = mkEl("div", "width:100%;display:flex;flex-direction:column;gap:4px;padding:4px;box-sizing:border-box;");
@@ -445,6 +462,7 @@ app.registerExtension({
                 if(textWidget) {
                     textWidget.value = "";
                     customTextarea.value = "";
+                    localStorage.setItem(storageKey, "");
                     node.graph?.setDirtyCanvas(true, true);
                 }
             });
@@ -497,6 +515,7 @@ app.registerExtension({
                                 if(textWidget) {
                                     textWidget.value = data.text || "";
                                     customTextarea.value = data.text || "";
+                                    localStorage.setItem(storageKey, data.text || "");
                                 }
                                 node.graph?.setDirtyCanvas(true, true);
                             }
@@ -547,6 +566,7 @@ app.registerExtension({
                 if (event.detail.node_id == node.id) {
                     customTextarea.value = event.detail.prompt;
                     if (textWidget) textWidget.value = event.detail.prompt;
+                    localStorage.setItem(storageKey, event.detail.prompt);
                     if (canPauseBeActive()) {
                         pauseModeEnabled = true;
                         toggleInput.checked = true;
@@ -562,8 +582,17 @@ app.registerExtension({
                     setTimeout(() => {
                         customTextarea.value = event.detail.prompt;
                         if (textWidget) textWidget.value = event.detail.prompt;
+                        localStorage.setItem(storageKey, event.detail.prompt);
                         node.graph?.setDirtyCanvas(true, true);
                     }, 10);
+                }
+            });
+            
+            window.addEventListener("beforeunload", () => {
+                if (textWidget && textWidget.value) {
+                    localStorage.setItem(storageKey, textWidget.value);
+                } else if (customTextarea.value) {
+                    localStorage.setItem(storageKey, customTextarea.value);
                 }
             });
             

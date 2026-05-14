@@ -16,7 +16,7 @@ Nodes do not require the installation of additional Python packages.
 - torch>=1.7.0  
 - numpy>=1.19.0  
 - Pillow>=8.0.0  
-- freetype-py>=2.5.1  
+- freetype-py>=2.5.1  #only for the RS Text Overlay node  
 
 ---
 ### 🛠 Installation  

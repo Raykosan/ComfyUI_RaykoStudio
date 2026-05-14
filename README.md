@@ -114,13 +114,13 @@ height - Final output height (after optional resize)
 ---
 ---
 
-# 🦊 RS Spline Mask  
-**Node for creating a spline mask** 
+# 🦊 RS Load Image (former name RS Spline Mask)  
+**Node for load image and creating a spline mask** 
 
 ![Screenshot_3](https://github.com/user-attachments/assets/91ff5f83-5f52-4983-a5e4-fe4f514f8d0a)
 
 ### 🔥 Features  
-The node is designed to create masks without using the ComfyUI native editor. More accurate selection based on the principle of the Lasso tool from Photoshop.  
+The node has the functionality of the native Load Image node, but instead of the native mask editor, a built-in spline editor is used. More accurate selection based on the principle of the Lasso tool from Photoshop.  
 
 ### 🪛 Usage  
 The node is ready for use immediately after it is added. Images are added using the "🎨 IMAGE" (images from the input folder) and "🖼️ UPLOAD IMAGE" (images from any folder on your PC) buttons. You can scale the node to a convenient size to more accurately place the points of the spline. Incorrectly positioned points can be deleted by right-clicking on them. To remove all points from the preview area, click the "🔴 CLEAR POINTS" button.  

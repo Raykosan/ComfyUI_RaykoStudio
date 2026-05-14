@@ -115,9 +115,9 @@ height - Final output height (after optional resize)
 ---
 
 # 🦊 RS Load Image (former name RS Spline Mask)  
-**Node for load image and creating a spline mask** 
+**Node for load image and creating a spline mask**  
 
-![Screenshot_3](https://github.com/user-attachments/assets/91ff5f83-5f52-4983-a5e4-fe4f514f8d0a)
+<img width="800" height="715" alt="RS Load Image1" src="https://github.com/user-attachments/assets/c5150b6a-88b6-4e2a-86fa-7cd70346cab8" />
 
 ### 🔥 Features  
 The node has the functionality of the native Load Image node, but instead of the native mask editor, a built-in spline editor is used. More accurate selection based on the principle of the Lasso tool from Photoshop.  

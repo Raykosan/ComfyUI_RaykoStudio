@@ -104,4 +104,4 @@ if PromptServer is not None and web is not None:
             return web.json_response({"images": []}, status=200)
 
 NODE_CLASS_MAPPINGS = {"RaykoSplineMask": RaykoSplineMask}
-NODE_DISPLAY_NAME_MAPPINGS = {"RaykoSplineMask": "🦊 RS Spline Mask"}
+NODE_DISPLAY_NAME_MAPPINGS = {"RaykoSplineMask": "🦊 RS Load Image"}

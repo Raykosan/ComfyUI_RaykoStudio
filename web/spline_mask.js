@@ -82,7 +82,7 @@ app.registerExtension({
             } catch (e) {}
             
             let _overlayCanvas = null;
-            let _syncRunning = false;
+            let _animationId = null;
             let _lastRect = null;
             
             // Функция синхронизации (как в Styles Loader)
@@ -144,7 +144,7 @@ app.registerExtension({
                 img.src = imgUrl;
             };
             
-            // ========== DnD: Функция загрузки из файла (переиспользуем логику UPLOAD) ==========
+            // DnD: Функция загрузки из файла (переиспользуем логику UPLOAD)
             const uploadFileAndLoad = async (file) => {
                 if (!file || !file.type.startsWith('image/')) {
                     console.log("[SPLINE 🦊] Not an image file");
@@ -171,7 +171,6 @@ app.registerExtension({
                 }
                 return false;
             };
-            // ========== DnD: конец ==========
             
             // Остальные методы
             node.showImageSelector = function() {
@@ -327,13 +326,15 @@ app.registerExtension({
             };
             
             const syncPosition = () => {
-                if (!_overlayCanvas || !node.imageLoaded) return;
+                if (!_overlayCanvas) return;
                 const imgRect = calculateImageRect();
                 if (!imgRect) return;
                 
                 const hasChanged = !_lastRect || 
                     Math.abs(_lastRect.left - imgRect.left) > 0.5 ||
-                    Math.abs(_lastRect.top - imgRect.top) > 0.5;
+                    Math.abs(_lastRect.top - imgRect.top) > 0.5 ||
+                    Math.abs(_lastRect.width - imgRect.width) > 0.5 ||
+                    Math.abs(_lastRect.height - imgRect.height) > 0.5;
                 
                 if (hasChanged) {
                     _lastRect = { ...imgRect };
@@ -400,11 +401,10 @@ app.registerExtension({
                 `;
                 document.body.appendChild(_overlayCanvas);
                 
-                // ========== DnD: Обработчики Drag & Drop ==========
+                // DnD: Обработчики Drag & Drop
                 _overlayCanvas.addEventListener("dragover", (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Визуальная обратная связь
                     _overlayCanvas.style.border = "2px solid #4CAF50";
                     _overlayCanvas.style.backgroundColor = "rgba(76, 175, 80, 0.15)";
                 });
@@ -412,7 +412,6 @@ app.registerExtension({
                 _overlayCanvas.addEventListener("dragleave", (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Возвращаем исходный стиль
                     _overlayCanvas.style.border = "1px dashed #00FF00";
                     _overlayCanvas.style.backgroundColor = "transparent";
                 });
@@ -420,7 +419,6 @@ app.registerExtension({
                 _overlayCanvas.addEventListener("drop", async (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Возвращаем исходный стиль
                     _overlayCanvas.style.border = "1px dashed #00FF00";
                     _overlayCanvas.style.backgroundColor = "transparent";
                     
@@ -432,7 +430,6 @@ app.registerExtension({
                         console.log("[SPLINE 🦊] Not an image file:", file.type);
                     }
                 });
-                // ========== DnD: конец ==========
                 
                 _overlayCanvas.addEventListener("mousedown", (e) => {
                     e.preventDefault();
@@ -467,11 +464,13 @@ app.registerExtension({
                     }
                 });
                 
-                const syncLoop = () => {
+                // Постоянный цикл синхронизации позиции
+                const updateLoop = () => {
+                    if (!_overlayCanvas) return;
                     syncPosition();
-                    if (_overlayCanvas && node.imageLoaded) requestAnimationFrame(syncLoop);
+                    _animationId = requestAnimationFrame(updateLoop);
                 };
-                syncLoop();
+                updateLoop();
             };
             
             // Отрисовка ноды
@@ -596,11 +595,17 @@ app.registerExtension({
                 }
             };
             
-            // Очистка
+            // Очистка при удалении ноды
+            const originalOnRemoved = node.onRemoved;
             node.onRemoved = function() {
+                if (_animationId) {
+                    cancelAnimationFrame(_animationId);
+                    _animationId = null;
+                }
                 if (_overlayCanvas) _overlayCanvas.remove();
                 const menu = document.querySelector('.spline-image-menu');
                 if (menu) menu.remove();
+                if (originalOnRemoved) originalOnRemoved.apply(this, arguments);
             };
             
             // Создаем overlay и загружаем изображение

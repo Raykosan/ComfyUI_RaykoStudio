@@ -180,6 +180,8 @@ Click "✔️ ACCEPT" to pass selected images to next nodes. Only selected image
 # 🦊 RS Image to Latent  
 **A powerful and user-friendly ComfyUI node that converts images to latents with intelligent size optimization.**  
 
+<img width="400" height="460" alt="1" src="https://github.com/user-attachments/assets/aa67d7af-d612-43c5-9e99-1914094d73ad" />  
+
 ### 🔥 Features  
 - **Multiple sizing modes** - Auto, Preset, Custom, or Megapixels  
 - **VAE-aware** - Automatically detects divisibility requirements  

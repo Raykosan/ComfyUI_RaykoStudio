@@ -177,6 +177,58 @@ Click "✔️ ACCEPT" to pass selected images to next nodes. Only selected image
 ---
 ---
 
+# 🦊 RS Image to Latent  
+**A powerful and user-friendly ComfyUI node that converts images to latents with intelligent size optimization.**  
+
+### 🔥 Features  
+- **Multiple sizing modes** - Auto, Preset, Custom, or Megapixels  
+- **VAE-aware** - Automatically detects divisibility requirements  
+- **Batch processing** - Create multiple identical latents at once  
+- **Smart upscaling** - Choose from multiple upscale methods  
+- **Clean interface** - No technical clutter, just what you need  
+
+### 🪛 Usage  
+Resolution control - Ensure consistent sizes across your workflow  
+VRAM optimization - Use megapixels mode to stay within limits  
+Auto mode - Preserves original proportions  
+Batch generation - Create multiple variations from one image  
+
+### 🎯 Modes Explained  
+**Auto**  
+Preserves original image size and only rounds to meet VAE divisibility requirements. No unexpected upscaling.  
+
+**Preset**  
+Choose from 50+ common resolutions including:  
+- Square: 512×512 to 1920×1920  
+- Portrait: 3:2, 3:4, 9:16 and more  
+- Landscape: 4:3, 16:9, 21:9 and more  
+
+**Custom**  
+Manually enter width and height (must be multiples of 8).  
+ 
+**Megapixels**  
+Set target megapixels with specific aspect ratio. Perfect for controlling VRAM usage.  
+
+### 🔧 Rounding Modes  
+- auto - Picks the nearest valid size (recommended)  
+- shrink - Only reduces size, never increases  
+- expand - Only increases size, never reduces  
+
+### ↔️ Input and output:  
+Input:  
+image - Input image to convert to latent  
+vae	- VAE model for encoding (auto-detects divisibility)  
+
+Output:  
+latent - The encoded latent tensor  
+width_px - Final width in pixels  
+height_px - Final height in pixels  
+width_latent - Latent width (width/8)  
+height_latent - Latent height (height/8)  
+
+---
+---
+
 # 🦊 RS Crop Image and 🦊 RS Insert Crop  
 **An interactive node for selecting and cropping images in ComfyUI with a pause in the process. With further insertion of the cut fragment after its modification back into the original image.**  
 

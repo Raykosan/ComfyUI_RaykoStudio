@@ -4,10 +4,10 @@ Set of custom nodes for ComfyUI providing additional image processing capabiliti
 Nodes do not require the installation of additional Python packages.  
 🖥️ Performance has been tested for:  
 
-- ComfyUI 0.15*-0.19*  
-- Python 3.10-3.13  
-- Torch 2.8-2.10 
-- Cuda 12.4-13.0  
+- ComfyUI 0.15 and above  
+- Python 3.10 and above  
+- Torch 2.8 and above
+- Cuda 12.4 and above 
 
 ---
 

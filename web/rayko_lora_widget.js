@@ -35,6 +35,39 @@ app.registerExtension({
                     };
                 }
 
+                // Find widgets for CLIP2 disabled logic
+                const useClip2Widget = this.widgets.find(w => w.name === "use_clip2");
+                const clipName2Widget = this.widgets.find(w => w.name === "clip_name2");
+                
+                if (useClip2Widget && clipName2Widget) {
+                    // Set initial disabled state
+                    clipName2Widget.disabled = !useClip2Widget.value;
+                    
+                    // Apply CSS class for visual styling
+                    if (clipName2Widget.element) {
+                        if (clipName2Widget.disabled) {
+                            clipName2Widget.element.classList.add("comfy-disabled");
+                        } else {
+                            clipName2Widget.element.classList.remove("comfy-disabled");
+                        }
+                    }
+                    
+                    // Callback when use_clip2 changes
+                    const originalCallback = useClip2Widget.callback;
+                    useClip2Widget.callback = function(value) {
+                        if (originalCallback) originalCallback(value);
+                        clipName2Widget.disabled = !value;
+                        if (clipName2Widget.element) {
+                            if (clipName2Widget.disabled) {
+                                clipName2Widget.element.classList.add("comfy-disabled");
+                            } else {
+                                clipName2Widget.element.classList.remove("comfy-disabled");
+                            }
+                        }
+                        nodeRef.graph?.setDirtyCanvas(true, true);
+                    };
+                }
+
                 this.setSize([this.targetWidth, this.size[1]]);
 
                 this.addWidget("button", "✔️ Update LoRA list", "", async () => {
@@ -86,6 +119,21 @@ app.registerExtension({
                 this.isRestoring = false;
                 const self = this;
                 this.loadLoraList().then(() => self.updateUI());
+                
+                // Restore disabled state of clip_name2 after configuration load
+                const useClip2Widget = this.widgets.find(w => w.name === "use_clip2");
+                const clipName2Widget = this.widgets.find(w => w.name === "clip_name2");
+                if (useClip2Widget && clipName2Widget) {
+                    clipName2Widget.disabled = !useClip2Widget.value;
+                    if (clipName2Widget.element) {
+                        if (clipName2Widget.disabled) {
+                            clipName2Widget.element.classList.add("comfy-disabled");
+                        } else {
+                            clipName2Widget.element.classList.remove("comfy-disabled");
+                        }
+                    }
+                }
+                
                 return originalOnConfigure ? originalOnConfigure.apply(this, arguments) : undefined;
             };
 

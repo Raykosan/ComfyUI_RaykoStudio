@@ -2,7 +2,7 @@ import folder_paths
 import comfy.sd
 import json
 import os
-from nodes import UNETLoader, CLIPLoader, VAELoader, LoraLoader
+from nodes import UNETLoader, CLIPLoader, VAELoader, LoraLoader, DualCLIPLoader
 from server import PromptServer
 import aiohttp
 
@@ -24,7 +24,9 @@ class RaykoModelsLoader:
         required = {
             "unet_name": (unet_files, {"tooltip": "Diffusion model (UNET)"}),
             "weight_dtype": (weight_dtype_opts, {"default": "default"}),
-            "clip_name": (clip_files, {"tooltip": "model CLIP"}),
+            "use_clip2": ("BOOLEAN", {"default": False, "label": "Enable second CLIP"}),
+            "clip_name": (clip_files, {"tooltip": "First CLIP model (or primary CLIP for dual mode)"}),
+            "clip_name2": (clip_files, {"tooltip": "Second CLIP model (for dual-clip models like Flux, SD3)"}),
             "clip_type": (clip_type_opts, {"default": "stable_diffusion"}),
             "clip_device": (device_opts, {"default": "default"}),
             "vae_name": (vae_files, {"tooltip": "model VAE"}),
@@ -45,9 +47,10 @@ class RaykoModelsLoader:
             lora_data = "[]"
         return hashlib.md5(lora_data.encode()).hexdigest()
 
-    def load_models(self, unet_name, weight_dtype, clip_name, clip_type, clip_device, vae_name, lora_data="[]"):
+    def load_models(self, unet_name, weight_dtype, use_clip2, clip_name, clip_name2, clip_type, clip_device, vae_name, lora_data="[]"):
         print(f"\n[Rayko] === Start load_models ===")
         print(f"[Rayko] lora_data RAW: {lora_data}")
+        print(f"[Rayko] use_clip2: {use_clip2}")
         
         if not lora_data:
             lora_data = "[]"
@@ -57,8 +60,29 @@ class RaykoModelsLoader:
         print(f"[Rayko] UNET: {unet_name}")
 
         dev = None if clip_device == "default" else clip_device
-        clip = CLIPLoader().load_clip(clip_name=clip_name, type=clip_type, device=dev)[0]
-        print(f"[Rayko] CLIP: {clip_name}")
+        
+        # CLIP loading logic with dual CLIP support
+        if use_clip2 and clip_name2 and clip_name2 != "None":
+            print(f"[Rayko] Using DualCLIPLoader mode")
+            print(f"[Rayko] CLIP1: {clip_name}")
+            print(f"[Rayko] CLIP2: {clip_name2}")
+            print(f"[Rayko] CLIP type: {clip_type}")
+            clip = DualCLIPLoader().load_clip(
+                clip_name1=clip_name,
+                clip_name2=clip_name2,
+                type=clip_type,
+                device=dev
+            )[0]
+        else:
+            print(f"[Rayko] Using standard CLIPLoader mode")
+            print(f"[Rayko] CLIP: {clip_name}")
+            print(f"[Rayko] CLIP type: {clip_type}")
+            clip = CLIPLoader().load_clip(
+                clip_name=clip_name,
+                type=clip_type,
+                device=dev
+            )[0]
+        print(f"[Rayko] CLIP loaded successfully")
 
         vae = VAELoader().load_vae(vae_name=vae_name)[0]
         print(f"[Rayko] VAE: {vae_name}")

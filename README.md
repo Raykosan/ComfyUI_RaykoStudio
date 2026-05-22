@@ -338,16 +338,24 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 ---
 
 # 🦊 RS Models Loader  
-**Combined node for loading models**  
+**A powerful all-in-one model loader node for ComfyUI that combines UNET, CLIP (with optional dual CLIP support), VAE, and LoRA loading into a single interface.**  
 
-![Screenshot_1](https://github.com/user-attachments/assets/fdca35c0-6554-4cfd-9ddf-805aebbdb2cd)
-
+<img width="1394" height="590" alt="Screenshot_1" src="https://github.com/user-attachments/assets/4f218267-73e0-4c30-aab3-5bea05936311" />
 
 ### 🔥 Features  
-The node combines the loaders of the Model, Clip,VAE and LoRA.
-If you have downloaded a new LoRA, then you do not need to update the ComfyUI or the page - there is a button to update the LoRA list.  
+- **Unified Loading** - Load UNET, CLIP, VAE, and multiple LoRAs in one node  
+- **Dual CLIP Support** - Toggle between single CLIP mode (CLIPLoader) and dual CLIP mode (DualCLIPLoader) for models like Flux, SD3, Hunyuan DiT, and PixArt  
+- **LoRA Management** - Add, enable/disable, and adjust strengths for multiple LoRAs with an intuitive visual interface  
+- **Persistent Storage** - LoRA configurations are saved per node and persist across sessions  
+- **Folder Structure** - Browse LoRAs with folder tree navigation  
+- **Search Functionality** - Quickly find LoRAs by name
 
-Link to the video: https://youtu.be/LxhVk5C_oas  
+### 📃 Notes
+
+- When dual CLIP mode is disabled, clip_name2 is visible but disabled (grayed out)
+- The node automatically falls back to single CLIP mode if clip_name2 is empty
+- LoRA strengths can be set independently for model and CLIP
+- All settings are saved with your workflow and persist across ComfyUI sessions
 
 ---
 ---

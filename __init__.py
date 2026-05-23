@@ -14,8 +14,12 @@ IGNORED_MODULES: Set[str] = {'__init__.py'}
 REQUIRED_MODULES: Set[str] = set()
 
 PACKAGE_DISPLAY_NAME = "ComfyUI_RaykoStudio"
+__version__ = "0.18.1"
 
 def load_modules():
+    # Выводим версию в самом начале
+    print(f"🦊 {PACKAGE_DISPLAY_NAME}: Version: {__version__}")
+    
     try:
         current_dir = Path(__file__).parent
         logger.debug(f"Scanning the directory: {current_dir}")
@@ -47,7 +51,7 @@ def load_modules():
             logger.error(f"Required modules are not loaded: {missing_required}")
 
         if not failed_modules:
-            logger.info(f"All modules 🦊 {PACKAGE_DISPLAY_NAME} \033[92mLOADED SUCCESSFULLY\033[0m")
+            logger.info(f"🦊 {PACKAGE_DISPLAY_NAME}: All modules \033[92mLOADED SUCCESSFULLY\033[0m")
         else:
             for mod_name, error in failed_modules:
                 logger.error(f"The module '{mod_name}' is not loaded: {error}")

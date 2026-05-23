@@ -17,7 +17,6 @@ PACKAGE_DISPLAY_NAME = "ComfyUI_RaykoStudio"
 __version__ = "0.18.1"
 
 def load_modules():
-    # Выводим версию в самом начале
     print(f"🦊 {PACKAGE_DISPLAY_NAME}: Version: {__version__}")
     
     try:

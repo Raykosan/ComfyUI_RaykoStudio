@@ -88,14 +88,14 @@ The folder is created automatically the first time you save the preset.
 
 <details>
   <summary>✅ Update v0.16.3</summary>
-  
+
  The logic of the RS Outpaint node interface has been changed.
 1. The default borders of the mask frame are strictly along the borders of the incoming image
 2. All node buttons are inactive until the process queue reaches the node and is paused. The buttons become inactive immediately after the generation continues or is canceled.
 3. All snapping presets (aspect ratio) now work without crop and without resizing the output resolution. The frame is closely adjacent to two opposite sides or to one of the sides of the image (why one? since the mask works on a 16px grid, small margins of the mask are possible, which are visually visible. This is done so that the output always results in an image with side sizes that are multiples of 16. These errors will still be masked.)
 4. By default, the Lock/Unlock aspect ratio button is unlocked (🔓) and you can immediately start working with the mask frame without saving the aspect ratio.
 5. When you press any snap preset button, the Lock/Unlock button is automatically locked (🔒) and all further actions with the mask frame will be performed while maintaining the selected aspect ratio until you unlock the button again.
-  
+
 </details>  
 
 💡Tip: For precise positioning, use the arrow keys on your keyboard (hold Shift to move faster)  
@@ -207,7 +207,7 @@ Choose from 50+ common resolutions including:
 
 **Custom**  
 Manually enter width and height (must be multiples of 8).  
- 
+
 **Megapixels**  
 Set target megapixels with specific aspect ratio. Perfect for controlling VRAM usage.  
 
@@ -638,7 +638,7 @@ If new problem, create new Issue describing:
 
 ## 📜 License  
 
-MIT License. Use node at your own risk without any warranties.  
+Apache License 2.0. Use at your own risk without any warranties. See the [LICENSE](LICENSE) file for details  
 
 ---
 

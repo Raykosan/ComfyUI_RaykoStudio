@@ -1,15 +1,16 @@
 {
   "name": "ComfyUI_RaykoStudio",
-  "version": "0.18.1",
+  "version": "0.19.0",
   "description": "Set of custom nodes for ComfyUI providing additional image processing capabilities",
   "author": "Raykosan",
-  "license": "MIT",
+  "license": "Apache License 2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/Raykosan/ComfyUI_RaykoStudio"
   },
   "comfyui": {
     "nodes": [
+      "Rayko_Collage.py"
       "Rayko_Color_Picker.py"
       "Rayko_Crop_Image.py"
       "Rayko_Image_Selector.py"
@@ -22,6 +23,7 @@
       "Rayko_Models_Loader.py"
       "Rayko_Outpaint.py"
       "Rayko_Prompts.py"
+      "Rayko_RGB2RGBA.py"
       "Rayko_Saturation.py"
       "Rayko_Save_Image.py"
       "Rayko_Save_Image_Pair.py"

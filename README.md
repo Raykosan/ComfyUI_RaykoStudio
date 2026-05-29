@@ -31,6 +31,44 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 ---
 ---
 
+# 🦊 RS Collage Node  
+**An interactive compositor node for ComfyUI that enables real-time positioning, scaling, rotation, and edge feathering of an overlay image onto a background directly within the node canvas.**  
+
+<img width="1613" height="846" alt="Screenshot_3" src="https://github.com/user-attachments/assets/0afb04ed-3595-4ecb-8e71-1807394d5aef" />  
+
+### 🔥 Features  
+- **Interactive Canvas** — Drag, resize, and rotate overlays with visual handles  
+- **Center-Anchored Scaling** — Corner handles scale proportionally; edge handles scale along a single axis, both expanding/contracting from the geometric center  
+- **Real-Time Feathering Preview** — Supports Radial In, Radial Out, Edge, and Shape blur modes with adjustable radius  
+- **Non-Blocking Session** — Waits indefinitely for ✔️Apply or Cancel input without hard timeouts or queue interruption  
+- **Precise Coordinate Mapping** — Maintains a frozen viewport matrix during interaction to prevent drift; converts relative normalized coordinates to absolute pixel transforms for the backend  
+- **Integrated Controls** — Opacity slider, flip toggles, and feather parameters accessible via node widgets  
+
+### 🪛 Usage  
+Connect the tensors `background_image` and `overlay_image` to the node and start the generation.  
+Adjust the overlay using the markers on the canvas:  
+- **Corners** - Proportional scaling from the center  
+- **Edges** - Scaling on one axis from the center  
+- **Center** - Free movement on the canvas  
+- **Top yellow marker** - Rotate around the center  
+Adjust the type of shading, radius, and opacity using widgets. After selecting the type of shading, a blue cross will appear on the overlay, which can be used to specify the center of the shading or blur.  
+Click "APPLY" to complete the transformations and continue plotting, or "CANCEL" to interrupt the generation process.  
+You can create a chain of these nodes by connecting the Image output to the Background input of the next node.
+
+### 🛠️ Parameters
+| Input/Widget | Type | Range | Default | Description |
+|--------------|------|-------|---------|-------------|
+| `overlay_image` | IMAGE | - | - | Foreground layer to composite |
+| `background_image` | IMAGE | - | - | Base canvas layer |
+| `overlay_mask` | MASK | - | `None` | Optional alpha mask (inverted on apply) |
+| `opacity` | FLOAT | 0.0 – 1.0 | 1.0 | Global transparency multiplier |
+| `feather_type` | COMBO | None / Radial In / Radial Out / Edge / Shape | None | Edge softening algorithm |
+| `edge_radius` | INT | 0 – 300 | 150 | Feather intensity/blur radius |
+| `shape_radius` | INT | 0 – 5 | 0 | Gaussian blur radius for Shape mode |
+
+---
+---
+
 # 🦊 RS Outpaint  
 **Interactive outpainting mask node with visual crop controls, preset management, and batch workflow support** 
 

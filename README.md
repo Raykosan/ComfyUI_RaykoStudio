@@ -45,6 +45,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - **Integrated Controls** — Opacity slider, flip toggles, and feather parameters accessible via node widgets  
 
 ### 🪛 Usage  
+For the overlay, it is better to use images with transparency (PNG, WebP, and TIFF files containing transparency) or images coming from the background removal node (RMBG). If you want to use a regular image or an RGB image with transparency for the overlay, but not RGBA, upload it via the RS rgb2rgba node. Node will make or correct the Alpha channel correctly.  
 Connect the tensors `background_image` and `overlay_image` to the node and start the generation.  
 Adjust the overlay using the markers on the canvas:  
 - **Corners** - Proportional scaling from the center  

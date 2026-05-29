@@ -69,6 +69,26 @@ You can create a chain of these nodes by connecting the Image output to the Back
 ---
 ---
 
+# 🦊 RS rgb2rgba  
+**A lightweight ComfyUI custom node that loads images while preserving the alpha channel (RGBA). Ideal for workflows that require transparency handling in PNG, WebP, and TIFF formats.**  
+
+<img width="1042" height="345" alt="Screenshot_3" src="https://github.com/user-attachments/assets/6159bcd5-2c65-4df8-8106-21c9b75669bd" />  
+
+### 🔥 Features  
+**Alpha Channel Preservation** - Loads and outputs images with full RGBA support.  
+**Automatic Conversion** - Forces `RGBA` mode if the source image uses a different color mode.  
+**Format Support** - Works seamlessly with `PNG`, `WebP`, and `TIFF` files containing transparency.  
+**ComfyUI Compatible** - Returns a properly formatted `[1, H, W, 4]` float32 tensor normalized to `0.0–1.0`.  
+**Change Detection** - Automatically refreshes the node output when the source file is modified.  
+
+### 🪛 Usage  
+Add the **`🦊 RS rgb2rgba`** node to your workflow.  
+Upload an image or select one from your `ComfyUI/input` directory.  
+Connect the `rgba` output to any node that accepts ComfyUI image tensors (e.g., `VAE Encode`, `PreviewImage`, mask processors, etc.).   
+
+---
+---
+
 # 🦊 RS Outpaint  
 **Interactive outpainting mask node with visual crop controls, preset management, and batch workflow support** 
 

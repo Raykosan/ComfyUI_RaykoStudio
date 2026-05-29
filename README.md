@@ -84,7 +84,12 @@ You can create a chain of these nodes by connecting the Image output to the Back
 ### 🪛 Usage  
 Add the **`🦊 RS rgb2rgba`** node to your workflow.  
 Upload an image or select one from your `ComfyUI/input` directory.  
-Connect the `rgba` output to any node that accepts ComfyUI image tensors (e.g., `VAE Encode`, `PreviewImage`, mask processors, etc.).   
+Connect the `rgba` output to any node that accepts ComfyUI image tensors (e.g., `VAE Encode`, `PreviewImage`, mask processors, etc.).  
+
+### 📝 Notes  
+- Images without an existing alpha channel will be automatically converted to RGBA (alpha will be set to `1.0` / fully opaque).  
+- The node expects images to be located in ComfyUI's standard `input` folder.  
+- Designed to match ComfyUI's native `IMAGE` tensor format, ensuring drop-in compatibility with most custom nodes.  
 
 ---
 ---

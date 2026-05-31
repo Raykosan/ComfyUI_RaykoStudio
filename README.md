@@ -49,7 +49,7 @@ https://youtu.be/nPSujGTI_7s
 - **Non-Blocking Session** — Waits indefinitely for ✔️APPLAY or ❌CANCEL input without hard timeouts or queue interruption  
 - **Precise Coordinate Mapping** — Maintains a frozen viewport matrix during interaction to prevent drift; converts relative normalized coordinates to absolute pixel transforms for the backend  
 - **Integrated Controls** — Opacity slider, flip toggles, and feather parameters accessible via node widgets
-- **The workflow is in the node in the Exemple folder** — You can create an endless chain of these nodes - you connect the image output to the background input of the next node  
+- **Workflow is in the Example folder** — You can create an endless chain of these nodes - you connect the image output to the background input of the next node  
 
 ### 🖼️ Working Modes  
 **Normal Mode**  

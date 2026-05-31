@@ -32,20 +32,49 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 ---
 
 # 🦊 RS Collage Node  
-**An interactive compositor node for ComfyUI that enables real-time positioning, scaling, rotation, and edge feathering of an overlay image onto a background directly within the node canvas.**  
+**Interactive node for overlaying images with real-time positioning, scaling, rotation, and edge feathering directly on the canvas.**  
 
-<img width="1613" height="846" alt="Screenshot_3" src="https://github.com/user-attachments/assets/0afb04ed-3595-4ecb-8e71-1807394d5aef" />  
+https://youtu.be/nPSujGTI_7s
+
+**Normal Mode**  
+<img width="446" height="708" alt="Screenshot_1" src="https://github.com/user-attachments/assets/cd7da099-511a-4f28-a71e-54612f0c7f30" />  
+
+**Advanced Mode**  
+<img width="2106" height="955" alt="Screenshot_2" src="https://github.com/user-attachments/assets/0104c418-9126-4c11-8f2d-67f0969edb48" />  
 
 ### 🔥 Features  
 - **Interactive Canvas** — Drag, resize, and rotate overlays with visual handles  
 - **Center-Anchored Scaling** — Corner handles scale proportionally; edge handles scale along a single axis, both expanding/contracting from the geometric center  
-- **Real-Time Feathering Preview** — Supports Radial In, Radial Out, Edge, and Shape blur modes with adjustable radius  
-- **Non-Blocking Session** — Waits indefinitely for ✔️Apply or Cancel input without hard timeouts or queue interruption  
+- **Real-Time Feathering Preview** — Supports Radial Blur In, Radial Blur Out, Ellipse Blur In and Ellipse Blur Out modes with adjustable radius  
+- **Non-Blocking Session** — Waits indefinitely for ✔️APPLAY or ❌CANCEL input without hard timeouts or queue interruption  
 - **Precise Coordinate Mapping** — Maintains a frozen viewport matrix during interaction to prevent drift; converts relative normalized coordinates to absolute pixel transforms for the backend  
-- **Integrated Controls** — Opacity slider, flip toggles, and feather parameters accessible via node widgets  
+- **Integrated Controls** — Opacity slider, flip toggles, and feather parameters accessible via node widgets
+
+### 🖼️ Working Modes  
+**Normal Mode**  
+Quick editing directly inside the ComfyUI node. Perfect for simple tasks and final touches.  
+
+**Advanced Mode**  
+Fullscreen editor with side panel for fine-tuning:  
+- Real-time display across the entire screen  
+- Independent zoom (mouse wheel) and canvas panning  
+- Camera automatically fits composition to 80% of window  
+- Overlay can extend beyond background boundaries without scale recalculation  
+- All parameters adjustable via convenient sliders
+
+### 🔆 Feathering Types
+| Type | Description |
+|------|-------------|
+|None|No feathering|
+|Radial Blur In|Radial blur from center to edges|
+|Radial Blur Out|Inverted radial blur|
+|Ellipse Blur In|Elliptical blur from center|
+|Ellipse Blur Out|Inverted elliptical blur|
+
+- 💡 Each feathering type allows you to drag the effect center directly on the overlay.  
 
 ### 🪛 Usage  
-For the overlay, it is better to use images with transparency (PNG, WebP, and TIFF files containing transparency) or images coming from the background removal node (RMBG). If you want to use a regular image or an RGB image with transparency for the overlay, but not RGBA, upload it via the RS rgb2rgba node. Node will make or correct the Alpha channel correctly.  
+For the overlay, it is better to use images with transparency (PNG, WebP, and TIFF files containing transparency) or images coming from the background removal node (RMBG). If you want to use a regular image or an RGB image with transparency for the overlay, but not RGBA, upload it via the 🦊 RS rgb2rgba node. Node will make or correct the Alpha channel correctly.  
 Connect the tensors `background_image` and `overlay_image` to the node and start the generation.  
 Adjust the overlay using the markers on the canvas:  
 - **Corners** - Proportional scaling from the center  
@@ -53,7 +82,7 @@ Adjust the overlay using the markers on the canvas:
 - **Center** - Free movement on the canvas  
 - **Top yellow marker** - Rotate around the center  
 Adjust the type of shading, radius, and opacity using widgets. After selecting the type of shading, a blue cross will appear on the overlay, which can be used to specify the center of the shading or blur.  
-Click "APPLY" to complete the transformations and continue plotting, or "CANCEL" to interrupt the generation process.  
+Click ✔️APPLY to complete the transformations and continue plotting, or ❌CANCEL to interrupt the generation process.  
 You can create a chain of these nodes by connecting the Image output to the Background input of the next node.
 
 ### 🛠️ Parameters
@@ -64,8 +93,15 @@ You can create a chain of these nodes by connecting the Image output to the Back
 | `overlay_mask` | MASK | - | `None` | Optional alpha mask (inverted on apply) |
 | `opacity` | FLOAT | 0.0 – 1.0 | 1.0 | Global transparency multiplier |
 | `feather_type` | COMBO | None / Radial In / Radial Out / Edge / Shape | None | Edge softening algorithm |
-| `edge_radius` | INT | 0 – 300 | 150 | Feather intensity/blur radius |
-| `shape_radius` | INT | 0 – 5 | 0 | Gaussian blur radius for Shape mode |
+| `blur_radius` | INT | 0 – 100 | 50 | Feather intensity/blur radius |
+| `blur_hardness` | INT | 0 – 100 | 0 | Hardness of the blur borders |
+
+### 💡 Tips  
+- For quick starts use Normal Mode — all parameters are saved in the workflow  
+- For precise tuning switch to Advanced Mode — it doesn't save state in workflow but gives more control  
+- Corner handle scaling preserves aspect ratio  
+- Edge handle scaling allows changing aspect ratio  
+- If overlay has black corners after rotation, the node automatically removes them  
 
 ---
 ---

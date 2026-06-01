@@ -80,10 +80,10 @@ Connect the tensors `background_image` and `overlay_image` to the node and start
 Adjust the overlay using the markers on the canvas:  
 - **Corners** - Proportional scaling from the center  
 - **Edges** - Scaling on one axis from the center  
-- **Center** - Free movement on the canvas  
+- **Red cross** - Blur center free movement on the canvas  
 - **Top yellow marker** - Rotate around the center   
 
-Adjust the type of shading, radius, and opacity using widgets. After selecting the type of shading, a blue cross will appear on the overlay, which can be used to specify the center of the shading or blur.  
+Adjust the type of shading, radius, and opacity using widgets. After selecting the type of shading, a red cross will appear on the overlay, which can be used to specify the center of the shading or blur.  
 Click ✔️APPLY to complete the transformations and continue plotting, or ❌CANCEL to interrupt the generation process.  
 You can create a chain of these nodes by connecting the Image output to the Background input of the next node.
 

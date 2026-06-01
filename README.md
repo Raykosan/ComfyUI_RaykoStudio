@@ -94,7 +94,7 @@ You can create a chain of these nodes by connecting the Image output to the Back
 | `background_image` | IMAGE | - | - | Base canvas layer |
 | `overlay_mask` | MASK | - | `None` | Optional alpha mask (inverted on apply) |
 | `opacity` | FLOAT | 0.0 – 1.0 | 1.0 | Global transparency multiplier |
-| `feather_type` | COMBO | None / Radial In / Radial Out / Edge / Shape | None | Edge softening algorithm |
+| `feather_type` | COMBO | None / Radial In / Radial Out / Ellipse In / Ellipse Out | None | Edge softening algorithm |
 | `blur_radius` | INT | 0 – 100 | 50 | Feather intensity/blur radius |
 | `blur_hardness` | INT | 0 – 100 | 0 | Hardness of the blur borders |
 

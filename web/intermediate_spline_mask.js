@@ -1,4 +1,4 @@
-console.log("[InSPLINE 🦊] intermediate_spline_mask.js LOADED!");
+console.log("[InSPLINE ] intermediate_spline_mask.js LOADED!");
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 
@@ -159,8 +159,9 @@ app.registerExtension({
                 const createOverlayCanvas = () => {
                     if (_overlayCanvas) return;
                     _overlayCanvas = document.createElement("canvas");
+                    _overlayCanvas.className = "rayko-inspline-overlay"; // <-- Добавлен класс для надёжного поиска
                     _overlayCanvas.style.cssText = `
-                        position: fixed !important; z-index: 1000 !important;
+                        position: fixed !important; z-index: 900 !important; // <-- Изменено на 900
                         pointer-events: auto !important; cursor: crosshair !important;
                         background: transparent !important; touch-action: none;
                         border: 1px dashed #00FF00 !important; box-sizing: border-box !important;
@@ -398,7 +399,7 @@ app.registerExtension({
                 };
                 
                 node.onRemoved = function() {
-                    console.log(`[InSPLINE 🦊] Node ${this.id} removed, sending cleanup signal...`);
+                    console.log(`[InSPLINE ] Node ${this.id} removed, sending cleanup signal...`);
                     
                     _syncRunning = false;
                     if (_overlayCanvas) { 
@@ -429,7 +430,7 @@ app.registerExtension({
                 };
                 
             } catch (error) {
-                console.error("[InSPLINE 🦊] Critical Error:", error);
+                console.error("[InSPLINE ] Critical Error:", error);
             }
         };
     },
@@ -442,7 +443,8 @@ app.registerExtension({
                 node.image.src = image_url + "&t=" + Date.now();
                 node.image.onload = () => {
                     node.imageReady = true;
-                    const overlay = document.querySelector(`canvas[style*="z-index: 1000"]`);
+                    // ИСПРАВЛЕНО: поиск по классу вместо жёсткой привязки к z-index
+                    const overlay = document.querySelector('.rayko-inspline-overlay');
                     if (overlay) {
                         overlay.style.display = "block";
                     }

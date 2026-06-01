@@ -392,7 +392,7 @@ app.registerExtension({
                 _overlayCanvas = document.createElement("canvas");
                 _overlayCanvas.style.cssText = `
                     position: fixed !important;
-                    z-index: 1001 !important;
+                    z-index: 900 !important;
                     pointer-events: auto !important;
                     cursor: crosshair !important;
                     background: transparent !important;

@@ -181,7 +181,7 @@ app.registerExtension({
                     if (node._overlayCanvas) return;
                     node._overlayCanvas = document.createElement("canvas");
                     node._overlayCanvas.style.cssText = `
-                        position: fixed !important; z-index: 1000 !important;
+                        position: fixed !important; z-index: 900 !important;
                         pointer-events: auto !important; cursor: crosshair !important;
                         background: transparent !important; touch-action: none;
                         border: 1px dashed #00FF00 !important; box-sizing: border-box !important;

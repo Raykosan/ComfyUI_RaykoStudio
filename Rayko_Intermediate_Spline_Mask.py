@@ -27,7 +27,7 @@ try:
     SERVER_AVAILABLE = True
 except ImportError:
     SERVER_AVAILABLE = False
-    print("\033[91m[InSPLINE 🦊] Warning: Server modules not available.\033[0m")
+    print("\033[91m[InSPLINE ] Warning: Server modules not available.\033[0m")
 
 PENDING_DECISIONS = {}
 
@@ -48,6 +48,14 @@ class RaykoIntermediateSplineMask:
                 "prompt_id": "PROMPT_ID",
             }
         return inputs
+
+    # 🔹 ДОБАВЛЕНО: Принудительный запуск ноды при каждом Queue
+    # ComfyUI кэширует выводы, если входы не меняются. 
+    # Для интерактивных нод с паузой это ломает логику.
+    # Возврат time.time() гарантирует, что кэш всегда будет считаться "устаревшим".
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return time.time()
 
     RETURN_TYPES = ("IMAGE", "MASK")
     RETURN_NAMES = ("image", "mask")
@@ -144,7 +152,7 @@ class RaykoIntermediateSplineMask:
             else:
                 print(f"[InSPLINE 🦊] Less than 3 points - empty mask")
         except Exception as e:
-            print(f"[InSPLINE 🦊] Error parsing coordinates: {e}")
+            print(f"[InSPLINE ] Error parsing coordinates: {e}")
         
         mask_tensor = torch.from_numpy(mask_np).unsqueeze(0)
         return (image, mask_tensor)

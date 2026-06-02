@@ -30,6 +30,42 @@ app.registerExtension({
                     };
                 }
                 
+                const modeWidget = node.widgets?.find(w => w.name === "multiple_mode");
+                const ofWidget   = node.widgets?.find(w => w.name === "multiple_of");
+
+                if (modeWidget && ofWidget) {
+                    const applyDisabled = () => {
+                        ofWidget.disabled = !modeWidget.value;
+                        node.setDirtyCanvas(true, true);
+                    };
+                    
+                    let _modeValue = modeWidget.value;
+                    Object.defineProperty(modeWidget, 'value', {
+                        get: function() { return _modeValue; },
+                        set: function(v) {
+                            const wasOn = _modeValue;
+                            _modeValue = v;
+                            applyDisabled();
+                            if (!wasOn && v && node.imageReady) {
+                                applyAlignment();
+                                updateCropRect();
+                            }
+                        },
+                        configurable: true
+                    });
+
+                    const originalOfCallback = ofWidget.callback;
+                    ofWidget.callback = function(value) {
+                        if (originalOfCallback) originalOfCallback.apply(this, arguments);
+                        if (modeWidget.value && node.imageReady) {
+                            applyAlignment();
+                            updateCropRect();
+                        }
+                    };
+                    
+                    applyDisabled();
+                }
+                
                 node.addButton = (label, color, callback) => {
                     node.buttons.push({
                         label: label, color: color, callback: callback,
@@ -61,8 +97,115 @@ app.registerExtension({
                     } catch (e) {}
                 }
                 
+                const clampCropRect = (rect) => {
+                    if (!node.imageReady || !node.imageWidth || !node.imageHeight) return rect;
+                    const imgW = node.imageWidth;
+                    const imgH = node.imageHeight;
+
+                    let w = Math.max(1, Math.min(rect.width,  imgW));
+                    let h = Math.max(1, Math.min(rect.height, imgH));
+
+                    let x = Math.max(0, Math.min(rect.x, imgW - w));
+                    let y = Math.max(0, Math.min(rect.y, imgH - h));
+
+                    w = Math.min(w, imgW - x);
+                    h = Math.min(h, imgH - y);
+
+                    return { x, y, width: w, height: h };
+                };
+
+                const applyClamp = () => {
+                    const clamped = clampCropRect(node._cropRect);
+                    node._cropRect.x = clamped.x;
+                    node._cropRect.y = clamped.y;
+                    node._cropRect.width  = clamped.width;
+                    node._cropRect.height = clamped.height;
+                };
+
+                const alignToMultiple = (rect, m, imgW, imgH) => {
+                    if (!m || m < 1 || !imgW || !imgH) return rect;
+
+                    const origX = rect.x;
+                    const origY = rect.y;
+                    const origW = Math.max(1, rect.width);
+                    const origH = Math.max(1, rect.height);
+
+                    const centerX = origX + origW / 2;
+                    const centerY = origY + origH / 2;
+
+                    let newW = Math.ceil(origW / m) * m;
+                    let newH = Math.ceil(origH / m) * m;
+
+                    const maxW = ((imgW - origX) / m) | 0;
+                    if (maxW < 1 || (maxW * m) < m) {
+                        newW = Math.floor(origW / m) * m;
+                    } else if (origX + newW > imgW) {
+                        newW = maxW * m;
+                    }
+
+                    const maxH = ((imgH - origY) / m) | 0;
+                    if (maxH < 1 || (maxH * m) < m) {
+                        newH = Math.floor(origH / m) * m;
+                    } else if (origY + newH > imgH) {
+                        newH = maxH * m;
+                    }
+
+                    if (newW < m) newW = m;
+                    if (newH < m) newH = m;
+
+                    let newX = Math.round(centerX - newW / 2);
+                    let newY = Math.round(centerY - newH / 2);
+
+                    newX = Math.max(0, Math.min(newX, imgW - newW));
+                    newY = Math.max(0, Math.min(newY, imgH - newH));
+
+                    return { x: newX, y: newY, width: newW, height: newH };
+                };
+
+                const applyAlignment = () => {
+                    if (!modeWidget || !ofWidget || !modeWidget.value || !node.imageReady) return;
+                    const m = parseInt(ofWidget.value);
+                    if (!m) return;
+                    const aligned = alignToMultiple(node._cropRect, m, node.imageWidth, node.imageHeight);
+                    node._cropRect.x = aligned.x;
+                    node._cropRect.y = aligned.y;
+                    node._cropRect.width = aligned.width;
+                    node._cropRect.height = aligned.height;
+                };
+
+                const roundRect = (rect) => ({
+                    x: Math.round(rect.x),
+                    y: Math.round(rect.y),
+                    width: Math.round(rect.width),
+                    height: Math.round(rect.height),
+                });
+
+                const isNodeFullyVisible = () => {
+                    if (!app.canvas) return false;
+                    
+                    const ds = app.canvas.ds;
+                    const scale = ds.scale;
+                    const canvasEl = app.canvas.canvas;
+                    const canvasRect = canvasEl.getBoundingClientRect();
+                    
+                    const nodeLeft = node.pos[0];
+                    const nodeTop = node.pos[1];
+                    const nodeRight = node.pos[0] + node.size[0];
+                    const nodeBottom = node.pos[1] + node.size[1];
+                    
+                    const viewportLeft = -ds.offset[0];
+                    const viewportTop = -ds.offset[1];
+                    const viewportRight = viewportLeft + canvasRect.width / scale;
+                    const viewportBottom = viewportTop + canvasRect.height / scale;
+                    
+                    return nodeLeft >= viewportLeft &&
+                           nodeTop >= viewportTop &&
+                           nodeRight <= viewportRight &&
+                           nodeBottom <= viewportBottom;
+                };
+                
                 const updateCropRect = () => {
-                    const jsonStr = JSON.stringify(node._cropRect);
+                    const jsonStr = JSON.stringify(roundRect(node._cropRect));
                     node.properties = node.properties || {};
                     node.properties.crop_rect = jsonStr;
                     if (cropDataWidget) cropDataWidget.value = jsonStr;
@@ -303,6 +446,7 @@ app.registerExtension({
                             }
                         }
                         
+                        applyClamp();
                         updateCropRect();
                     });
                     
@@ -311,6 +455,12 @@ app.registerExtension({
                         _isDragging = false;
                         _isResizing = false;
                         _resizeHandle = null;
+                        
+                        if (modeWidget && ofWidget && modeWidget.value && node.imageReady) {
+                            applyAlignment();
+                            updateCropRect();
+                        }
+                        
                         node._overlayCanvas.releasePointerCapture(e.pointerId || 1);
                     });
                     
@@ -350,10 +500,6 @@ app.registerExtension({
                     ctx.fillRect(cropX + cropW - handleSize/2, cropY - handleSize/2, handleSize, handleSize);
                     ctx.fillRect(cropX - handleSize/2, cropY + cropH - handleSize/2, handleSize, handleSize);
                     ctx.fillRect(cropX + cropW - handleSize/2, cropY + cropH - handleSize/2, handleSize, handleSize);
-                    
-                    ctx.fillStyle = "#ffffff";
-                    ctx.font = "bold 12px Arial";
-                    ctx.fillText(`${Math.round(node._cropRect.width)} x ${Math.round(node._cropRect.height)}`, cropX + 5, cropY + 20);
                 };
                 
                 node.onDrawForeground = function(ctx) {
@@ -377,6 +523,34 @@ app.registerExtension({
                         const startY = titleBarHeight + widgetsTotalHeight + padding + outputSlotsHeight;
                         const availableHeight = h - startY - footerHeight - padding;
                         const availableWidth = w - (padding * 2);
+                        
+                        const cropSizeText = `${Math.round(node._cropRect.width)} x ${Math.round(node._cropRect.height)}`;
+                        const isMultipleOn = modeWidget && modeWidget.value && ofWidget;
+                        const multipleSuffix = isMultipleOn ? ` (×${parseInt(ofWidget.value)})` : "";
+                        const fullText = cropSizeText + multipleSuffix;
+                        
+                        const statusLineY = titleBarHeight + widgetsTotalHeight + 30;
+                        
+                        ctx.font = "14px Arial";
+                        ctx.textBaseline = "top";
+                        
+                        const mainWidth = ctx.measureText(cropSizeText).width;
+                        
+                        if (isMultipleOn) {
+                            const fullWidth = ctx.measureText(fullText).width;
+                            let drawX = (w - fullWidth) / 2;
+                            
+                            ctx.fillStyle = "#aaaaaa";
+                            ctx.textAlign = "left";
+                            ctx.fillText(cropSizeText, drawX, statusLineY);
+                            
+                            ctx.fillStyle = "#FF0000";
+                            ctx.fillText(multipleSuffix, drawX + mainWidth, statusLineY);
+                        } else {
+                            ctx.fillStyle = "#aaaaaa";
+                            ctx.textAlign = "center";
+                            ctx.fillText(cropSizeText, w / 2, statusLineY);
+                        }
                         
                         if (this.imageReady && this.image) {
                             const imgRatio = this.imageWidth / this.imageHeight;
@@ -407,10 +581,10 @@ app.registerExtension({
                             ctx.fillText("Waiting for Image...", w / 2, startY + availableHeight / 2);
                         }
                         
-                        ctx.fillStyle = "#888";
+                        ctx.fillStyle = "#aaaaaa";
                         ctx.font = "11px Arial";
                         ctx.textAlign = "center";
-                        ctx.fillText(this.currentStatus, w / 2, h - 50);
+                        ctx.fillText(this.currentStatus, w / 2, h - 60);
                         
                         const btnH = 28;
                         const btnY = h - 40;
@@ -470,7 +644,7 @@ app.registerExtension({
                 };
                 
                 node.sendDecision = async function(decision) {
-                    const currentCropData = JSON.stringify(node._cropRect);
+                    const currentCropData = JSON.stringify(roundRect(node._cropRect));
                     
                     node.properties = node.properties || {};
                     node.properties.crop_rect = currentCropData;
@@ -482,11 +656,13 @@ app.registerExtension({
                     if (decision === "cancel") {
                         try {
                             await api.interrupt();
-                        } catch (e) { console.error("Interrupt failed:", e); }
+                        } catch (e) {}
                     }
                     
                     if (decision === "reject") {
                         node._cropRect = { x: 0, y: 0, width: 256, height: 256 };
+                        applyClamp();
+                        applyAlignment();
                         updateCropRect();
                     }
 
@@ -531,7 +707,7 @@ app.registerExtension({
                         body: JSON.stringify({ 
                             node_id: this.id.toString()
                         })
-                    }).catch(err => {});
+                    }).catch(() => {});
                 };
                 
                 api.addEventListener("rayko.rscrop.show", (event) => {
@@ -541,25 +717,20 @@ app.registerExtension({
                     if (String(node_id) === String(currentId)) {
                         node.image.src = image_url + "&t=" + Date.now();
                         node.image.onload = () => {
-                            console.log("[RS Crop 🦊] Image loaded, showing overlay");
                             node.imageReady = true;
                             node.imageWidth = image_width || node.image.width;
                             node.imageHeight = image_height || node.image.height;
                             
                             if (node._overlayCanvas) {
                                 node._overlayCanvas.style.display = "block";
-                                console.log("[RS Crop 🦊] Overlay display set to block");
                             }
                             
                             if (node.properties?.crop_rect) {
                                 try {
                                     const r = JSON.parse(node.properties.crop_rect);
-                                    if (r.x >= node.imageWidth) r.x = 0;
-                                    if (r.y >= node.imageHeight) r.y = 0;
-                                    if (r.x + r.width > node.imageWidth) r.width = Math.max(64, node.imageWidth - r.x);
-                                    if (r.y + r.height > node.imageHeight) r.height = Math.max(64, node.imageHeight - r.y);
-                                    node.properties.crop_rect = JSON.stringify(r);
-                                    node._cropRect = r;
+                                    if (r.x !== undefined) node._cropRect = r;
+                                    applyClamp();
+                                    applyAlignment();
                                 } catch (e) {}
                             }
                             
@@ -573,7 +744,9 @@ app.registerExtension({
                         
                         if (node.size[1] < 650) node.setSize([node.size[0], 650]);
                         node.currentStatus = "🖱️ Drag to select crop area, then APPROVE!";
-                        app.canvas.centerOnNode(node);
+                        if (!isNodeFullyVisible()) {
+                            app.canvas.centerOnNode(node);
+                        }
                         node.setDirtyCanvas(true, true);
                     }
                 });

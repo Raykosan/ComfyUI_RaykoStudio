@@ -36,6 +36,14 @@ class RSCropImage:
         inputs = {
             "required": {
                 "image": ("IMAGE",),
+                "multiple_mode": ("BOOLEAN", {
+                    "default": False,
+                    "label_on": "ON",
+                    "label_off": "OFF",
+                }),
+                "multiple_of": (["4", "8", "16", "32", "64"], {
+                    "default": "8",
+                }),
             },
             "optional": {
                 "crop_data": ("STRING", {"multiline": False, "default": "{}"}),
@@ -54,7 +62,8 @@ class RSCropImage:
     CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
 
-    def crop_image(self, image, crop_data="{}", unique_id=None, prompt_id=None):
+    def crop_image(self, image, multiple_mode=False, multiple_of="8",
+                   crop_data="{}", unique_id=None, prompt_id=None):
         unique_id = str(unique_id) if unique_id else "unknown"
         
         if SERVER_AVAILABLE and unique_id:
@@ -120,10 +129,10 @@ class RSCropImage:
         except Exception:
             crop_dict = {}
         
-        x = int(crop_dict.get("x", 0))
-        y = int(crop_dict.get("y", 0))
-        width = int(crop_dict.get("width", 512))
-        height = int(crop_dict.get("height", 512))
+        x = round(crop_dict.get("x", 0))
+        y = round(crop_dict.get("y", 0))
+        width = round(crop_dict.get("width", 512))
+        height = round(crop_dict.get("height", 512))
         
         if image is None or len(image) == 0:
             h, w = 512, 512
@@ -180,19 +189,15 @@ if SERVER_AVAILABLE:
                     PENDING_DECISIONS[node_id]["status"] = "approved"
                     if crop_data:
                         PENDING_DECISIONS[node_id]["crop_data"] = crop_data
-                
                 elif decision == "reject":
                     PENDING_DECISIONS[node_id]["status"] = "rejected"
                     if crop_data is not None:
                         PENDING_DECISIONS[node_id]["crop_data"] = crop_data
-                
                 elif decision == "cancel":
                     PENDING_DECISIONS[node_id]["status"] = "cancelled"
-                    
                 return web.Response(status=200, text="Decision recorded")
             else:
                 return web.Response(status=404, text=f"Node {node_id} not waiting")
-                
         except Exception as e:
             return web.Response(status=500, text=str(e))
 
@@ -201,13 +206,11 @@ if SERVER_AVAILABLE:
         try:
             data = await request.json()
             node_id = str(data.get("node_id"))
-            
             if node_id in PENDING_DECISIONS:
                 PENDING_DECISIONS[node_id]["status"] = "removed"
                 return web.Response(status=200, text="Cleanup recorded")
             else:
                 return web.Response(status=200, text="Node not found")
-                
         except Exception as e:
             return web.Response(status=500, text=str(e))
 

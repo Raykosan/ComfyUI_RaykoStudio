@@ -362,7 +362,8 @@ Connect the image to the `IMAGE` input.
 Run queue (queue request) — the node will pause operation and display the clipping area as a rectangle.  
 Adjust the rectangle borders:  
 - Drag the rectangle — move it entirely  
-- Drag the corner markers — resize the rectangle  
+- Drag the corner markers — resize the rectangle
+
 If necessary turn on "Multiple" and select a multiplier.  
 Click ✔️ ACCEPT button — the node will continue the queue operation and output the cropped image.
 

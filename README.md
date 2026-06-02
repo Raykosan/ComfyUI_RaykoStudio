@@ -334,31 +334,39 @@ height_latent - Latent height (height/8)
 ---
 
 # 🦊 RS Crop Image and 🦊 RS Insert Crop  
-**An interactive node for selecting and cropping images in ComfyUI with a pause in the process. With further insertion of the cut fragment after its modification back into the original image.**  
+**An interactive node that allows you to visually crop an image directly within the node interface. Unlike standard Crop nodes, here you see the image and draw the crop rectangle with your mouse — making the process precise and intuitive.  
+The main feature is the Multiple mode, which guarantees that the cropped image size will be a multiple of a specified number (4, 8, 16, 32, or 64). This is critical when working with VAEs and generative models (SDXL, FLUX, SD 1.5б etc.) that expect certain size multiples.  
+With further insertion of the cut fragment after its modification back into the original image.**  
 
-![Screenshot_1](https://github.com/user-attachments/assets/bc0bc4ee-9721-4d03-ab82-48a79935536b)
+<img width="1380" height="690" alt="Screenshot_2" src="https://github.com/user-attachments/assets/d502da57-ea21-4660-89eb-5839bf966735" />
+
 ![Screenshot_2](https://github.com/user-attachments/assets/31c80d04-1b74-408f-88dc-d65cba0683ff)
 
 ### 🔥 Features  
-**🦊 RS Crop Image** is an interactive node for ComfyUI that allows you to select a rectangular area in an image using drag-and-drop before continuing workflow.  
-Unlike standard crop nodes, this node **suspends the process** and waits for user confirmation, which gives full control over the cropping area.  
-- **Drag-and-Drop** - Selecting an area with the mouse directly in the interface  
-- **Resizing**  - Stretching the frame by the corners  
+- **Interactive cropping** — the image is displayed directly in the node, the rectangle is drawn with the mouse  
 - **Moving** - Dragging the selected area  
 - **Process pause** - Workflow waits for confirmation before continuing  
-- **Visualization** - Real-time area size display
-- **Crop Data** - Output of exact cutout parameters  
+- **Visualization** - Real-time area size display  
+- **Three actions** — Accept, Reset, Cancel  
+- **Smart alignment** — automatic size snapping to a chosen multiple  
+- **Reverse paste support** — the `CROP_DATA` output contains precise coordinates for a second node that can paste the crop back into the original image  
+- **State persistence** — rectangle parameters are saved in the workflow  
+- **Boundary protection** — the rectangle never leaves the image bounds  
 
 **🦊 RS Insert Crop** is a node that allows you to seamlessly insert a previously cut fragment back into the original image after it has been modified by the workflow nodes.  
 - **Crop Data** - Inserting a fragment into the original image using the previously obtained precise cutout parameters.
 
 ### 🪛 Usage  
 **🦊 RS Crop Image**  
-Connect any image to the IMAGE input. Select an area:  
-- LMB + Drag - Create a new selection area  
-- Drag inside the frame - Move the area  
-- Drag around the corners - Change the size of the area  
-Click the button:  
+Connect the image to the `IMAGE` input.  
+Run queue (queue request) — the node will pause operation and display the clipping area as a rectangle.  
+Adjust the rectangle borders:  
+- Drag the rectangle — move it entirely  
+- Drag the corner markers — resize the rectangle  
+If necessary turn on "Multiple" and select a multiplier.  
+Click ✔️ ACCEPT button — the node will continue the queue operation and output the cropped image.
+
+**Button**:  
 ✔️ ACCEPT - Confirm the allocation and continue workflow  
 🔄 RESET - Reset the selection and select again  
 ❌ CANCEL - Cancel and interrupt generation  
@@ -367,6 +375,16 @@ Click the button:
 Connect the original image to the Original Image input.  
 Connect the embedded and modified fragment to the Cropped Image input.  
 Connect the node with the text Crop Data.  
+
+## 🎯 Use Cases  
+**1. Preparing a crop for VAE/generation**  
+Enable `Multiple = ON`, choose `8` (for SD 1.5 / SDXL) or `16`/`64` (for FLUX). The result is guaranteed to be accepted by the VAE without warnings about non-multiple sizes.  
+**2. Precise region editing**  
+Crop the desired area → send it to an inpaint node → after generation, paste the result back using `CROP_DATA`. The reverse paste will be pixel-perfect.  
+**3. Comparing results on the same region**  
+Draw a rectangle, save the parameters → run different models/seeds through the same crop → `CROP_DATA` stays consistent between runs.  
+**4. Isolating a face/object**  
+Scale up the node, draw a precise rectangle around a face, send it to a face-swap or restoration pipeline.  
 
 ### ⚠️ Reminder  
 **The generation process will be suspended indefinitely until you click "✔️ ACCEPT", "❌ CANCEL" or close the workflow or the ComfyUI page.**  

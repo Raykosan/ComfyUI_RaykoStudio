@@ -1,18 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2025-2026 Raykosan (RaykoStudio)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import os
 import time
 import json
@@ -46,6 +31,7 @@ class RSCropImage:
                 }),
             },
             "optional": {
+                "mask": ("MASK",),
                 "crop_data": ("STRING", {"multiline": False, "default": "{}"}),
             }
         }
@@ -63,14 +49,38 @@ class RSCropImage:
     OUTPUT_NODE = True
 
     def crop_image(self, image, multiple_mode=False, multiple_of="8",
-                   crop_data="{}", unique_id=None, prompt_id=None):
+                   mask=None, crop_data="{}", unique_id=None, prompt_id=None):
         unique_id = str(unique_id) if unique_id else "unknown"
+        
+        crop_dict = {}
+        try:
+            crop_dict = json.loads(crop_data.replace("'", '"'))
+        except Exception:
+            crop_dict = {}
+        
+        # Логика вычисления координат по маске
+        if mask is not None and len(mask) > 0:
+            try:
+                m = mask[0]
+                coords = torch.nonzero(m > 0.5)
+                if coords.numel() > 0:
+                    min_y, min_x = coords.min(dim=0)[0].tolist()
+                    max_y, max_x = coords.max(dim=0)[0].tolist()
+                    
+                    crop_dict["x"] = int(min_x)
+                    crop_dict["y"] = int(min_y)
+                    crop_dict["width"] = int(max_x - min_x + 1)
+                    crop_dict["height"] = int(max_y - min_y + 1)
+            except Exception as e:
+                print(f"[RS Crop 🦊] Error processing mask: {e}")
+
+        updated_crop_data = json.dumps(crop_dict)
         
         if SERVER_AVAILABLE and unique_id:
             if unique_id not in PENDING_DECISIONS:
                 PENDING_DECISIONS[unique_id] = {
                     "status": "pending",
-                    "crop_data": crop_data
+                    "crop_data": updated_crop_data
                 }
             
             if prompt_id is None:
@@ -92,7 +102,8 @@ class RSCropImage:
                     "node_id": unique_id,
                     "image_url": f"/view?filename={filename}&type=temp&subfolder={subfolder}",
                     "image_width": img.width,
-                    "image_height": img.height
+                    "image_height": img.height,
+                    "crop_data": updated_crop_data
                 })
             except Exception as e:
                 print(f"[RS Crop 🦊] Error saving image: {e}")
@@ -100,7 +111,7 @@ class RSCropImage:
             while True:
                 state = PENDING_DECISIONS.get(unique_id, {})
                 current_status = state.get("status", "pending")
-                current_crop_data = state.get("crop_data", crop_data)
+                current_crop_data = state.get("crop_data", updated_crop_data)
                 
                 if current_status == "approved":
                     crop_data = current_crop_data
@@ -120,19 +131,18 @@ class RSCropImage:
                 
                 if current_status == "rejected":
                     PENDING_DECISIONS[unique_id]["status"] = "pending"
-                    crop_data = current_crop_data
                 
                 time.sleep(0.3)
 
         try:
-            crop_dict = json.loads(crop_data.replace("'", '"'))
+            final_crop_dict = json.loads(crop_data.replace("'", '"'))
         except Exception:
-            crop_dict = {}
+            final_crop_dict = {}
         
-        x = round(crop_dict.get("x", 0))
-        y = round(crop_dict.get("y", 0))
-        width = round(crop_dict.get("width", 512))
-        height = round(crop_dict.get("height", 512))
+        x = round(final_crop_dict.get("x", 0))
+        y = round(final_crop_dict.get("y", 0))
+        width = round(final_crop_dict.get("width", 512))
+        height = round(final_crop_dict.get("height", 512))
         
         if image is None or len(image) == 0:
             h, w = 512, 512

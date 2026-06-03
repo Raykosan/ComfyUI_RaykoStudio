@@ -711,7 +711,7 @@ app.registerExtension({
                 };
                 
                 api.addEventListener("rayko.rscrop.show", (event) => {
-                    const { node_id, image_url, image_width, image_height } = event.detail;
+                    const { node_id, image_url, image_width, image_height, crop_data } = event.detail;
                     const currentId = node.id;
                     
                     if (String(node_id) === String(currentId)) {
@@ -721,17 +721,30 @@ app.registerExtension({
                             node.imageWidth = image_width || node.image.width;
                             node.imageHeight = image_height || node.image.height;
                             
-                            if (node._overlayCanvas) {
-                                node._overlayCanvas.style.display = "block";
-                            }
-                            
-                            if (node.properties?.crop_rect) {
+                            if (crop_data) {
+                                try {
+                                    const r = JSON.parse(crop_data);
+                                    if (r.x !== undefined) {
+                                        node._cropRect = { x: r.x, y: r.y, width: r.width, height: r.height };
+                                        node.properties = node.properties || {};
+                                        node.properties.crop_rect = crop_data;
+                                        if (cropDataWidget) cropDataWidget.value = crop_data;
+                                    }
+                                } catch (e) {
+                                    console.error("[RS Crop 🦊] Error parsing crop_data from event:", e);
+                                }
+                            } else if (node.properties?.crop_rect && node.properties.crop_rect !== "{}") {
                                 try {
                                     const r = JSON.parse(node.properties.crop_rect);
                                     if (r.x !== undefined) node._cropRect = r;
-                                    applyClamp();
-                                    applyAlignment();
                                 } catch (e) {}
+                            }
+                            
+                            applyClamp();
+                            applyAlignment();
+                            
+                            if (node._overlayCanvas) {
+                                node._overlayCanvas.style.display = "block";
                             }
                             
                             setTimeout(() => {
@@ -743,7 +756,7 @@ app.registerExtension({
                         };
                         
                         if (node.size[1] < 650) node.setSize([node.size[0], 650]);
-                        node.currentStatus = "🖱️ Drag to select crop area, then APPROVE!";
+                        node.currentStatus = crop_data ? "🎯 Auto-cropped by mask. APPROVE!" : "🖱️ Drag to select crop area, then APPROVE!";
                         if (!isNodeFullyVisible()) {
                             app.canvas.centerOnNode(node);
                         }

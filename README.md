@@ -336,10 +336,16 @@ height_latent - Latent height (height/8)
 # 🦊 RS Crop Image and 🦊 RS Insert Crop  
 **An interactive node that allows you to visually crop an image directly within the node interface. Unlike standard Crop nodes, here you see the image and draw the crop rectangle with your mouse — making the process precise and intuitive.  
 The main feature is the Multiple mode, which guarantees that the cropped image size will be a multiple of a specified number (4, 8, 16, 32, or 64). This is critical when working with VAEs and generative models (SDXL, FLUX, SD 1.5б etc.) that expect certain size multiples.  
-With further insertion of the cut fragment after its modification back into the original image.**  
+With further insertion of the cut fragment after its modification back into the original image.  
+Automatically detect and crop regions of interest using masks. When a mask is connected, the node analyzes it and sets the crop area to the bounding box of all non-zero pixels.**  
 
+### Usage only image
 <img width="1380" height="690" alt="Screenshot_2" src="https://github.com/user-attachments/assets/d502da57-ea21-4660-89eb-5839bf966735" />
 
+### Usage with mask
+<img width="1526" height="773" alt="Screenshot_2" src="https://github.com/user-attachments/assets/edeaf451-f620-40d4-8a62-5b1e36354b30" />
+
+### Usage Insert Crop
 ![Screenshot_2](https://github.com/user-attachments/assets/31c80d04-1b74-408f-88dc-d65cba0683ff)
 
 ### 🔥 Features  
@@ -348,24 +354,35 @@ With further insertion of the cut fragment after its modification back into the 
 - **Process pause** - Workflow waits for confirmation before continuing  
 - **Visualization** - Real-time area size display  
 - **Three actions** — Accept, Reset, Cancel  
-- **Smart alignment** — automatic size snapping to a chosen multiple  
-- **Reverse paste support** — the `CROP_DATA` output contains precise coordinates for a second node that can paste the crop back into the original image  
-- **State persistence** — rectangle parameters are saved in the workflow  
-- **Boundary protection** — the rectangle never leaves the image bounds  
+- **Smart alignment** — Automatic size snapping to a chosen multiple  
+- **Reverse paste support** — The `CROP_DATA` output contains precise coordinates for a second node that can paste the crop back into the original image  
+- **State persistence** — Rectangle parameters are saved in the workflow  
+- **Boundary protection** — The rectangle never leaves the image bounds  
+- **Automatic Bounding Box Detection** — Calculates crop coordinates from the extreme points of the mask (leftmost, rightmost, top, bottom)  
+- **Smart Thresholding** — Uses a 0.5 threshold to determine active mask pixels  
+- **Seamless Integration** — Works with existing multiple_mode for grid-aligned cropping  
+- **Visual Feedback** — Crop rectangle appears automatically on the overlay when mask is connected  
 
 **🦊 RS Insert Crop** is a node that allows you to seamlessly insert a previously cut fragment back into the original image after it has been modified by the workflow nodes.  
 - **Crop Data** - Inserting a fragment into the original image using the previously obtained precise cutout parameters.
 
-### 🪛 Usage  
+### 🪛 Usage only image  
 **🦊 RS Crop Image**  
 Connect the image to the `IMAGE` input.  
 Run queue (queue request) — the node will pause operation and display the clipping area as a rectangle.  
 Adjust the rectangle borders:  
 - Drag the rectangle — move it entirely  
-- Drag the corner markers — resize the rectangle
+- Drag the corner markers — resize the rectangle  
 
 If necessary turn on "Multiple" and select a multiplier.  
-Click ✔️ ACCEPT button — the node will continue the queue operation and output the cropped image.
+Click ✔️ ACCEPT button — the node will continue the queue operation and output the cropped image.  
+
+### 🪛 Usage with mask  
+Connect your image to the image input  
+Connect a mask to the mask input  
+The crop area will automatically adjust to fit the mask boundaries  
+If multiple_mode is ON, the crop box will be aligned to the specified multiple (8, 16, 32, 64, etc.)  
+Click ✔️ ACCEPT to apply the crop or adjust manually  
 
 **Button**:  
 ✔️ ACCEPT - Confirm the allocation and continue workflow  

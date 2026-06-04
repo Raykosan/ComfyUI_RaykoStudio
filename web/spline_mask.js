@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2025-2026 Raykosan (RaykoStudio)
 console.log("[SPLINE 🦊] spline_mask.js LOADED!");
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
@@ -13,7 +15,7 @@ app.registerExtension({
             const result = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
             const node = this;
             
-            // Инициализация данных (как в Styles Loader)
+            // Инициализация данных
             node.data = {
                 selected_image: "",
                 spline_coords: "[]"
@@ -27,38 +29,26 @@ app.registerExtension({
             const imageWidget = node.widgets?.find(w => w.name === "image");
             const coordsWidget = node.widgets?.find(w => w.name === "coordinates");
             
-            // Скрываем виджеты (как в Styles Loader)
+            // Скрываем виджеты
             if (imageWidget) {
                 imageWidget.hidden = true;
-                if (imageWidget.element) {
-                    imageWidget.element.style.display = "none";
-                }
+                if (imageWidget.element) imageWidget.element.style.display = "none";
             }
             if (coordsWidget) {
                 coordsWidget.hidden = true;
-                if (coordsWidget.element) {
-                    coordsWidget.element.style.display = "none";
-                }
+                if (coordsWidget.element) coordsWidget.element.style.display = "none";
             }
             
             // Загружаем сохраненные данные из виджетов
-            if (imageWidget && imageWidget.value) {
-                node.data.selected_image = imageWidget.value;
-            }
-            if (coordsWidget && coordsWidget.value) {
-                node.data.spline_coords = coordsWidget.value;
-            }
+            if (imageWidget && imageWidget.value) node.data.selected_image = imageWidget.value;
+            if (coordsWidget && coordsWidget.value) node.data.spline_coords = coordsWidget.value;
             
-            // Переопределяем serializeValue для виджетов (как в Styles Loader)
+            // Переопределяем serializeValue для виджетов
             if (imageWidget) {
-                imageWidget.serializeValue = () => {
-                    return node.data.selected_image;
-                };
+                imageWidget.serializeValue = () => node.data.selected_image;
             }
             if (coordsWidget) {
-                coordsWidget.serializeValue = () => {
-                    return node.data.spline_coords;
-                };
+                coordsWidget.serializeValue = () => node.data.spline_coords;
             }
             
             // Состояние
@@ -85,29 +75,20 @@ app.registerExtension({
             let _animationId = null;
             let _lastRect = null;
             
-            // Функция синхронизации (как в Styles Loader)
             const syncData = () => {
                 node.data.spline_coords = JSON.stringify(_points);
-                if (coordsWidget) {
-                    coordsWidget.value = node.data.spline_coords;
-                }
-                // Отмечаем изменение графа
-                if (node.graph) {
-                    node.graph.changeTracker?.dispatchEvent(new Event("change"));
-                }
+                if (coordsWidget) coordsWidget.value = node.data.spline_coords;
+                if (node.graph) node.graph.changeTracker?.dispatchEvent(new Event("change"));
                 drawOverlay();
                 node.setDirtyCanvas(true, true);
             };
             
-            // Загрузка изображения
             node.loadImage = function(imagePath) {
                 if (!imagePath || node.imageLoading) return;
                 
                 node.imageLoading = true;
                 node.data.selected_image = imagePath;
-                if (imageWidget) {
-                    imageWidget.value = imagePath;
-                }
+                if (imageWidget) imageWidget.value = imagePath;
                 
                 let filename = imagePath;
                 let subfolder = "";
@@ -130,11 +111,7 @@ app.registerExtension({
                     _lastRect = null;
                     syncPosition();
                     node.setDirtyCanvas(true, true);
-                    
-                    // Отмечаем изменение графа
-                    if (node.graph) {
-                        node.graph.changeTracker?.dispatchEvent(new Event("change"));
-                    }
+                    if (node.graph) node.graph.changeTracker?.dispatchEvent(new Event("change"));
                 };
                 img.onerror = () => {
                     node.imageLoaded = false;
@@ -144,7 +121,6 @@ app.registerExtension({
                 img.src = imgUrl;
             };
             
-            // DnD: Функция загрузки из файла (переиспользуем логику UPLOAD)
             const uploadFileAndLoad = async (file) => {
                 if (!file || !file.type.startsWith('image/')) {
                     console.log("[SPLINE 🦊] Not an image file");
@@ -171,8 +147,56 @@ app.registerExtension({
                 }
                 return false;
             };
+
+            // ✅ НОВОЕ: Глобальный перехват дропа с проверкой координат ноды
+            // Это решает проблему, когда _overlayCanvas скрыт (display: none)
+            const handleCanvasDrop = (e) => {
+                if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+                
+                // Проверяем, находится ли курсор над этой конкретной нодой
+                const rect = app.canvas.canvas.getBoundingClientRect();
+                const ds = app.canvas.ds;
+                const nodeX = rect.left + ((node.pos[0] + ds.offset[0]) * ds.scale);
+                const nodeY = rect.top + ((node.pos[1] + ds.offset[1]) * ds.scale);
+                const nodeW = node.size[0] * ds.scale;
+                const nodeH = node.size[1] * ds.scale;
+                
+                if (e.clientX >= nodeX && e.clientX <= nodeX + nodeW && 
+                    e.clientY >= nodeY && e.clientY <= nodeY + nodeH) {
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const file = e.dataTransfer.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        console.log("[SPLINE 🦊] Canvas intercepted drop for node:", file.name);
+                        uploadFileAndLoad(file);
+                    }
+                }
+            };
+
+            const handleCanvasDragOver = (e) => {
+                if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+                
+                const rect = app.canvas.canvas.getBoundingClientRect();
+                const ds = app.canvas.ds;
+                const nodeX = rect.left + ((node.pos[0] + ds.offset[0]) * ds.scale);
+                const nodeY = rect.top + ((node.pos[1] + ds.offset[1]) * ds.scale);
+                const nodeW = node.size[0] * ds.scale;
+                const nodeH = node.size[1] * ds.scale;
+                
+                if (e.clientX >= nodeX && e.clientX <= nodeX + nodeW && 
+                    e.clientY >= nodeY && e.clientY <= nodeY + nodeH) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Визуальный фидбек можно добавить здесь, если захочется
+                }
+            };
+
+            // Регистрируем слушатели с capture: true, чтобы перехватить событие ДО глобального обработчика ComfyUI
+            app.canvas.canvas.addEventListener('dragover', handleCanvasDragOver, { capture: true });
+            app.canvas.canvas.addEventListener('drop', handleCanvasDrop, { capture: true });
             
-            // Остальные методы
             node.showImageSelector = function() {
                 const self = this;
                 const existingMenu = document.querySelector('.spline-image-menu');
@@ -274,7 +298,6 @@ app.registerExtension({
                 syncData();
             };
             
-            // Расчет позиции изображения
             const calculateImageRect = () => {
                 if (!app.canvas) return null;
                 
@@ -401,7 +424,6 @@ app.registerExtension({
                 `;
                 document.body.appendChild(_overlayCanvas);
                 
-                // DnD: Обработчики Drag & Drop
                 _overlayCanvas.addEventListener("dragover", (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -424,7 +446,7 @@ app.registerExtension({
                     
                     const file = e.dataTransfer.files[0];
                     if (file && file.type.startsWith('image/')) {
-                        console.log("[SPLINE 🦊] DnD file:", file.name);
+                        console.log("[SPLINE 🦊] Overlay DnD file:", file.name);
                         await uploadFileAndLoad(file);
                     } else if (file) {
                         console.log("[SPLINE 🦊] Not an image file:", file.type);
@@ -464,7 +486,6 @@ app.registerExtension({
                     }
                 });
                 
-                // Постоянный цикл синхронизации позиции
                 const updateLoop = () => {
                     if (!_overlayCanvas) return;
                     syncPosition();
@@ -473,7 +494,6 @@ app.registerExtension({
                 updateLoop();
             };
             
-            // Отрисовка ноды
             node.onDrawForeground = function(ctx) {
                 if (this.flags.collapsed) return;
                 
@@ -496,7 +516,6 @@ app.registerExtension({
                 const availableHeight = h - startY - footerHeight - padding;
                 const availableWidth = w - (padding * 2);
                 
-                // Рисуем изображение
                 if (this.imageLoaded && this.image) {
                     const imgRatio = this.image.width / this.image.height;
                     let drawW, drawH;
@@ -524,7 +543,6 @@ app.registerExtension({
                     ctx.fillText("Select Image...", w / 2, startY + availableHeight / 2);
                 }
                 
-                // Рисуем кнопки
                 for (let i = 0; i < this.buttons.length; i++) {
                     const btn = this.buttons[i];
                     btn.x = 15 + (i * (btnW + 5));
@@ -544,7 +562,6 @@ app.registerExtension({
                 }
             };
             
-            // Обработка кликов по кнопкам
             node.onMouseMove = function(event, pos) {
                 const [x, y] = pos;
                 let changed = false;
@@ -579,7 +596,6 @@ app.registerExtension({
                 syncPosition();
             };
             
-            // Восстановление при загрузке
             const onConfigure = node.onConfigure;
             node.onConfigure = function(o) {
                 if (onConfigure) onConfigure.apply(this, arguments);
@@ -595,7 +611,6 @@ app.registerExtension({
                 }
             };
             
-            // Очистка при удалении ноды
             const originalOnRemoved = node.onRemoved;
             node.onRemoved = function() {
                 if (_animationId) {
@@ -605,10 +620,14 @@ app.registerExtension({
                 if (_overlayCanvas) _overlayCanvas.remove();
                 const menu = document.querySelector('.spline-image-menu');
                 if (menu) menu.remove();
+                
+                // ✅ НОВОЕ: Очистка глобальных слушателей при удалении ноды (предотвращает утечки памяти)
+                app.canvas.canvas.removeEventListener('dragover', handleCanvasDragOver, { capture: true });
+                app.canvas.canvas.removeEventListener('drop', handleCanvasDrop, { capture: true });
+                
                 if (originalOnRemoved) originalOnRemoved.apply(this, arguments);
             };
             
-            // Создаем overlay и загружаем изображение
             createOverlayCanvas();
             if (node.data.selected_image) {
                 node.loadImage(node.data.selected_image);

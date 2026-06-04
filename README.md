@@ -225,7 +225,7 @@ height - Final output height (after optional resize)
 The node has the functionality of the native Load Image node, but instead of the native mask editor, a built-in spline editor is used. More accurate selection based on the principle of the Lasso tool from Photoshop.  
 
 ### 🪛 Usage  
-The node is ready for use immediately after it is added. Images are added using the "🎨 IMAGE" (images from the input folder) and "🖼️ UPLOAD IMAGE" (images from any folder on your PC) buttons. You can scale the node to a convenient size to more accurately place the points of the spline. Incorrectly positioned points can be deleted by right-clicking on them. To remove all points from the preview area, click the "🔴 CLEAR POINTS" button.  
+The node is ready for use immediately after it is added. Images are added using the "🎨 IMAGE" (images from the input folder) and "🖼️ UPLOAD IMAGE" (images from any folder on your PC) buttons. You can scale the node to a convenient size to more accurately place the points of the spline. Incorrectly positioned points can be deleted by left-clicking with the CTRL key held down. To remove all points from the preview area, click the "🔴 CLEAR POINTS" button.  
 
 ### ↔️ Inputs and Outputs:  
 The IMAGE output returns the original image unchanged. The MASK output returns a black and white mask where the white area corresponds to the drawn polygon.  
@@ -242,7 +242,7 @@ The IMAGE output returns the original image unchanged. The MASK output returns a
 Node allows you to pause the workflow at the image processing stage, manually select the desired area and continue generation without completely restarting the process. More accurate selection based on the principle of the Lasso tool from Photoshop.  
 
 ### 🪛 Usage  
-When this node is reached, pipeline execution is automatically suspended. A preview of the input image is displayed in the node's interface. The user can left-click to add polygon points and right-click or Ctrl-click to delete the last points.  
+When this node is reached, pipeline execution is automatically suspended. A preview of the input image is displayed in the node's interface.  The user can left-click to add polygon points. Incorrectly positioned points can be deleted by left-clicking with the CTRL key held down.    
 The "✔️ ACCEPT" button confirms the created mask, after which the node completes processing and transmits the data further according to the scheme. The "🔴 CLEAR POINTS" button clears all the drawn points for redrawing. It is important that after using this button, you do not need to press the Prompt Queue again, just draw a new mask and press "✔️ ACCEPT". The "❌ CANCEL" button completely interrupts the process and resets the node status.  
 
 ### ↔️ Inputs and Outputs:

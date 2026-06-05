@@ -111,8 +111,10 @@ class RSPrompts:
         tokens_pos = clip.tokenize(current_text)
         pos_cond = clip.encode_from_tokens_scheduled(tokens_pos)
         
-        tokens_neg = clip.tokenize("")
-        neg_cond = clip.encode_from_tokens_scheduled(tokens_neg)
+        neg_cond = []
+        for t in pos_cond:
+            d = t[1].copy() if len(t) > 1 else {}
+            neg_cond.append((torch.zeros_like(t[0]), d))
 
         return {
             "ui": {"text": [current_text]},

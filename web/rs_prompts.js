@@ -10,68 +10,14 @@ styleBlock.innerHTML = `
     textarea.comfy-multiline-input:disabled { opacity: 0.5 !important; color: #888 !important; }
     .rs-waiting-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        top: 0; left: 0; right: 0; bottom: 0;
         background: rgba(0,0,0,0.85);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        z-index: 10000; border-radius: 8px;
     }
     .rs-waiting-message {
-        background: #2a2a2a;
-        padding: 20px;
-        border-radius: 8px;
-        border: 1px solid #5090cc;
-        text-align: center;
-    }
-    .rs-toggle-switch {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        cursor: pointer;
-        gap: 6px;
-    }
-    .rs-toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-        position: absolute;
-    }
-    .rs-toggle-slider {
-        position: relative;
-        display: inline-block;
-        width: 36px;
-        height: 18px;
-        background-color: #444;
-        border-radius: 18px;
-        transition: 0.3s;
-        cursor: pointer;
-    }
-    .rs-toggle-slider:before {
-        position: absolute;
-        content: "";
-        height: 14px;
-        width: 14px;
-        left: 2px;
-        bottom: 2px;
-        background-color: white;
-        border-radius: 50%;
-        transition: 0.3s;
-    }
-    input:checked + .rs-toggle-slider {
-        background-color: #28a745;
-    }
-    input:checked + .rs-toggle-slider:before {
-        transform: translateX(18px);
-    }
-    .rs-toggle-label {
-        font-size: 11px;
-        color: #ccc;
-        user-select: none;
+        background: #2a2a2a; padding: 20px; border-radius: 8px;
+        border: 1px solid #fbbf24; text-align: center;
     }
 `;
 document.head.appendChild(styleBlock);
@@ -88,10 +34,123 @@ app.registerExtension({
         if (nodeData.name !== NODE_CLASS) return;
         
         const origOnNodeCreated = nodeType.prototype.onNodeCreated;
+        const origOnConfigure = nodeType.prototype.onConfigure;
+        const origSerialize = nodeType.prototype.serialize;
+        const origOnRemoved = nodeType.prototype.onRemoved;
+        
+        nodeType.prototype.onConfigure = function(data) {
+            const result = origOnConfigure ? origOnConfigure.apply(this, arguments) : undefined;
+            
+            if (this.properties?.rs_instance_uid && this.widgets) {
+                const uidWidget = this.widgets.find(w => w.name === "instance_uid");
+                if (uidWidget) {
+                    uidWidget.value = this.properties.rs_instance_uid;
+                }
+            }
+            
+            if (this.widgets) {
+                const pauseWidget = this.widgets.find(w => w.name === "pause_for_edit");
+                const disableWidget = this.widgets.find(w => w.name === "disable_text_input");
+                
+                if (pauseWidget && this.properties?.rs_pause_state !== undefined) {
+                    pauseWidget.value = this.properties.rs_pause_state;
+                }
+                if (disableWidget && this.properties?.rs_disable_state !== undefined) {
+                    disableWidget.value = this.properties.rs_disable_state;
+                }
+            }
+            
+            setTimeout(() => {
+                if (this.restoreFromProperties) {
+                    this.restoreFromProperties();
+                }
+            }, 100);
+            
+            return result;
+        };
+        
+        nodeType.prototype.serialize = function() {
+            if (this.properties && this.widgets) {
+                const uidWidget = this.widgets.find(w => w.name === "instance_uid");
+                if (uidWidget && uidWidget.value) {
+                    this.properties.rs_instance_uid = uidWidget.value;
+                }
+            }
+            
+            if (this.widgets) {
+                const pauseWidget = this.widgets.find(w => w.name === "pause_for_edit");
+                const disableWidget = this.widgets.find(w => w.name === "disable_text_input");
+                
+                if (pauseWidget && this.properties) {
+                    this.properties.rs_pause_state = pauseWidget.value;
+                }
+                if (disableWidget && this.properties) {
+                    this.properties.rs_disable_state = disableWidget.value;
+                }
+            }
+            
+            const result = origSerialize ? origSerialize.apply(this, arguments) : {};
+            return result;
+        };
         
         nodeType.prototype.onNodeCreated = function () {
             const result = origOnNodeCreated?.apply(this, arguments);
             const node = this;
+
+            if (!node.properties) {
+                node.properties = {};
+            }
+            
+            let instanceUid = node.properties.rs_instance_uid;
+            
+            if (!instanceUid) {
+                const uidWidget = node.widgets?.find(w => w.name === "instance_uid");
+                if (uidWidget && uidWidget.value) {
+                    instanceUid = uidWidget.value;
+                } else {
+                    instanceUid = 'rs_inst_' + crypto.randomUUID().replace(/-/g, '');
+                }
+                node.properties.rs_instance_uid = instanceUid;
+            }
+            
+            if (node.properties.rs_pause_state === undefined) {
+                const pauseWidget = node.widgets?.find(w => w.name === "pause_for_edit");
+                node.properties.rs_pause_state = pauseWidget ? pauseWidget.value : false;
+            }
+            if (node.properties.rs_disable_state === undefined) {
+                const disableWidget = node.widgets?.find(w => w.name === "disable_text_input");
+                node.properties.rs_disable_state = disableWidget ? disableWidget.value : false;
+            }
+            if (node.properties.rs_is_waiting === undefined) {
+                node.properties.rs_is_waiting = false;
+            }
+            if (node.properties.rs_waiting_prompt === undefined) {
+                node.properties.rs_waiting_prompt = "";
+            }
+            if (node.properties.rs_waiting_timestamp === undefined) {
+                node.properties.rs_waiting_timestamp = 0;
+            }
+
+            const textWidget = node.widgets?.find(w => w.name === "text");
+            const pauseWidget = node.widgets?.find(w => w.name === "pause_for_edit");
+            const disableWidget = node.widgets?.find(w => w.name === "disable_text_input");
+            const uidWidget = node.widgets?.find(w => w.name === "instance_uid");
+            
+            if (uidWidget) {
+                uidWidget.value = instanceUid;
+                uidWidget.hidden = true;
+                uidWidget.serializeValue = () => node.properties.rs_instance_uid;
+            }
+            if (textWidget) {
+                textWidget.hidden = true;
+            }
+
+            if (pauseWidget) {
+                pauseWidget.value = node.properties.rs_pause_state;
+            }
+            if (disableWidget) {
+                disableWidget.value = node.properties.rs_disable_state;
+            }
 
             const hidePhantomSlot = () => {
                 if (node.inputs) {
@@ -106,44 +165,8 @@ app.registerExtension({
             };
             setTimeout(hidePhantomSlot, 0);
 
-            const textWidget = node.widgets?.find(w => w.name === "text");
-            const pauseWidget = node.widgets?.find(w => w.name === "pause_for_edit");
-            const disableWidget = node.widgets?.find(w => w.name === "disable_text_input");
-            
-            if (pauseWidget) {
-                pauseWidget.hidden = true;
-            }
-            
-            if (disableWidget) {
-                disableWidget.hidden = true;
-            }
-            
-            if (textWidget) textWidget.hidden = true;
-
-            const enableWidgets = () => {
-                if (textWidget) {
-                    textWidget.disabled = false;
-                    textWidget.serializeValue = () => textWidget.value;
-                }
-            };
-            setTimeout(enableWidgets, 50);
-
-            const origOnConnectionsChange = node.onConnectionsChange;
-            node.onConnectionsChange = function(slotType, slotIndex, isConnected, link, linkInfo) {
-                if (origOnConnectionsChange) origOnConnectionsChange.apply(this, arguments);
-                setTimeout(enableWidgets, 50);
-                setTimeout(() => updateStatusIndicator(), 10);
-                setTimeout(() => {
-                    if (pauseModeEnabled && !canPauseBeActive()) {
-                        pauseModeEnabled = false;
-                        if (pauseWidget) pauseWidget.value = false;
-                        updateUIForPauseMode(false);
-                    }
-                }, 10);
-            };
-
             let waitingOverlay = null;
-            let pauseModeEnabled = false;
+            let enforcementInterval = null;
             
             const removeWaitingOverlay = () => {
                 if (waitingOverlay && waitingOverlay.parentNode) {
@@ -157,9 +180,9 @@ app.registerExtension({
                 waitingOverlay = mkEl("div", "rs-waiting-overlay");
                 const messageDiv = mkEl("div", "rs-waiting-message");
                 messageDiv.innerHTML = `
-                    <div style="color:#aadaff; font-size:14px; margin-bottom:10px;">✏️ EDITING MODE</div>
+                    <div style="color:#fbbf24; font-size:14px; margin-bottom:10px; font-weight:bold;">✏️ EDITING MODE</div>
                     <div style="color:#ccc; font-size:12px;">Edit the prompt below and click APPROVE</div>
-                    <div style="color:#666; font-size:10px; margin-top:8px;">⏳ Waiting for your decision...</div>
+                    <div style="color:#888; font-size:10px; margin-top:8px;">⏳ Waiting for your decision...</div>
                 `;
                 waitingOverlay.appendChild(messageDiv);
                 const domWidget = node.domWidgets?.find(w => w.name === "prompt_ui");
@@ -171,73 +194,16 @@ app.registerExtension({
 
             const root = mkEl("div", "display:flex;flex-direction:column;height:100%;padding:0;margin:0;box-sizing:border-box;overflow:hidden;position:relative;");
             
-            const disableRow = mkEl("div", "display:flex;align-items:center;justify-content:flex-start;padding:4px 6px 2px 6px;background:#1a1a1a;");
-            const disableToggleContainer = mkEl("label", "rs-toggle-switch");
-            const disableToggleInput = document.createElement("input");
-            disableToggleInput.type = "checkbox";
-            const disableToggleSlider = mkEl("span", "rs-toggle-slider");
-            const disableToggleLabel = mkEl("span", "rs-toggle-label");
-            disableToggleLabel.textContent = "🔘 Disable text input";
-            
-            disableToggleContainer.appendChild(disableToggleInput);
-            disableToggleContainer.appendChild(disableToggleSlider);
-            disableToggleContainer.appendChild(disableToggleLabel);
-            disableRow.appendChild(disableToggleContainer);
-            
-            const pauseRow = mkEl("div", "display:flex;align-items:center;justify-content:space-between;padding:2px 6px 4px 6px;background:#1a1a1a;border-bottom:1px solid #333;gap:4px;");
-            
-            const toggleContainer = mkEl("label", "rs-toggle-switch");
-            const toggleInput = document.createElement("input");
-            toggleInput.type = "checkbox";
-            const toggleSlider = mkEl("span", "rs-toggle-slider");
-            const toggleLabel = mkEl("span", "rs-toggle-label");
-            toggleLabel.textContent = "⏸️ Pause for edit";
-            
-            toggleContainer.appendChild(toggleInput);
-            toggleContainer.appendChild(toggleSlider);
-            toggleContainer.appendChild(toggleLabel);
-            
-            const statusIndicator = mkEl("div", "font-size:10px;padding:2px 6px;border-radius:4px;background:#2a2a2a;color:#ccc;");
-            statusIndicator.textContent = "📝 Local prompt";
-            
-            pauseRow.appendChild(toggleContainer);
-            pauseRow.appendChild(statusIndicator);
-            
-            root.appendChild(disableRow);
-            root.appendChild(pauseRow);
+            const statusBar = mkEl("div", "width:100%; padding: 4px 8px; font-size: 11px; font-weight: bold; text-align: center; border-radius: 4px 4px 0 0; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; line-height: 1.2;");
+            root.appendChild(statusBar);
             
             const customTextarea = document.createElement("textarea");
             customTextarea.className = "rs-custom-textarea";
-            customTextarea.style.cssText = "flex:1;width:100%;min-height:0;border:none;border-radius:4px;padding:8px;background:#111;color:#fff;font-family:system-ui,sans-serif;font-size:12px;resize:none;outline:none;box-sizing:border-box;";
+            customTextarea.style.cssText = "flex:1;width:100%;min-height:0;border:1px solid #444;border-radius:4px;padding:8px;background:#111;color:#fff;font-family:system-ui,sans-serif;font-size:12px;resize:none;outline:none;box-sizing:border-box;";
             customTextarea.placeholder = "Enter your prompt here...";
-            
-            const storageKey = `rs_prompt_${node.id}`;
-            
-            if (textWidget) {
-                const savedValue = localStorage.getItem(storageKey);
-                if (savedValue && !textWidget.value) {
-                    textWidget.value = savedValue;
-                }
-                customTextarea.value = textWidget.value || "";
-                textWidget.value = customTextarea.value;
-            } else {
-                const savedValue = localStorage.getItem(storageKey);
-                if (savedValue) {
-                    customTextarea.value = savedValue;
-                }
-            }
-            
-            customTextarea.addEventListener("input", () => {
-                if (textWidget) {
-                    textWidget.value = customTextarea.value;
-                }
-                localStorage.setItem(storageKey, customTextarea.value);
-                node.graph?.setDirtyCanvas(true, true);
-            });
-            
             root.appendChild(customTextarea);
 
-            const buttonsWrapper = mkEl("div", "width:100%;display:flex;flex-direction:column;gap:4px;padding:4px;box-sizing:border-box;");
+            const buttonsWrapper = mkEl("div", "width:100%;display:flex;flex-direction:column;gap:4px;padding:4px;box-sizing:border-box;margin-top:4px;");
             
             const clearRow = mkEl("div", "display:flex;gap:4px;width:100%;");
             const clearBtn = mkEl("button", "flex:1;padding:6px 2px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;");
@@ -258,13 +224,6 @@ app.registerExtension({
             rejectEditBtn.textContent = "❌ REJECT (use original)";
             actionRow.append(acceptEditBtn, rejectEditBtn);
             
-            acceptEditBtn.disabled = true;
-            acceptEditBtn.style.opacity = "0.5";
-            acceptEditBtn.style.cursor = "not-allowed";
-            rejectEditBtn.disabled = true;
-            rejectEditBtn.style.opacity = "0.5";
-            rejectEditBtn.style.cursor = "not-allowed";
-
             buttonsWrapper.append(clearRow, btnRow, actionRow);
             root.appendChild(buttonsWrapper);
 
@@ -309,161 +268,249 @@ app.registerExtension({
 
             const canPauseBeActive = () => {
                 const hasConnection = hasTextInputConnection();
-                const isDisabled = disableToggleInput.checked;
+                const isDisabled = node.properties.rs_disable_state;
                 return hasConnection && !isDisabled;
             };
 
-            const updateStatusIndicator = () => {
-                if (pauseModeEnabled) {
-                    statusIndicator.innerHTML = `<span style='color:#28a745'>⏸️ WAITING FOR EDIT</span>`;
-                    statusIndicator.style.background = "#1a3a1a";
-                    return;
-                }
-                
-                const hasConnection = hasTextInputConnection();
-                const isDisabled = disableToggleInput.checked;
-                
-                if (!hasConnection) {
-                    statusIndicator.innerHTML = `<span style='color:#aadaff'>📝 Local prompt</span>`;
-                } else if (hasConnection && !isDisabled) {
-                    statusIndicator.innerHTML = `<span style='color:#aadaff'>🔌 External input</span>`;
-                } else if (hasConnection && isDisabled) {
-                    statusIndicator.innerHTML = `<span style='color:#aadaff'>📝 Local prompt</span>`;
-                }
-                
-                statusIndicator.style.background = "#2a2a2a";
+            const getCurrentUid = () => {
+                return node.properties?.rs_instance_uid || 
+                       node.widgets?.find(w => w.name === "instance_uid")?.value;
             };
 
-            const updateUIForPauseMode = (isPaused) => {
-                if (isPaused) {
-                    clearBtn.disabled = true;
-                    clearBtn.style.opacity = "0.5";
-                    clearBtn.style.cursor = "not-allowed";
-                    saveBtn.disabled = true;
-                    saveBtn.style.opacity = "0.5";
-                    saveBtn.style.cursor = "not-allowed";
-                    selectBtn.disabled = true;
-                    selectBtn.style.opacity = "0.5";
-                    selectBtn.style.cursor = "not-allowed";
-                    
-                    acceptEditBtn.disabled = false;
-                    acceptEditBtn.style.opacity = "1";
-                    acceptEditBtn.style.cursor = "pointer";
-                    rejectEditBtn.disabled = false;
-                    rejectEditBtn.style.opacity = "1";
-                    rejectEditBtn.style.cursor = "pointer";
-                    
-                    customTextarea.style.border = "2px solid #28a745";
-                    
-                    updateStatusIndicator();
-                    
-                    showWaitingOverlay();
+            const saveStateToProperties = () => {
+                node.properties.rs_pause_state = pauseWidget ? pauseWidget.value : false;
+                node.properties.rs_disable_state = disableWidget ? disableWidget.value : false;
+            };
+
+            const restoreFromProperties = () => {
+                const isWaiting = node.properties.rs_is_waiting;
+                const waitingPrompt = node.properties.rs_waiting_prompt;
+                
+                if (isWaiting && waitingPrompt) {
+                    customTextarea.value = waitingPrompt;
+                    if (textWidget) {
+                        textWidget.value = waitingPrompt;
+                    }
+                    updateStatusAndUI();
                 } else {
-                    clearBtn.disabled = false;
-                    clearBtn.style.opacity = "1";
-                    clearBtn.style.cursor = "pointer";
-                    saveBtn.disabled = false;
-                    saveBtn.style.opacity = "1";
-                    saveBtn.style.cursor = "pointer";
-                    selectBtn.disabled = false;
-                    selectBtn.style.opacity = "1";
-                    selectBtn.style.cursor = "pointer";
-                    
-                    acceptEditBtn.disabled = true;
-                    acceptEditBtn.style.opacity = "0.5";
-                    acceptEditBtn.style.cursor = "not-allowed";
-                    rejectEditBtn.disabled = true;
-                    rejectEditBtn.style.opacity = "0.5";
-                    rejectEditBtn.style.cursor = "not-allowed";
-                    
-                    customTextarea.style.border = "1px solid #444";
-                    
-                    updateStatusIndicator();
-                    
-                    removeWaitingOverlay();
+                    const currentUid = getCurrentUid();
+                    const textKey = `rs_prompt_${currentUid}`;
+                    const savedText = localStorage.getItem(textKey);
+                    if (savedText !== null) {
+                        customTextarea.value = savedText;
+                        if (textWidget) textWidget.value = savedText;
+                    }
+                    updateStatusAndUI();
                 }
             };
-            
-            if (disableWidget) {
-                disableToggleInput.checked = disableWidget.value;
+
+            const updateStatusAndUI = () => {
+                const isWaiting = node.properties.rs_is_waiting;
+                const isDisabled = node.properties.rs_disable_state;
+                const hasConnection = hasTextInputConnection();
+
+                removeWaitingOverlay();
                 
-                if (disableToggleInput.checked) {
-                    disableToggleLabel.textContent = "🔴 Disable text input";
+                acceptEditBtn.disabled = true; 
+                acceptEditBtn.style.opacity = "0.5"; 
+                acceptEditBtn.style.cursor = "not-allowed";
+                rejectEditBtn.disabled = true; 
+                rejectEditBtn.style.opacity = "0.5"; 
+                rejectEditBtn.style.cursor = "not-allowed";
+                clearBtn.disabled = false; 
+                clearBtn.style.opacity = "1"; 
+                clearBtn.style.cursor = "pointer";
+                saveBtn.disabled = false; 
+                saveBtn.style.opacity = "1"; 
+                saveBtn.style.cursor = "pointer";
+                selectBtn.disabled = false; 
+                selectBtn.style.opacity = "1"; 
+                selectBtn.style.cursor = "pointer";
+                customTextarea.style.border = "1px solid #444";
+
+                if (isWaiting && canPauseBeActive()) {
+                    statusBar.style.background = "#3a2a1a";
+                    statusBar.style.color = "#fbbf24";
+                    statusBar.innerHTML = "🟠 WAITING FOR EDIT - Edit prompt and click APPROVE";
+                    
+                    acceptEditBtn.disabled = false; 
+                    acceptEditBtn.style.opacity = "1"; 
+                    acceptEditBtn.style.cursor = "pointer";
+                    rejectEditBtn.disabled = false; 
+                    rejectEditBtn.style.opacity = "1"; 
+                    rejectEditBtn.style.cursor = "pointer";
+                    clearBtn.disabled = true; 
+                    clearBtn.style.opacity = "0.5"; 
+                    clearBtn.style.cursor = "not-allowed";
+                    saveBtn.disabled = true; 
+                    saveBtn.style.opacity = "0.5"; 
+                    saveBtn.style.cursor = "not-allowed";
+                    selectBtn.disabled = true; 
+                    selectBtn.style.opacity = "0.5"; 
+                    selectBtn.style.cursor = "not-allowed";
+                    customTextarea.style.border = "2px solid #fbbf24";
+                    
+                    showWaitingOverlay();
+                } else if (hasConnection && !isDisabled) {
+                    statusBar.style.background = "#1a2a3a";
+                    statusBar.style.color = "#60a5fa";
+                    statusBar.innerHTML = "🔵 EXTERNAL INPUT";
                 } else {
-                    disableToggleLabel.textContent = "🔘 Disable text input";
+                    statusBar.style.background = "#1a3a1a";
+                    statusBar.style.color = "#4ade80";
+                    statusBar.innerHTML = "🟢 LOCAL PROMPT";
                 }
                 
-                updateStatusIndicator();
+                if (node.graph) node.graph.setDirtyCanvas(true, true);
+            };
+
+            const startEnforcement = () => {
+                if (enforcementInterval) clearInterval(enforcementInterval);
+                enforcementInterval = setInterval(() => {
+                    let needsRedraw = false;
+                    
+                    if (pauseWidget && pauseWidget.value !== node.properties.rs_pause_state) {
+                        pauseWidget.value = node.properties.rs_pause_state;
+                        needsRedraw = true;
+                    }
+                    if (disableWidget && disableWidget.value !== node.properties.rs_disable_state) {
+                        disableWidget.value = node.properties.rs_disable_state;
+                        needsRedraw = true;
+                    }
+                    
+                    if (needsRedraw && node.graph) {
+                        node.graph.setDirtyCanvas(true, true);
+                    }
+                }, 200);
+            };
+
+            const stopEnforcement = () => {
+                if (enforcementInterval) {
+                    clearInterval(enforcementInterval);
+                    enforcementInterval = null;
+                }
+            };
+
+            node.onRemoved = function() {
+                stopEnforcement();
+                if (origOnRemoved) origOnRemoved.apply(this, arguments);
+            };
+
+            node.restoreFromProperties = restoreFromProperties;
+            node.updateStatusAndUI = updateStatusAndUI;
+            node.saveStateToProperties = saveStateToProperties;
+
+            const textKey = `rs_prompt_${instanceUid}`;
+
+            setTimeout(() => {
+                if (node.properties.rs_is_waiting && node.properties.rs_waiting_prompt) {
+                    customTextarea.value = node.properties.rs_waiting_prompt;
+                    if (textWidget) textWidget.value = node.properties.rs_waiting_prompt;
+                } else {
+                    const savedText = localStorage.getItem(textKey);
+                    if (savedText !== null && textWidget) {
+                        textWidget.value = savedText;
+                        customTextarea.value = savedText;
+                    } else if (textWidget) {
+                        const initialText = textWidget.value || "";
+                        localStorage.setItem(textKey, initialText);
+                        customTextarea.value = initialText;
+                    }
+                }
                 
-                disableToggleInput.addEventListener("change", (e) => {
-                    disableWidget.value = e.target.checked;
-                    if (disableWidget.callback) disableWidget.callback(e.target.checked);
-                    
-                    if (e.target.checked) {
-                        disableToggleLabel.textContent = "🔴 Disable text input";
-                    } else {
-                        disableToggleLabel.textContent = "🔘 Disable text input";
-                    }
-                    
-                    if (pauseModeEnabled && !canPauseBeActive()) {
-                        pauseModeEnabled = false;
-                        if (pauseWidget) pauseWidget.value = false;
-                        toggleInput.checked = false;
-                        updateUIForPauseMode(false);
-                    }
-                    
-                    updateStatusIndicator();
-                    
-                    node.graph?.setDirtyCanvas(true, true);
-                });
-            }
-            
-            if (pauseWidget) {
-                toggleInput.checked = pauseWidget.value;
-            }
-            
-            toggleInput.addEventListener("change", (e) => {
                 if (pauseWidget) {
-                    pauseWidget.value = e.target.checked;
-                    if (pauseWidget.callback) pauseWidget.callback(e.target.checked);
+                    const originalPauseCallback = pauseWidget.callback;
+                    pauseWidget.callback = function(v) {
+                        node.properties.rs_pause_state = v;
+                        if (!v) {
+                            node.properties.rs_is_waiting = false;
+                            node.properties.rs_waiting_prompt = "";
+                        }
+                        if (originalPauseCallback) originalPauseCallback(v);
+                        updateStatusAndUI();
+                    };
                 }
-                node.graph?.setDirtyCanvas(true, true);
+                
+                if (disableWidget) {
+                    const originalDisableCallback = disableWidget.callback;
+                    disableWidget.callback = function(v) {
+                        node.properties.rs_disable_state = v;
+                        if (originalDisableCallback) originalDisableCallback(v);
+                        updateStatusAndUI();
+                    };
+                }
+                
+                startEnforcement();
+                updateStatusAndUI();
+            }, 100);
+            
+            customTextarea.addEventListener("input", () => {
+                if (textWidget) {
+                    textWidget.value = customTextarea.value;
+                    const currentUid = getCurrentUid();
+                    const currentTextKey = `rs_prompt_${currentUid}`;
+                    localStorage.setItem(currentTextKey, customTextarea.value);
+                    if (node.properties.rs_is_waiting) {
+                        node.properties.rs_waiting_prompt = customTextarea.value;
+                    }
+                }
+                if (node.graph) node.graph.setDirtyCanvas(true, true);
             });
 
             acceptEditBtn.addEventListener("click", async () => {
+                const currentUid = getCurrentUid();
+                if (!currentUid) return;
+                
                 const currentPrompt = customTextarea.value;
+                node.properties.rs_waiting_prompt = currentPrompt;
+                
                 await fetch("/rs_prompts/approve_edit", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        node_id: node.id.toString(),
+                        instance_uid: currentUid,
                         prompt: currentPrompt
                     })
                 });
-                pauseModeEnabled = false;
-                updateUIForPauseMode(false);
-                node.graph?.setDirtyCanvas(true, true);
+                
+                node.properties.rs_is_waiting = false;
+                node.properties.rs_waiting_prompt = "";
+                node.properties.rs_waiting_timestamp = 0;
+                updateStatusAndUI();
             });
             
             rejectEditBtn.addEventListener("click", async () => {
+                const currentUid = getCurrentUid();
+                if (!currentUid) return;
+                
                 await fetch("/rs_prompts/reject_edit", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        node_id: node.id.toString()
-                    })
+                    body: JSON.stringify({ instance_uid: currentUid })
                 });
-                pauseModeEnabled = false;
-                updateUIForPauseMode(false);
-                node.graph?.setDirtyCanvas(true, true);
+                
+                if (node.properties.rs_waiting_prompt) {
+                    customTextarea.value = node.properties.rs_waiting_prompt;
+                    if (textWidget) textWidget.value = node.properties.rs_waiting_prompt;
+                }
+                
+                node.properties.rs_is_waiting = false;
+                node.properties.rs_waiting_prompt = "";
+                node.properties.rs_waiting_timestamp = 0;
+                updateStatusAndUI();
             });
 
             clearBtn.addEventListener("click", () => {
                 if(textWidget) {
                     textWidget.value = "";
                     customTextarea.value = "";
-                    localStorage.setItem(storageKey, "");
-                    node.graph?.setDirtyCanvas(true, true);
+                    const currentUid = getCurrentUid();
+                    const currentTextKey = `rs_prompt_${currentUid}`;
+                    localStorage.setItem(currentTextKey, "");
+                    if (node.properties.rs_is_waiting) {
+                        node.properties.rs_waiting_prompt = "";
+                    }
+                    if (node.graph) node.graph.setDirtyCanvas(true, true);
                 }
             });
 
@@ -486,13 +533,18 @@ app.registerExtension({
                 });
             };
             inputOk.addEventListener("click", performSave); 
-            inputCancel.addEventListener("click", () => { presetNameInput.style.display = "none"; }); 
+            inputCancel.addEventListener("click", () => { 
+                presetNameInput.style.display = "none"; 
+            }); 
             inputField.addEventListener("keydown", (e) => { if(e.key === "Enter") performSave(); if(e.key === "Escape") presetNameInput.style.display = "none"; });
 
             selectBtn.addEventListener("click", async () => {
                 presetNameInput.style.display = "none";
                 deleteConfirmOverlay.style.display = "none";
-                if (presetListOverlay.style.display === "flex") { presetListOverlay.style.display = "none"; return; }
+                if (presetListOverlay.style.display === "flex") { 
+                    presetListOverlay.style.display = "none"; 
+                    return; 
+                }
                 presetListOverlay.innerHTML = "<div style='padding:8px;color:#999;text-align:center;'>Loading...</div>";
                 presetListOverlay.style.display = "flex";
                 try {
@@ -504,7 +556,8 @@ app.registerExtension({
                         const row = document.createElement("div");
                         row.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid #333;";
                         const nameSpan = document.createElement("span");
-                        nameSpan.textContent = name; nameSpan.style.cssText = "flex:1;cursor:pointer;color:#ccc;font-size:12px;";
+                        nameSpan.textContent = name; 
+                        nameSpan.style.cssText = "flex:1;cursor:pointer;color:#ccc;font-size:12px;";
                         nameSpan.onmouseenter = () => nameSpan.style.background = "#3a3a3a"; 
                         nameSpan.onmouseleave = () => nameSpan.style.background = "transparent";
                         nameSpan.onclick = async () => {
@@ -515,9 +568,11 @@ app.registerExtension({
                                 if(textWidget) {
                                     textWidget.value = data.text || "";
                                     customTextarea.value = data.text || "";
-                                    localStorage.setItem(storageKey, data.text || "");
+                                    const currentUid = getCurrentUid();
+                                    const currentTextKey = `rs_prompt_${currentUid}`;
+                                    localStorage.setItem(currentTextKey, data.text || "");
                                 }
-                                node.graph?.setDirtyCanvas(true, true);
+                                if (node.graph) node.graph.setDirtyCanvas(true, true);
                             }
                         };
                         const deleteBtn = document.createElement("span");
@@ -535,7 +590,9 @@ app.registerExtension({
                         row.appendChild(deleteBtn);
                         presetListOverlay.appendChild(row);
                     });
-                } catch(e) { presetListOverlay.textContent = "Error loading"; }
+                } catch(e) { 
+                    presetListOverlay.textContent = "Error loading"; 
+                }
             });
             
             deleteOk.addEventListener("click", async () => {
@@ -563,40 +620,49 @@ app.registerExtension({
             });
 
             api.addEventListener("rs.prompt.pause", (event) => {
-                if (event.detail.node_id == node.id) {
+                const currentUid = getCurrentUid();
+                if (event.detail.instance_uid === currentUid) {
+                    node.properties.rs_is_waiting = true;
+                    node.properties.rs_waiting_prompt = event.detail.prompt;
+                    node.properties.rs_waiting_timestamp = Date.now();
+                    
                     customTextarea.value = event.detail.prompt;
-                    if (textWidget) textWidget.value = event.detail.prompt;
-                    localStorage.setItem(storageKey, event.detail.prompt);
-                    if (canPauseBeActive()) {
-                        pauseModeEnabled = true;
-                        toggleInput.checked = true;
-                        if (pauseWidget) pauseWidget.value = true;
-                        updateUIForPauseMode(true);
+                    if (textWidget) {
+                        textWidget.value = event.detail.prompt;
+                        const currentTextKey = `rs_prompt_${currentUid}`;
+                        localStorage.setItem(currentTextKey, event.detail.prompt);
                     }
-                    node.graph?.setDirtyCanvas(true, true);
+                    updateStatusAndUI();
                 }
             });
 
             api.addEventListener("rs.prompt.update", (event) => {
-                if (event.detail.node_id == node.id) {
+                const currentUid = getCurrentUid();
+                if (event.detail.instance_uid === currentUid && !node.properties.rs_is_waiting) {
                     setTimeout(() => {
                         customTextarea.value = event.detail.prompt;
-                        if (textWidget) textWidget.value = event.detail.prompt;
-                        localStorage.setItem(storageKey, event.detail.prompt);
-                        node.graph?.setDirtyCanvas(true, true);
+                        if (textWidget) {
+                            textWidget.value = event.detail.prompt;
+                            const currentTextKey = `rs_prompt_${currentUid}`;
+                            localStorage.setItem(currentTextKey, event.detail.prompt);
+                        }
+                        if (node.graph) node.graph.setDirtyCanvas(true, true);
                     }, 10);
+                } else if (event.detail.instance_uid === currentUid && node.properties.rs_is_waiting) {
+                    node.properties.rs_waiting_prompt = event.detail.prompt;
+                    customTextarea.value = event.detail.prompt;
+                    if (textWidget) textWidget.value = event.detail.prompt;
                 }
             });
             
             window.addEventListener("beforeunload", () => {
                 if (textWidget && textWidget.value) {
-                    localStorage.setItem(storageKey, textWidget.value);
-                } else if (customTextarea.value) {
-                    localStorage.setItem(storageKey, customTextarea.value);
+                    const currentUid = getCurrentUid();
+                    const currentTextKey = `rs_prompt_${currentUid}`;
+                    localStorage.setItem(currentTextKey, textWidget.value);
                 }
+                saveStateToProperties();
             });
-            
-            updateUIForPauseMode(false);
             
             return result;
         };

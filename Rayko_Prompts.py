@@ -36,11 +36,12 @@ class RSPrompts:
             "required": {
                 "clip": ("CLIP",),
                 "text": ("STRING", {"multiline": True, "default": "", "hidden": True}),
+                "disable_text_input": ("BOOLEAN", {"default": False, "label": "🔘 Disable text input"}),
+                "pause_for_edit": ("BOOLEAN", {"default": False, "label": "⏸️ Pause for manual edit"}),
             },
             "optional": {
                 "text_input": ("STRING", {"forceInput": True}),
-                "disable_text_input": ("BOOLEAN", {"default": False, "label": "🔘 Disable text input"}),
-                "pause_for_edit": ("BOOLEAN", {"default": False, "label": "⏸️ Pause for manual edit"}),
+                "instance_uid": ("STRING", {"default": "", "hidden": True}),
             },
             "hidden": {
                 "unique_id": "UNIQUE_ID",
@@ -53,7 +54,9 @@ class RSPrompts:
     CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = "Text encoder with visual prompt controls and pause-for-edit mode."
 
-    def encode_prompts(self, clip, disable_text_input=False, pause_for_edit=False, text="", text_input=None, unique_id=None):
+    def encode_prompts(self, clip, disable_text_input=False, pause_for_edit=False, 
+                       text="", text_input=None, unique_id=None, instance_uid=""):
+        
         if disable_text_input:
             current_text = text
             effective_text_input = None
@@ -61,17 +64,15 @@ class RSPrompts:
             current_text = text_input if text_input is not None else text
             effective_text_input = text_input
         
-        if effective_text_input is not None and not pause_for_edit and unique_id:
+        if effective_text_input is not None and not pause_for_edit and instance_uid:
             from server import PromptServer
             PromptServer.instance.send_sync("rs.prompt.update", {
-                "node_id": unique_id,
+                "instance_uid": instance_uid,
                 "prompt": current_text
             })
         
-        if pause_for_edit and effective_text_input is not None and effective_text_input and unique_id:
-            print(f"[RS Prompts 🦊] Pause mode enabled for node {unique_id}")
-            
-            PENDING_PROMPTS[unique_id] = {
+        if pause_for_edit and effective_text_input is not None and effective_text_input and instance_uid:
+            PENDING_PROMPTS[instance_uid] = {
                 "original": current_text,
                 "edited": current_text,
                 "status": "pending",
@@ -81,30 +82,26 @@ class RSPrompts:
             
             from server import PromptServer
             PromptServer.instance.send_sync("rs.prompt.pause", {
-                "node_id": unique_id,
+                "instance_uid": instance_uid,
                 "prompt": current_text
             })
             
             future = Future()
-            PENDING_PROMPTS[unique_id]["future"] = future
+            PENDING_PROMPTS[instance_uid]["future"] = future
             
             try:
                 result = future.result(timeout=600)
                 if result["status"] == "approved":
                     final_text = result["prompt"]
-                    print(f"[RS Prompts 🦊] Using edited prompt: {final_text[:50]}...")
                 else:
                     final_text = current_text
-                    print(f"[RS Prompts 🦊] Using original prompt")
             except TimeoutError:
-                print(f"[RS Prompts 🦊] Timeout! Using original prompt")
                 final_text = current_text
             except Exception as e:
-                print(f"[RS Prompts 🦊] Error: {e}, using original")
                 final_text = current_text
             finally:
-                if unique_id in PENDING_PROMPTS:
-                    del PENDING_PROMPTS[unique_id]
+                if instance_uid in PENDING_PROMPTS:
+                    del PENDING_PROMPTS[instance_uid]
             
             current_text = final_text
         
@@ -162,7 +159,8 @@ async def rs_prompts_load_prompt(request):
         filepath = os.path.join(PROMPTS_DIR, f"{name}.json")
         if os.path.exists(filepath):
             with open(filepath, 'r', encoding='utf-8') as f:
-                return web.json_response(json.load(f))
+                result = json.load(f)
+                return web.json_response(result)
         return web.Response(status=404, text="Prompt not found")
     except Exception as e:
         return web.Response(status=500, text=str(e))
@@ -187,11 +185,11 @@ async def rs_prompts_delete_prompt(request):
 async def rs_prompts_approve_edit(request):
     try:
         data = await request.json()
-        node_id = data.get("node_id")
+        instance_uid = data.get("instance_uid", "")
         edited_prompt = data.get("prompt", "")
         
-        if node_id in PENDING_PROMPTS:
-            pending = PENDING_PROMPTS[node_id]
+        if instance_uid in PENDING_PROMPTS:
+            pending = PENDING_PROMPTS[instance_uid]
             pending["status"] = "approved"
             pending["edited"] = edited_prompt
             
@@ -201,13 +199,11 @@ async def rs_prompts_approve_edit(request):
                     "prompt": edited_prompt
                 })
             
-            print(f"[RS Prompts 🦊] Node {node_id} approved with new prompt")
             return web.Response(status=200, text="Approved")
         else:
-            return web.Response(status=404, text=f"Node {node_id} not waiting")
+            return web.Response(status=404, text=f"Instance {instance_uid} not waiting")
             
     except Exception as e:
-        print(f"[RS Prompts 🦊] Error in approve_edit: {e}")
         return web.Response(status=500, text=str(e))
 
 
@@ -215,10 +211,10 @@ async def rs_prompts_approve_edit(request):
 async def rs_prompts_reject_edit(request):
     try:
         data = await request.json()
-        node_id = data.get("node_id")
+        instance_uid = data.get("instance_uid", "")
         
-        if node_id in PENDING_PROMPTS:
-            pending = PENDING_PROMPTS[node_id]
+        if instance_uid in PENDING_PROMPTS:
+            pending = PENDING_PROMPTS[instance_uid]
             pending["status"] = "rejected"
             
             if "future" in pending:
@@ -227,13 +223,11 @@ async def rs_prompts_reject_edit(request):
                     "prompt": pending["original"]
                 })
             
-            print(f"[RS Prompts 🦊] Node {node_id} rejected, using original")
             return web.Response(status=200, text="Rejected")
         else:
-            return web.Response(status=404, text=f"Node {node_id} not waiting")
+            return web.Response(status=404, text=f"Instance {instance_uid} not waiting")
             
     except Exception as e:
-        print(f"[RS Prompts 🦊] Error in reject_edit: {e}")
         return web.Response(status=500, text=str(e))
 
 

@@ -501,7 +501,7 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 # 🦊 RS Prompts  
 **Node that provides enhanced prompt management with visual controls, pause-for-edit mode, and external input toggling**  
 
-<img width="669" height="680" alt="Screenshot_1" src="https://github.com/user-attachments/assets/b8fc95e9-a878-48e1-b1b7-66573aaaa6a0" />
+<img width="1008" height="774" alt="Screenshot_1" src="https://github.com/user-attachments/assets/1b912d1f-ccea-41b7-9f13-c63e0a2ca2bd" />
 
 ### 🔥 Features  
 - **Dual prompt sources** - Use internal textarea or external text input

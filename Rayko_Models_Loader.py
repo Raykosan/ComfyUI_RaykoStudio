@@ -15,6 +15,7 @@
 
 import folder_paths
 import comfy.sd
+import torch
 import json
 import os
 from nodes import UNETLoader, CLIPLoader, VAELoader, LoraLoader, DualCLIPLoader
@@ -27,6 +28,9 @@ class RaykoModelsLoader:
         unet_files = folder_paths.get_filename_list("unet")
         clip_files = folder_paths.get_filename_list("clip")
         vae_files = folder_paths.get_filename_list("vae")
+        
+        # Добавляем "pixel_space" в список VAE (как в нативной ноде ComfyUI)
+        vae_files_with_pixel = vae_files + ["pixel_space"]
 
         weight_dtype_opts = ["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"]
         
@@ -44,7 +48,7 @@ class RaykoModelsLoader:
             "clip_name2": (clip_files, {"tooltip": "Second CLIP model (for dual-clip models like Flux, SD3)"}),
             "clip_type": (clip_type_opts, {"default": "stable_diffusion"}),
             "clip_device": (device_opts, {"default": "default"}),
-            "vae_name": (vae_files, {"tooltip": "model VAE"}),
+            "vae_name": (vae_files_with_pixel, {"tooltip": "model VAE (includes pixel_space for direct pixel manipulation)"}),
             "lora_data": ("STRING", {"default": "[]", "multiline": False, "forceInput": False}),
         }
         return {"required": required}
@@ -99,8 +103,16 @@ class RaykoModelsLoader:
             )[0]
         print(f"[Rayko] CLIP loaded successfully")
 
-        vae = VAELoader().load_vae(vae_name=vae_name)[0]
-        print(f"[Rayko] VAE: {vae_name}")
+        # VAE loading logic with pixel_space support
+        if vae_name == "pixel_space":
+            print(f"[Rayko] Using pixel_space VAE (fake VAE for direct pixel manipulation)")
+            sd = {}
+            sd["pixel_space_vae"] = torch.tensor(1.0)
+            vae = comfy.sd.VAE(sd=sd, metadata=None)
+            vae.throw_exception_if_invalid()
+        else:
+            vae = VAELoader().load_vae(vae_name=vae_name)[0]
+            print(f"[Rayko] VAE: {vae_name}")
 
         try:
             loras = json.loads(lora_data) if lora_data else []

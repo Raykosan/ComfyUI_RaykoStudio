@@ -266,42 +266,10 @@ app.registerExtension({
                 return node.inputs?.some(i => i.name === "text_input" && i.link !== null) || false;
             };
 
-            const canPauseBeActive = () => {
-                const hasConnection = hasTextInputConnection();
-                const isDisabled = node.properties.rs_disable_state;
-                return hasConnection && !isDisabled;
-            };
-
-            const getCurrentUid = () => {
-                return node.properties?.rs_instance_uid || 
-                       node.widgets?.find(w => w.name === "instance_uid")?.value;
-            };
-
-            const saveStateToProperties = () => {
-                node.properties.rs_pause_state = pauseWidget ? pauseWidget.value : false;
-                node.properties.rs_disable_state = disableWidget ? disableWidget.value : false;
-            };
-
-            const restoreFromProperties = () => {
-                const isWaiting = node.properties.rs_is_waiting;
-                const waitingPrompt = node.properties.rs_waiting_prompt;
-                
-                if (isWaiting && waitingPrompt) {
-                    customTextarea.value = waitingPrompt;
-                    if (textWidget) {
-                        textWidget.value = waitingPrompt;
-                    }
-                    updateStatusAndUI();
-                } else {
-                    const currentUid = getCurrentUid();
-                    const textKey = `rs_prompt_${currentUid}`;
-                    const savedText = localStorage.getItem(textKey);
-                    if (savedText !== null) {
-                        customTextarea.value = savedText;
-                        if (textWidget) textWidget.value = savedText;
-                    }
-                    updateStatusAndUI();
-                }
+            const origOnConnectionsChange = node.onConnectionsChange;
+            node.onConnectionsChange = function(slotType, slotIndex, isConnected, link, linkInfo) {
+                if (origOnConnectionsChange) origOnConnectionsChange.apply(this, arguments);
+                updateStatusAndUI();
             };
 
             const updateStatusAndUI = () => {
@@ -328,7 +296,7 @@ app.registerExtension({
                 selectBtn.style.cursor = "pointer";
                 customTextarea.style.border = "1px solid #444";
 
-                if (isWaiting && canPauseBeActive()) {
+                if (isWaiting && hasConnection && !isDisabled) {
                     statusBar.style.background = "#3a2a1a";
                     statusBar.style.color = "#fbbf24";
                     statusBar.innerHTML = "🟠 WAITING FOR EDIT - Edit prompt and click APPROVE";
@@ -396,9 +364,27 @@ app.registerExtension({
                 if (origOnRemoved) origOnRemoved.apply(this, arguments);
             };
 
-            node.restoreFromProperties = restoreFromProperties;
-            node.updateStatusAndUI = updateStatusAndUI;
-            node.saveStateToProperties = saveStateToProperties;
+            node.restoreFromProperties = () => {
+                const isWaiting = node.properties.rs_is_waiting;
+                const waitingPrompt = node.properties.rs_waiting_prompt;
+                
+                if (isWaiting && waitingPrompt) {
+                    customTextarea.value = waitingPrompt;
+                    if (textWidget) {
+                        textWidget.value = waitingPrompt;
+                    }
+                    updateStatusAndUI();
+                } else {
+                    const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
+                    const textKey = `rs_prompt_${currentUid}`;
+                    const savedText = localStorage.getItem(textKey);
+                    if (savedText !== null) {
+                        customTextarea.value = savedText;
+                        if (textWidget) textWidget.value = savedText;
+                    }
+                    updateStatusAndUI();
+                }
+            };
 
             const textKey = `rs_prompt_${instanceUid}`;
 
@@ -447,7 +433,7 @@ app.registerExtension({
             customTextarea.addEventListener("input", () => {
                 if (textWidget) {
                     textWidget.value = customTextarea.value;
-                    const currentUid = getCurrentUid();
+                    const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                     const currentTextKey = `rs_prompt_${currentUid}`;
                     localStorage.setItem(currentTextKey, customTextarea.value);
                     if (node.properties.rs_is_waiting) {
@@ -458,7 +444,7 @@ app.registerExtension({
             });
 
             acceptEditBtn.addEventListener("click", async () => {
-                const currentUid = getCurrentUid();
+                const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                 if (!currentUid) return;
                 
                 const currentPrompt = customTextarea.value;
@@ -480,7 +466,7 @@ app.registerExtension({
             });
             
             rejectEditBtn.addEventListener("click", async () => {
-                const currentUid = getCurrentUid();
+                const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                 if (!currentUid) return;
                 
                 await fetch("/rs_prompts/reject_edit", {
@@ -504,7 +490,7 @@ app.registerExtension({
                 if(textWidget) {
                     textWidget.value = "";
                     customTextarea.value = "";
-                    const currentUid = getCurrentUid();
+                    const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                     const currentTextKey = `rs_prompt_${currentUid}`;
                     localStorage.setItem(currentTextKey, "");
                     if (node.properties.rs_is_waiting) {
@@ -568,7 +554,7 @@ app.registerExtension({
                                 if(textWidget) {
                                     textWidget.value = data.text || "";
                                     customTextarea.value = data.text || "";
-                                    const currentUid = getCurrentUid();
+                                    const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                                     const currentTextKey = `rs_prompt_${currentUid}`;
                                     localStorage.setItem(currentTextKey, data.text || "");
                                 }
@@ -620,7 +606,7 @@ app.registerExtension({
             });
 
             api.addEventListener("rs.prompt.pause", (event) => {
-                const currentUid = getCurrentUid();
+                const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                 if (event.detail.instance_uid === currentUid) {
                     node.properties.rs_is_waiting = true;
                     node.properties.rs_waiting_prompt = event.detail.prompt;
@@ -637,7 +623,7 @@ app.registerExtension({
             });
 
             api.addEventListener("rs.prompt.update", (event) => {
-                const currentUid = getCurrentUid();
+                const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                 if (event.detail.instance_uid === currentUid && !node.properties.rs_is_waiting) {
                     setTimeout(() => {
                         customTextarea.value = event.detail.prompt;
@@ -657,11 +643,12 @@ app.registerExtension({
             
             window.addEventListener("beforeunload", () => {
                 if (textWidget && textWidget.value) {
-                    const currentUid = getCurrentUid();
+                    const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                     const currentTextKey = `rs_prompt_${currentUid}`;
                     localStorage.setItem(currentTextKey, textWidget.value);
                 }
-                saveStateToProperties();
+                if (pauseWidget) node.properties.rs_pause_state = pauseWidget.value;
+                if (disableWidget) node.properties.rs_disable_state = disableWidget.value;
             });
             
             return result;

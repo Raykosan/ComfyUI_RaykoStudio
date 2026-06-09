@@ -761,6 +761,63 @@ The node generates a list of INT values, automatically switching between 10 pres
 ---
 ---
 
+# 🦊 ComfyUI Settings Manager  
+**A  user-friendly extension that allows you to easily backup, restore, and manage your interface settings. Never lose your custom UI layout, preferences, or configurations again!**  
+
+<img width="580" height="783" alt="Screenshot_3" src="https://github.com/user-attachments/assets/2db2e5c7-055b-40c0-805d-167dde6d47e2" />
+
+### 🔥 Features  
+- **Smart Backups** - Save your current interface settings with custom names. If no name is provided, it automatically uses a timestamp.  
+- **Easy Restore** - Select any previous backup from a clean UI list and restore it in one click.  
+- **Built-in Server Restart** - Restoring settings requires a server restart. The extension provides a dedicated, pulsing **RESTART SERVER** button to make this obvious and safe.  
+- **Auto-Refresh Polling** - After restarting, the extension automatically pings the server and refreshes your browser page the moment ComfyUI is back online.  
+- **Manage Backups** - Delete old or unnecessary backups directly from the interface without leaving ComfyUI.  
+- **Safe Naming** - Automatically sanitizes custom backup names (removes invalid characters) and prevents overwriting by adding suffixes (`_1`, `_2`) if a name collision occurs.
+
+### 🪛 Usage  
+**Accessing the Manager**  
+Look for the **Desktop/Monitor icon** (🖥️) in the left sidebar of ComfyUI. Click it to open the **Settings Manager** panel.  
+
+**Saving Settings (Backup)**  
+1. In the **Save Interface Settings** section, you will see a text field. 
+2. *(Optional)* Enter a custom name for your backup (e.g., `my_favorite_layout`).  
+   - *Note: If you leave it empty, the current date and time will be used.*  
+3. Click the **💾 Save Settings** button.  
+4. A green status message will appear at the bottom confirming the save. If the list of backups is open, the new backup will instantly appear at the top.  
+
+**Restoring Settings**  
+1. In the **Restore Interface Settings** section, click **📂 Load Backups**.  
+2. A list of your saved backups will appear.  
+3. Click **✓ Restore** next to the backup you want to load.  
+4. The button will change to **✓ Restored**, and a new, pulsing orange button **🔄 RESTART SERVER** will appear.  
+5. Click **🔄 RESTART SERVER**.  
+6. The extension will automatically wait for the server to come back online and **refresh your browser page** automatically.  
+
+**Deleting Backups**  
+1. Load your backups list.  
+2. Click the red **✕** button next to any backup you want to remove.  
+3. The backup is instantly deleted from the UI and the file system.
+
+### 📁 File Structure
+
+All backups are stored outside the ComfyUI directory to keep your installation clean. By default, they are saved in your user Documents folder:
+
+```text
+📂 Documents/
+ ── 📂 ComfyUI_Settings_Backups/
+      ├── 📂 2026-06-09_12-40-44/
+      │    ── 📄 comfy.settings.json
+      ├── 📂 my_favorite_layout/
+      │    └── 📄 comfy.settings.json
+      ── ...
+```
+###  ⚙️ Technical Notes  
+- **Server Restart** - The extension uses `os.execv` to restart the Python server. If you are using a third-party launcher (like Stability Matrix or Pinokio), the server might close but not automatically reopen. In this case, simply restart your launcher manually.  
+- **Polling** - After a restart, the extension pings the server every 5 seconds (up to 10 times) to detect when it's fully loaded before triggering the page reload.  
+
+---
+---
+
 ## 🤝 Bug Reporting  
 
 If you encounter an issue or find a bug:  

@@ -773,6 +773,9 @@ The node generates a list of INT values, automatically switching between 10 pres
 - **Auto-Refresh Polling** - After restarting, the extension automatically pings the server and refreshes your browser page the moment ComfyUI is back online.  
 - **Manage Backups** - Delete old or unnecessary backups directly from the interface without leaving ComfyUI.  
 - **Safe Naming** - Automatically sanitizes custom backup names (removes invalid characters) and prevents overwriting by adding suffixes (`_1`, `_2`) if a name collision occurs.
+- You can use common settings for multiple versions or assemblies of ComfyUI.
+- You can create several interface configurations and change them with a couple of clicks, rather than crawling through all the settings tabs.
+- It's also useful for those who mess up the interface settings a lot - you can always roll back to the previous version.
 
 ### 🪛 Usage  
 **Accessing the Manager**  

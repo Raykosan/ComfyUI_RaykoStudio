@@ -44,7 +44,7 @@ app.registerExtension({
                         const targetNodeName = this.getConnectedNodeName(conn.index);
                         const prefix = `Input ${conn.idx}: `;
                         let displayName = prefix + targetNodeName;
-                        if (displayName.length > 25) displayName = prefix + targetNodeName.substring(0, 22) + "...";
+                        if (displayName.length > 20) displayName = prefix + targetNodeName.substring(0, 15) + "...";
 
                         widget = this.addWidget("toggle", displayName, false, (value) => {
                             if (value) {
@@ -100,7 +100,7 @@ app.registerExtension({
                         const targetNodeName = this.getConnectedNodeName(conn.index);
                         const prefix = `Input ${conn.idx}: `;
                         let displayName = prefix + targetNodeName;
-                        if (displayName.length > 25) displayName = prefix + targetNodeName.substring(0, 22) + "...";
+                        if (displayName.length > 20) displayName = prefix + targetNodeName.substring(0, 15) + "...";
                         widget.name = displayName;
                     }
                     widget.value = (activeWidget.value === conn.name);
@@ -193,7 +193,7 @@ app.registerExtension({
                     }
                     const prefix = `Input ${inputIndex}: `;
                     let displayName = prefix + targetNodeName;
-                    if (displayName.length > 25) displayName = prefix + targetNodeName.substring(0, 22) + "...";
+                    if (displayName.length > 20) displayName = prefix + targetNodeName.substring(0, 15) + "...";
 
                     let widget = this.widgets.find(w => w.slotName === inputName);
                     if (!widget) {

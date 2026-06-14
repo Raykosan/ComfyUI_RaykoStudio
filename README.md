@@ -133,6 +133,78 @@ Connect the `rgba` output to any node that accepts ComfyUI image tensors (e.g., 
 ---
 ---
 
+# 🦊 RS Any Switch  
+**A dynamic switch node for ComfyUI that allows you to switch between multiple inputs of ANY data type with an intuitive toggle interface.**  
+
+<img width="364" height="264" alt="Screenshot_1" src="https://github.com/user-attachments/assets/81083d3e-a0f1-493e-9859-372c874cf21f" />
+ 
+### 🔥 Features  
+**Universal Type Support** - Accepts any data type (IMAGE, LATENT, MODEL, AUDIO, VIDEO, TEXT, etc.)  
+**Dynamic Inputs** - Inputs are created automatically as you connect nodes (up to 20) 
+**Smart Slot Management** - Empty slots are automatically removed, keeping your workflow clean  
+**Visual Toggle Interface** - Each connected input has an ON/OFF toggle switch with the source node name  
+**Exclusive Selection** - Only one input can be active at a time  
+**Persistent State** - Active slot selection is saved with your workflow  
+**Auto-Numbering** - Inputs are automatically numbered (Input 1, Input 2, etc.)  
+**Smart Display** - Shows connected node names with automatic truncation (max 25 chars)  
+**Visual Status Bar** - Green/red bordered indicator showing current active slot or OFF state  
+
+### 🪛 Usage  
+1. **Add the Node**: Right-click in the graph → `🦊 RaykoStudio` → `RS Any Switch`  
+
+2. **Connect Inputs**:  
+   - Connect any node output to `input_1`  
+   - The first connection automatically becomes active (ON)  
+   - Additional connections create new toggle switches (OFF by default)  
+
+3. **Switch Between Inputs**:  
+   - Click the toggle switch next to any connected input  
+   - Turn ON the desired input (others automatically turn OFF)  
+   - The active slot is shown in the top status bar (green border)  
+
+4. **Disconnect Inputs**:  
+   - Simply disconnect the wire from any input  
+   - The toggle switch is automatically removed  
+   - Empty slots are cleaned up automatically  
+
+### 📝 Notes  
+**Example 1: Switch Between Images**
+```
+Load Image 1 ──→ input_1
+Load Image 2 ──→ input_2
+Load Image 3 ──→ input_3
+                    ↓
+              RS Any Switch
+                    ↓
+              Save Image
+```
+Toggle between different images without reconnecting wires.
+
+**Example 2: Model Switching**
+```
+Checkpoint Loader A ──→ input_1
+Checkpoint Loader B ──→ input_2
+                           ↓
+                     RS Any Switch
+                           ↓
+                     KSampler → VAEDecode → Save Image
+```
+Quickly compare results from different models.
+
+**Example 3: Workflow Variations**
+```
+Upscale Method 1 ──→ input_1
+Upscale Method 2 ──→ input_2
+Upscale Method 3 ──→ input_3
+                        ↓
+                  RS Any Switch
+                        ↓
+                  Final Output
+``` 
+
+---
+---
+
 # 🦊 RS Outpaint  
 **Interactive outpainting mask node with visual crop controls, preset management, and batch workflow support** 
 

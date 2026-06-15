@@ -136,13 +136,13 @@ Connect the `rgba` output to any node that accepts ComfyUI image tensors (e.g., 
 # 🦊 RS Any Switch  
 **A dynamic switch node for ComfyUI that allows you to switch between multiple inputs of ANY data type with an intuitive toggle interface.**  
 
-<img width="720" height="492" alt="Screenshot_1" src="https://github.com/user-attachments/assets/8c153c02-04a7-4e61-b686-8d4eddc13fa9" />
+<img width="487" height="503" alt="Screenshot_1" src="https://github.com/user-attachments/assets/ce176948-c70a-4e6e-9554-1cf2d1e348ff" />
  
 ### 🔥 Features  
 **Universal Type Support** - Accepts any data type (IMAGE, LATENT, MODEL, AUDIO, VIDEO, TEXT, etc.)  
 **Dynamic Inputs** - Inputs are created automatically as you connect nodes (up to 20) 
 **Smart Slot Management** - Empty slots are automatically removed, keeping your workflow clean  
-**Visual Toggle Interface** - Each connected input has an ON/OFF toggle switch with the source node name  
+**Visual Toggle Interface** - Each connected input has an ON/OFF toggle switch with the source node name (multilingual)  
 **Exclusive Selection** - Only one input can be active at a time  
 **Persistent State** - Active slot selection is saved with your workflow  
 **Auto-Numbering** - Inputs are automatically numbered (Input 1, Input 2, etc.)  

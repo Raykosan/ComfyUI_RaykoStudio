@@ -146,7 +146,7 @@ Connect the `rgba` output to any node that accepts ComfyUI image tensors (e.g., 
 **Exclusive Selection** - Only one input can be active at a time  
 **Persistent State** - Active slot selection is saved with your workflow  
 **Auto-Numbering** - Inputs are automatically numbered (Input 1, Input 2, etc.)  
-**Smart Display** - Shows connected node names with automatic truncation (max 25 chars)  
+**Smart Display** - Shows connected node names with automatic truncation (max 20 chars, multilingual)  
 **Visual Status Bar** - Green/red bordered indicator showing current active slot or OFF state  
 
 ### 🪛 Usage  

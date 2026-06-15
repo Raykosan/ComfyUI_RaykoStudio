@@ -49,7 +49,7 @@ app.registerExtension({
                         widget = this.addWidget("toggle", displayName, false, (value) => {
                             if (value) {
                                 if (activeWidget) activeWidget.value = widget.slotName;
-                                if (infoWidget) infoWidget.value = widget.slotName.replace("input_", "INPUT ").toUpperCase();
+                                if (infoWidget) infoWidget.value = this.getActiveSlotDisplayName(widget.slotName);
                                 for (let w of this.widgets) {
                                     if (w !== widget && w.slotName && w.slotName.startsWith("input_")) {
                                         w.value = false;
@@ -114,7 +114,7 @@ app.registerExtension({
 
                 if (infoWidget) {
                     const activeName = activeWidget.value;
-                    infoWidget.value = (!activeName || activeName === "none") ? "OFF" : activeName.replace("input_", "INPUT ").toUpperCase();
+                    infoWidget.value = this.getActiveSlotDisplayName(activeName);
                 }
 
                 this.setSize(this.computeSize());
@@ -132,6 +132,24 @@ app.registerExtension({
                 return originNode ? (originNode.getTitle() || originNode.type) : "Unknown";
             };
             nodeType.prototype.getConnectedNodeName = getConnectedNodeName;
+
+            const getActiveSlotDisplayName = function(slotName) {
+                if (!slotName || slotName === "none") return "OFF";
+                const match = slotName.match(/input_(\d+)/);
+                if (!match) return "OFF";
+                const idx = parseInt(match[1], 10);
+                const inputIndex = idx - 1;
+                const nodeName = this.getConnectedNodeName(inputIndex);
+                const prefix = `INPUT ${idx}: `;
+                const nodeNameUpper = nodeName.toUpperCase();
+                let displayName = prefix + nodeNameUpper;
+                if (displayName.length > 25) {
+                    const availableForName = 25 - prefix.length - 3;
+                    displayName = prefix + nodeNameUpper.substring(0, Math.max(0, availableForName)) + "...";
+                }
+                return displayName;
+            };
+            nodeType.prototype.getActiveSlotDisplayName = getActiveSlotDisplayName;
 
             const onNodeCreated = nodeType.prototype.onNodeCreated;
             nodeType.prototype.onNodeCreated = function() {
@@ -166,7 +184,7 @@ app.registerExtension({
                 };
 
                 if (activeWidget && activeWidget.value !== "none") {
-                    infoWidget.value = activeWidget.value.replace("input_", "INPUT ").toUpperCase();
+                    infoWidget.value = this.getActiveSlotDisplayName(activeWidget.value);
                 }
 
                 this.setSize(this.computeSize());
@@ -202,7 +220,7 @@ app.registerExtension({
                         widget = this.addWidget("toggle", displayName, isFirstSlot, (value) => {
                             if (value) {
                                 if (activeWidget) activeWidget.value = widget.slotName;
-                                if (infoWidget) infoWidget.value = widget.slotName.replace("input_", "INPUT ").toUpperCase();
+                                if (infoWidget) infoWidget.value = this.getActiveSlotDisplayName(widget.slotName);
                                 for (let w of this.widgets) {
                                     if (w !== widget && w.slotName && w.slotName.startsWith("input_")) {
                                         w.value = false;
@@ -252,7 +270,7 @@ app.registerExtension({
 
                         if (isFirstSlot && activeWidget) {
                             activeWidget.value = inputName;
-                            if (infoWidget) infoWidget.value = inputName.replace("input_", "INPUT ").toUpperCase();
+                            if (infoWidget) infoWidget.value = this.getActiveSlotDisplayName(inputName);
                         }
                     } else {
                         widget.name = displayName;

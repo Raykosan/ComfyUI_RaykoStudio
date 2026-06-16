@@ -143,7 +143,7 @@ app.registerExtension({
                 const idx = parseInt(match[1], 10);
                 const inputIndex = idx - 1;
                 const nodeName = this.getConnectedNodeName(inputIndex);
-                const prefix = `INPUT ${idx}: `;
+                const prefix = `IN ${idx}:  `;
                 const nodeNameUpper = nodeName.toUpperCase();
                 let displayName = prefix + nodeNameUpper;
                 if (displayName.length > 25) {

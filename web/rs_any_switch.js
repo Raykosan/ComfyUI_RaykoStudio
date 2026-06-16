@@ -23,7 +23,6 @@ app.registerExtension({
                     }
                 }
 
-                // Гарантируем минимум 2 слота
                 const minSlots = Math.max(2, maxConnectedIndex);
                 for (let idx = 1; idx <= minSlots; idx++) {
                     const existing = this.inputs.find(inp => inp.name === `input_${idx}`);
@@ -32,7 +31,6 @@ app.registerExtension({
                     }
                 }
 
-                // Удаляем лишние слоты после maxConnectedIndex + 1 (но оставляем минимум 2)
                 for (let i = this.inputs.length - 1; i >= 0; i--) {
                     const match = this.inputs[i].name.match(/input_(\d+)/);
                     if (match && parseInt(match[1], 10) > minSlots + 1) {
@@ -45,9 +43,9 @@ app.registerExtension({
                     let widget = currentSlotWidgets.find(w => w.slotName === conn.name);
                     if (!widget) {
                         const targetNodeName = this.getConnectedNodeName(conn.index);
-                        const prefix = `Input ${conn.idx}: `;
+                        const prefix = `In ${conn.idx}: `;
                         let displayName = prefix + targetNodeName;
-                        if (displayName.length > 20) displayName = prefix + targetNodeName.substring(0, 15) + "...";
+                        if (displayName.length > 35) displayName = prefix + targetNodeName.substring(0, 32) + "...";
 
                         widget = this.addWidget("toggle", displayName, false, (value) => {
                             if (value) {
@@ -69,7 +67,7 @@ app.registerExtension({
                             ctx.fillStyle = "#222";
                             ctx.fillRect(0, y, w, h);
                             ctx.fillStyle = "#aaa";
-                            ctx.font = "14px Arial";
+                            ctx.font = "13px Arial";
                             ctx.textAlign = "left";
                             ctx.fillText(this.name, 10, y + h / 2 + 1);
                             const toggleW = 30, toggleH = 14;
@@ -101,9 +99,9 @@ app.registerExtension({
                         }
                     } else {
                         const targetNodeName = this.getConnectedNodeName(conn.index);
-                        const prefix = `Input ${conn.idx}: `;
+                        const prefix = `In ${conn.idx}: `;
                         let displayName = prefix + targetNodeName;
-                        if (displayName.length > 20) displayName = prefix + targetNodeName.substring(0, 15) + "...";
+                        if (displayName.length > 35) displayName = prefix + targetNodeName.substring(0, 32) + "...";
                         widget.name = displayName;
                     }
                     widget.value = (activeWidget.value === conn.name);
@@ -121,7 +119,7 @@ app.registerExtension({
                 }
 
                 this.setSize(this.computeSize());
-                this.size[0] += 50;
+                this.size[0] = 350;
                 this.setSize(this.size);
                 this.setDirtyCanvas(true, true);
             };
@@ -143,11 +141,11 @@ app.registerExtension({
                 const idx = parseInt(match[1], 10);
                 const inputIndex = idx - 1;
                 const nodeName = this.getConnectedNodeName(inputIndex);
-                const prefix = `IN ${idx}:  `;
+                const prefix = `IN ${idx}: `;
                 const nodeNameUpper = nodeName.toUpperCase();
                 let displayName = prefix + nodeNameUpper;
-                if (displayName.length > 25) {
-                    const availableForName = 25 - prefix.length - 3;
+                if (displayName.length > 40) {
+                    const availableForName = 40 - prefix.length - 3;
                     displayName = prefix + nodeNameUpper.substring(0, Math.max(0, availableForName)) + "...";
                 }
                 return displayName;
@@ -164,9 +162,9 @@ app.registerExtension({
                     if (match) {
                         const idx = parseInt(match[1], 10);
                         const targetNodeName = this.getConnectedNodeName(idx - 1);
-                        const prefix = `Input ${idx}: `;
+                        const prefix = `In ${idx}: `;
                         let displayName = prefix + targetNodeName;
-                        if (displayName.length > 20) displayName = prefix + targetNodeName.substring(0, 15) + "...";
+                        if (displayName.length > 35) displayName = prefix + targetNodeName.substring(0, 32) + "...";
                         widget.name = displayName;
                     }
                 }
@@ -189,10 +187,8 @@ app.registerExtension({
                     activeWidget.draw = () => {};
                 }
 
-                // Удаляем все входы
                 while (this.inputs.length > 0) this.removeInput(this.inputs.length - 1);
                 
-                // Создаем минимум 2 слота по умолчанию
                 this.addInput("input_1", "*");
                 this.addInput("input_2", "*");
 
@@ -204,16 +200,16 @@ app.registerExtension({
                         ctx.strokeStyle = this.value === "OFF" ? "#f44336" : "#4caf50";
                         ctx.lineWidth = 2;
                         ctx.beginPath();
-                        if (ctx.roundRect) ctx.roundRect(1, y + 1, w - 2, h - 2, 6);
-                        else ctx.rect(1, y + 1, w - 2, h - 2);
+                        if (ctx.roundRect) ctx.roundRect(1, y, w - 2, h, 6);
+                        else ctx.rect(1, y, w - 2, h);
                         ctx.stroke();
                         ctx.fillStyle = "#fff";
-                        ctx.font = "bold 14px Arial";
+                        ctx.font = "bold 13px Arial";
                         ctx.textAlign = "center";
                         ctx.textBaseline = "middle";
                         ctx.fillText(this.value, w / 2, y + h / 2);
                     },
-                    computeSize: function(width) { return [width, 24]; },
+                    computeSize: function(width) { return [width, 25]; },
                     mouse: function() { return false; },
                     callback: function() {}
                 };
@@ -224,8 +220,11 @@ app.registerExtension({
                 }
 
                 this.setSize(this.computeSize());
-                this.size[0] += 50;
+                this.size[0] = 350;
                 this.setSize(this.size);
+                
+                this.defaultWidth = 350;
+                
                 this.setDirtyCanvas(true, true);
             };
 
@@ -245,9 +244,9 @@ app.registerExtension({
                         const originNode = app.graph.getNodeById(link_info.origin_id);
                         if (originNode) targetNodeName = originNode.getTitle() || originNode.type;
                     }
-                    const prefix = `Input ${inputIndex}: `;
+                    const prefix = `In ${inputIndex}: `;
                     let displayName = prefix + targetNodeName;
-                    if (displayName.length > 20) displayName = prefix + targetNodeName.substring(0, 15) + "...";
+                    if (displayName.length > 35) displayName = prefix + targetNodeName.substring(0, 32) + "...";
 
                     let widget = this.widgets.find(w => w.slotName === inputName);
                     if (!widget) {
@@ -312,7 +311,6 @@ app.registerExtension({
                         widget.name = displayName;
                     }
 
-                    // Добавляем новый слот, если подключен последний и его номер < 20
                     const lastInput = this.inputs[this.inputs.length - 1];
                     const lastMatch = lastInput.name.match(/input_(\d+)/);
                     if (lastMatch && parseInt(lastMatch[1], 10) < 20 && index === this.inputs.length - 1) {
@@ -330,23 +328,19 @@ app.registerExtension({
                         }
                     }
 
-                    // Удаляем лишние слоты, но оставляем минимум 2
                     if (this.inputs.length > 2) {
                         const hasConnected = this.inputs.some(inp => inp.link !== null);
                         if (!hasConnected) {
-                            // Нет подключенных - удаляем все кроме первых 2
                             while (this.inputs.length > 2) {
                                 this.removeInput(this.inputs.length - 1);
                             }
                         } else {
-                            // Есть подключенные - находим последний подключенный
                             let lastConnectedIndex = -1;
                             for (let i = 0; i < this.inputs.length; i++) {
                                 if (this.inputs[i].link !== null) {
                                     lastConnectedIndex = i;
                                 }
                             }
-                            // Удаляем пустые входы после последнего подключенного (но оставляем минимум 2)
                             const minSlots = Math.max(2, lastConnectedIndex + 2);
                             while (this.inputs.length > minSlots) {
                                 this.removeInput(this.inputs.length - 1);
@@ -356,7 +350,7 @@ app.registerExtension({
                 }
 
                 this.setSize(this.computeSize());
-                this.size[0] += 50;
+                this.size[0] = 350;
                 this.setSize(this.size);
                 this.setDirtyCanvas(true, true);
             };
@@ -365,6 +359,23 @@ app.registerExtension({
             nodeType.prototype.onConfigure = function(info) {
                 if (onConfigure) onConfigure.apply(this, arguments);
                 rebuildFromConnections.call(this);
+                this.defaultWidth = 350;
+            };
+
+            const onResize = nodeType.prototype.onResize;
+            nodeType.prototype.onResize = function(size) {
+                if (onResize) onResize.apply(this, arguments);
+                
+                if (!this.defaultWidth) {
+                    this.defaultWidth = 350;
+                }
+                
+                if (size[0] < this.defaultWidth) {
+                    size[0] = this.defaultWidth;
+                    this.setSize(size);
+                }
+                
+                return size;
             };
 
             const onDrawForeground = nodeType.prototype.onDrawForeground;

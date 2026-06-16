@@ -354,9 +354,9 @@ Click "✔️ ACCEPT" to pass selected images to next nodes. Only selected image
 # 🦊 RS Image to Latent & 🦊 RS Image to Latent (simplified)  
 **A powerful and user-friendly ComfyUI node that converts images to latents with intelligent size optimization.**  
 
-<img width="400" height="460" alt="1" src="https://github.com/user-attachments/assets/aa67d7af-d612-43c5-9e99-1914094d73ad" />  
-<img width="763" height="344" alt="Screenshot_1" src="https://github.com/user-attachments/assets/41c61f1a-b274-4fe6-88e1-4a7ec9465165" />
+<img width="973" height="646" alt="Screenshot_1" src="https://github.com/user-attachments/assets/7b038c0f-a3a2-4034-8906-c0e01b6e4480" />
 
+## 🦊 RS Image to Latent  
 ### 🔥 Features  
 - **Multiple sizing modes** - Auto, Preset, Custom, or Megapixels  
 - **VAE-aware** - Automatically detects divisibility requirements  
@@ -402,6 +402,19 @@ width_px - Final width in pixels
 height_px - Final height in pixels  
 width_latent - Latent width (width/8)  
 height_latent - Latent height (height/8)  
+
+## 🦊 RS Image to Latent (simplified)  
+**A simplified node that converts images to latent with intelligent size optimization.**  
+
+### 🔥 Features  
+- **Minimum settings** - Only batch size  
+- **Default settings:**  
+Automatically determines the multiplicity from VAE  
+Rounds the image size to a multiple of the value  
+If the size has changed, it will be resized via lanczos  
+If it is already multiple, it encodes directly without a recycle  
+Supports batch_size to create a batch of identical latents  
+Returns 3 outputs: latent, width_px, height_px  
 
 ---
 ---

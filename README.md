@@ -136,7 +136,7 @@ Connect the `rgba` output to any node that accepts ComfyUI image tensors (e.g., 
 # 🦊 RS Any Switch  
 **A dynamic switch node for ComfyUI that allows you to switch between multiple inputs of ANY data type with an intuitive toggle interface.**  
 
-<img width="420" height="432" alt="Screenshot_1" src="https://github.com/user-attachments/assets/1ccfe5c3-006e-4f1c-808c-1d7f1b7a940f" />
+<img width="511" height="395" alt="Screenshot_1" src="https://github.com/user-attachments/assets/f5b4ee5c-d342-4346-b101-d364d2f714f4" />
  
 ### 🔥 Features  
 **Universal Type Support** - Accepts any data type (IMAGE, LATENT, MODEL, AUDIO, VIDEO, TEXT, etc.)  

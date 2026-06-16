@@ -23,16 +23,19 @@ app.registerExtension({
                     }
                 }
 
-                for (let idx = 1; idx <= maxConnectedIndex; idx++) {
+                // Гарантируем минимум 2 слота
+                const minSlots = Math.max(2, maxConnectedIndex);
+                for (let idx = 1; idx <= minSlots; idx++) {
                     const existing = this.inputs.find(inp => inp.name === `input_${idx}`);
                     if (!existing) {
                         this.addInput(`input_${idx}`, "*");
                     }
                 }
 
+                // Удаляем лишние слоты после maxConnectedIndex + 1 (но оставляем минимум 2)
                 for (let i = this.inputs.length - 1; i >= 0; i--) {
                     const match = this.inputs[i].name.match(/input_(\d+)/);
-                    if (match && parseInt(match[1], 10) > maxConnectedIndex + 1) {
+                    if (match && parseInt(match[1], 10) > minSlots + 1) {
                         this.removeInput(i);
                     }
                 }
@@ -151,6 +154,30 @@ app.registerExtension({
             };
             nodeType.prototype.getActiveSlotDisplayName = getActiveSlotDisplayName;
 
+            const updateSlotNames = function() {
+                const activeWidget = this.widgets.find(w => w.name === "active_input");
+                const infoWidget = this.widgets.find(w => w.name === "info_display");
+                
+                const toggleWidgets = this.widgets.filter(w => w.slotName && w.slotName.startsWith("input_"));
+                for (let widget of toggleWidgets) {
+                    const match = widget.slotName.match(/input_(\d+)/);
+                    if (match) {
+                        const idx = parseInt(match[1], 10);
+                        const targetNodeName = this.getConnectedNodeName(idx - 1);
+                        const prefix = `Input ${idx}: `;
+                        let displayName = prefix + targetNodeName;
+                        if (displayName.length > 20) displayName = prefix + targetNodeName.substring(0, 15) + "...";
+                        widget.name = displayName;
+                    }
+                }
+                
+                if (infoWidget && activeWidget) {
+                    infoWidget.value = this.getActiveSlotDisplayName(activeWidget.value);
+                }
+                
+                this.setDirtyCanvas(true, true);
+            };
+
             const onNodeCreated = nodeType.prototype.onNodeCreated;
             nodeType.prototype.onNodeCreated = function() {
                 if (onNodeCreated) onNodeCreated.apply(this, arguments);
@@ -162,26 +189,35 @@ app.registerExtension({
                     activeWidget.draw = () => {};
                 }
 
-                while (this.inputs.length > 1) this.removeInput(this.inputs.length - 1);
-                if (this.inputs.length === 0 || this.inputs[0].name !== "input_1") {
-                    this.addInput("input_1", "*");
-                }
+                // Удаляем все входы
+                while (this.inputs.length > 0) this.removeInput(this.inputs.length - 1);
+                
+                // Создаем минимум 2 слота по умолчанию
+                this.addInput("input_1", "*");
+                this.addInput("input_2", "*");
 
-                const infoWidget = this.addWidget("text", "info_display", "OFF", () => {}, { readOnly: true });
-                infoWidget.computeSize = function(width) { return [width, 24]; };
-                infoWidget.draw = function(ctx, node, w, y, h) {
-                    ctx.strokeStyle = this.value === "OFF" ? "#f44336" : "#4caf50";
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    if (ctx.roundRect) ctx.roundRect(1, y + 1, w - 2, h - 2, 6);
-                    else ctx.rect(1, y + 1, w - 2, h - 2);
-                    ctx.stroke();
-                    ctx.fillStyle = "#fff";
-                    ctx.font = "bold 14px Arial";
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText(this.value, w / 2, y + h / 2);
+                const infoWidget = {
+                    name: "info_display",
+                    value: "OFF",
+                    type: "info_display",
+                    draw: function(ctx, node, w, y, h) {
+                        ctx.strokeStyle = this.value === "OFF" ? "#f44336" : "#4caf50";
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        if (ctx.roundRect) ctx.roundRect(1, y + 1, w - 2, h - 2, 6);
+                        else ctx.rect(1, y + 1, w - 2, h - 2);
+                        ctx.stroke();
+                        ctx.fillStyle = "#fff";
+                        ctx.font = "bold 14px Arial";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(this.value, w / 2, y + h / 2);
+                    },
+                    computeSize: function(width) { return [width, 24]; },
+                    mouse: function() { return false; },
+                    callback: function() {}
                 };
+                this.widgets.push(infoWidget);
 
                 if (activeWidget && activeWidget.value !== "none") {
                     infoWidget.value = this.getActiveSlotDisplayName(activeWidget.value);
@@ -276,8 +312,12 @@ app.registerExtension({
                         widget.name = displayName;
                     }
 
-                    if (index === this.inputs.length - 1 && this.inputs.length < 20) {
-                        this.addInput(`input_${this.inputs.length + 1}`, "*");
+                    // Добавляем новый слот, если подключен последний и его номер < 20
+                    const lastInput = this.inputs[this.inputs.length - 1];
+                    const lastMatch = lastInput.name.match(/input_(\d+)/);
+                    if (lastMatch && parseInt(lastMatch[1], 10) < 20 && index === this.inputs.length - 1) {
+                        const newIndex = this.inputs.length + 1;
+                        this.addInput(`input_${newIndex}`, "*");
                     }
                 } else {
                     const widget = this.widgets.find(w => w.slotName === inputName);
@@ -290,23 +330,26 @@ app.registerExtension({
                         }
                     }
 
-                    if (this.inputs.length > 1) {
+                    // Удаляем лишние слоты, но оставляем минимум 2
+                    if (this.inputs.length > 2) {
                         const hasConnected = this.inputs.some(inp => inp.link !== null);
                         if (!hasConnected) {
-                            while (this.inputs.length > 1) {
+                            // Нет подключенных - удаляем все кроме первых 2
+                            while (this.inputs.length > 2) {
                                 this.removeInput(this.inputs.length - 1);
                             }
                         } else {
+                            // Есть подключенные - находим последний подключенный
                             let lastConnectedIndex = -1;
                             for (let i = 0; i < this.inputs.length; i++) {
                                 if (this.inputs[i].link !== null) {
                                     lastConnectedIndex = i;
                                 }
                             }
-                            if (lastConnectedIndex < this.inputs.length - 2) {
-                                while (this.inputs.length > lastConnectedIndex + 2) {
-                                    this.removeInput(this.inputs.length - 1);
-                                }
+                            // Удаляем пустые входы после последнего подключенного (но оставляем минимум 2)
+                            const minSlots = Math.max(2, lastConnectedIndex + 2);
+                            while (this.inputs.length > minSlots) {
+                                this.removeInput(this.inputs.length - 1);
                             }
                         }
                     }
@@ -322,6 +365,60 @@ app.registerExtension({
             nodeType.prototype.onConfigure = function(info) {
                 if (onConfigure) onConfigure.apply(this, arguments);
                 rebuildFromConnections.call(this);
+            };
+
+            const onDrawForeground = nodeType.prototype.onDrawForeground;
+            nodeType.prototype.onDrawForeground = function(ctx) {
+                if (onDrawForeground) onDrawForeground.apply(this, arguments);
+
+                const btnW = 90, btnH = 20;
+                const btnX = (this.size[0] - btnW) / 2;
+                const btnY = 15;
+
+                ctx.fillStyle = "#2a2a2a";
+                ctx.strokeStyle = "#2196F3";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                if (ctx.roundRect) {
+                    ctx.roundRect(btnX, btnY, btnW, btnH, 6);
+                } else {
+                    ctx.moveTo(btnX + 6, btnY);
+                    ctx.lineTo(btnX + btnW - 6, btnY);
+                    ctx.quadraticCurveTo(btnX + btnW, btnY, btnX + btnW, btnY + 6);
+                    ctx.lineTo(btnX + btnW, btnY + btnH - 6);
+                    ctx.quadraticCurveTo(btnX + btnW, btnY + btnH, btnX + btnW - 6, btnY + btnH);
+                    ctx.lineTo(btnX + 6, btnY + btnH);
+                    ctx.quadraticCurveTo(btnX, btnY + btnH, btnX, btnY + btnH - 6);
+                    ctx.lineTo(btnX, btnY + 6);
+                    ctx.quadraticCurveTo(btnX, btnY, btnX + 6, btnY);
+                    ctx.closePath();
+                }
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = "#2196F3";
+                ctx.font = "bold 10px Arial";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "alphabetic";
+                ctx.fillText("UPDATE NAME", btnX + btnW / 2, btnY + btnH / 2 + 4);
+            };
+
+            const onMouseDown = nodeType.prototype.onMouseDown;
+            nodeType.prototype.onMouseDown = function(event, pos, canvas) {
+                if (onMouseDown) onMouseDown.apply(this, arguments);
+                
+                if (!pos) return false;
+                
+                const btnW = 90, btnH = 20;
+                const btnX = (this.size[0] - btnW) / 2;
+                const btnY = 15;
+
+                if (pos[0] >= btnX && pos[0] <= btnX + btnW && pos[1] >= btnY && pos[1] <= btnY + btnH) {
+                    updateSlotNames.call(this);
+                    return true;
+                }
+
+                return false;
             };
         }
     }

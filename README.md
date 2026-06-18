@@ -309,16 +309,38 @@ The IMAGE output returns the original image unchanged. The MASK output returns a
 # 🦊 RS Intermediate Spline Mask  
 **An interactive node for creating intermediate spline masks** 
 
-![Screenshot_6](https://github.com/user-attachments/assets/c97fb1b8-5b1e-4c6b-bd49-af155e6f4d91)
+<img width="579" height="804" alt="Screenshot_4" src="https://github.com/user-attachments/assets/1072de6b-f5bb-46c8-bbcb-321c499a7810" />
 
 ### 🔥 Features  
 Node allows you to pause the workflow at the image processing stage, manually select the desired area and continue generation without completely restarting the process. More accurate selection based on the principle of the Lasso tool from Photoshop.  
+The **⚙️ BATCH** button enables continuous processing mode, allowing the node to reuse the same mask across multiple queue iterations without requiring manual re-drawing.
 
 ### 🪛 Usage  
 When this node is reached, pipeline execution is automatically suspended. A preview of the input image is displayed in the node's interface.  The user can left-click to add polygon points. Incorrectly positioned points can be deleted by left-clicking with the CTRL key held down.    
 The "✔️ ACCEPT" button confirms the created mask, after which the node completes processing and transmits the data further according to the scheme. The "🔴 CLEAR POINTS" button clears all the drawn points for redrawing. It is important that after using this button, you do not need to press the Prompt Queue again, just draw a new mask and press "✔️ ACCEPT". The "❌ CANCEL" button completely interrupts the process and resets the node status.  
 
-### ↔️ Inputs and Outputs:
+**Single Run (Default)**  
+1. Queue prompt → node pauses, shows image  
+2. Draw mask on overlay  
+3. Click **✔️ ACCEPT**  
+4. Processing continues normally  
+
+**Batch Run**  
+1. Set the value for batch processing in the Batch Count menu (located next to the RUN button)  
+2. Queue prompt → node pauses, shows image  
+3. Draw mask on overlay  
+4. Click **️  BATCH** (button turns  orange)  
+5. Click **✔️ ACCEPT** — mask is saved, queue continues  
+6. On next iteration: **no pause**, saved mask is applied automatically  
+7. Repeat until `Batch Count` is exhausted or queue is stopped  
+
+**Stopping Batch Mode**  
+Batch mode is automatically deactivated in the following cases:  
+- **❌ CANCEL** button is clicked — stops the queue and clears the saved mask  
+- **Queue completes** — after the last iteration finishes, batch mode resets automatically (~2 seconds delay)  
+- **Node is removed** from the graph — saved mask is cleared  
+
+### ↔️ Inputs and Outputs:  
 The IMAGE input accepts an image from any previous node. The IMAGE output returns the original image unchanged. The MASK output returns a black and white mask where the white area corresponds to the drawn polygon.  
 
 ---

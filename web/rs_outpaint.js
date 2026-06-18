@@ -94,12 +94,21 @@ function setUIActive(dom, isActive) {
 }
 
 function resetNodeState(st, dom, widgets) {
+    // Сохраняем пользовательские цвета перед сбросом, чтобы не терять выбор
+    const savedMaskColor = st.maskColor;
+    const savedBgColor = st.bgColor;
+
     Object.assign(st, createState());
+
+    // Восстанавливаем пользовательские цвета
+    st.maskColor = savedMaskColor;
+    st.bgColor = savedBgColor;
+
     st.arLocked = false;
     dom.arBtn.textContent = "🔓"; dom.arBtn.style.border = "1px solid #444"; dom.arBtn.style.background = "#2a2a2a"; dom.arBtn.style.color = "#bbb"; dom.arBtn._active = false;
     if(dom.wInput) dom.wInput.value = ""; if(dom.hInput) dom.hInput.value = "";
-    if(dom.maskColorInput) { st.maskColor = "#ff0000"; dom.maskColorInput.picker.value = st.maskColor; dom.maskColorInput.swatch.style.background = st.maskColor; dom.maskColorInput.hexInput.value = st.maskColor.toUpperCase(); }
-    if(dom.bgColorInput) { st.bgColor = "#141414"; dom.bgColorInput.picker.value = st.bgColor; dom.bgColorInput.swatch.style.background = st.bgColor; dom.bgColorInput.hexInput.value = st.bgColor.toUpperCase(); }
+    if(dom.maskColorInput) { dom.maskColorInput.picker.value = st.maskColor; dom.maskColorInput.swatch.style.background = st.maskColor; dom.maskColorInput.hexInput.value = st.maskColor.toUpperCase(); }
+    if(dom.bgColorInput) { dom.bgColorInput.picker.value = st.bgColor; dom.bgColorInput.swatch.style.background = st.bgColor; dom.bgColorInput.hexInput.value = st.bgColor.toUpperCase(); }
     if(dom.waitingMsg) dom.waitingMsg.style.display = "none";
     if(dom.acceptBtn) { dom.acceptBtn.style.display = "none"; dom.acceptBtn.textContent = "✔️ ACCEPT"; dom.acceptBtn.disabled = false; }
     if(dom.cancelBtn) dom.cancelBtn.style.display = "none";

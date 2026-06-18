@@ -1,18 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2025-2026 Raykosan (RaykoStudio)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import os
 import time
 import json
@@ -30,6 +15,7 @@ except ImportError:
     print("\033[91m[InSPLINE ] Warning: Server modules not available.\033[0m")
 
 PENDING_DECISIONS = {}
+_SAVED_MASK_PRESETS = {}
 
 class RaykoIntermediateSplineMask:
     @classmethod
@@ -49,10 +35,6 @@ class RaykoIntermediateSplineMask:
             }
         return inputs
 
-    # 🔹 ДОБАВЛЕНО: Принудительный запуск ноды при каждом Queue
-    # ComfyUI кэширует выводы, если входы не меняются. 
-    # Для интерактивных нод с паузой это ломает логику.
-    # Возврат time.time() гарантирует, что кэш всегда будет считаться "устаревшим".
     @classmethod
     def IS_CHANGED(cls, **kwargs):
         return time.time()
@@ -66,66 +48,99 @@ class RaykoIntermediateSplineMask:
     def create_mask(self, image, coordinates="[]", unique_id=None, prompt_id=None):
         unique_id = str(unique_id) if unique_id else "unknown"
         
+        # Проверка batch mode
+        saved_preset = _SAVED_MASK_PRESETS.get(unique_id, {})
+        batch_mode_active = saved_preset.get("active", False)
+        
         if SERVER_AVAILABLE and unique_id:
-            if unique_id not in PENDING_DECISIONS:
-                PENDING_DECISIONS[unique_id] = {
-                    "status": "pending",
-                    "coordinates": coordinates
-                }
+            # Если batch активен и есть сохраненные координаты - используем их без паузы
+            if batch_mode_active and saved_preset.get("coordinates"):
+                coordinates = saved_preset["coordinates"]
+                print(f"[InSPLINE ] Batch mode: using saved mask for node {unique_id}")
+                
+                # ← ДОБАВЛЕНО: Сохраняем изображение и отправляем событие для обновления UI
+                if prompt_id is None:
+                    import uuid
+                    prompt_id = str(uuid.uuid4())
+                
+                try:
+                    img_tensor = image[0]
+                    i = 255. * img_tensor.cpu().numpy()
+                    img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
+                    
+                    filename = f"inspline_{unique_id}_{prompt_id}.png"
+                    subfolder = "inspline"
+                    full_output_folder = os.path.join(folder_paths.get_temp_directory(), subfolder)
+                    os.makedirs(full_output_folder, exist_ok=True)
+                    img.save(os.path.join(full_output_folder, filename))
+
+                    PromptServer.instance.send_sync("rayko.inspline.show", {
+                        "node_id": unique_id,
+                        "image_url": f"/view?filename={filename}&type=temp&subfolder={subfolder}"
+                    })
+                except Exception as e:
+                    print(f"[InSPLINE 🦊] Error saving image in batch mode: {e}")
             else:
-                PENDING_DECISIONS[unique_id]["coordinates"] = coordinates
-            
-            if prompt_id is None:
-                import uuid
-                prompt_id = str(uuid.uuid4())
+                # Обычный режим с паузой
+                if unique_id not in PENDING_DECISIONS:
+                    PENDING_DECISIONS[unique_id] = {
+                        "status": "pending",
+                        "coordinates": coordinates
+                    }
+                else:
+                    PENDING_DECISIONS[unique_id]["coordinates"] = coordinates
+                
+                if prompt_id is None:
+                    import uuid
+                    prompt_id = str(uuid.uuid4())
 
-            try:
-                img_tensor = image[0]
-                i = 255. * img_tensor.cpu().numpy()
-                img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
-                
-                filename = f"inspline_{unique_id}_{prompt_id}.png"
-                subfolder = "inspline"
-                full_output_folder = os.path.join(folder_paths.get_temp_directory(), subfolder)
-                os.makedirs(full_output_folder, exist_ok=True)
-                img.save(os.path.join(full_output_folder, filename))
+                try:
+                    img_tensor = image[0]
+                    i = 255. * img_tensor.cpu().numpy()
+                    img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
+                    
+                    filename = f"inspline_{unique_id}_{prompt_id}.png"
+                    subfolder = "inspline"
+                    full_output_folder = os.path.join(folder_paths.get_temp_directory(), subfolder)
+                    os.makedirs(full_output_folder, exist_ok=True)
+                    img.save(os.path.join(full_output_folder, filename))
 
-                PromptServer.instance.send_sync("rayko.inspline.show", {
-                    "node_id": unique_id,
-                    "image_url": f"/view?filename={filename}&type=temp&subfolder={subfolder}"
-                })
-            except Exception as e:
-                print(f"[InSPLINE 🦊] Error saving image: {e}")
+                    PromptServer.instance.send_sync("rayko.inspline.show", {
+                        "node_id": unique_id,
+                        "image_url": f"/view?filename={filename}&type=temp&subfolder={subfolder}"
+                    })
+                except Exception as e:
+                    print(f"[InSPLINE 🦊] Error saving image: {e}")
 
-            while True:
-                state = PENDING_DECISIONS.get(unique_id, {})
-                current_status = state.get("status", "pending")
-                current_coordinates = state.get("coordinates", coordinates)
-                
-                if current_status == "approved":
-                    coordinates = current_coordinates
-                    if unique_id in PENDING_DECISIONS:
-                        del PENDING_DECISIONS[unique_id]
-                    break
-                
-                if current_status == "cancelled":
-                    if unique_id in PENDING_DECISIONS:
-                        del PENDING_DECISIONS[unique_id]
-                    break
+                while True:
+                    state = PENDING_DECISIONS.get(unique_id, {})
+                    current_status = state.get("status", "pending")
+                    current_coordinates = state.get("coordinates", coordinates)
+                    
+                    if current_status == "approved":
+                        coordinates = current_coordinates
+                        if unique_id in PENDING_DECISIONS:
+                            del PENDING_DECISIONS[unique_id]
+                        break
+                    
+                    if current_status == "cancelled":
+                        if unique_id in PENDING_DECISIONS:
+                            del PENDING_DECISIONS[unique_id]
+                        break
 
-                if current_status == "removed":
-                    print(f"[InSPLINE 🦊] Node {unique_id} REMOVED! Cleaning up...")
-                    if unique_id in PENDING_DECISIONS:
-                        del PENDING_DECISIONS[unique_id]
-                    break
-                
-                if current_status == "rejected":
-                    PENDING_DECISIONS[unique_id]["status"] = "pending"
-                    coordinates = current_coordinates
-                
-                time.sleep(0.3)
+                    if current_status == "removed":
+                        print(f"[InSPLINE 🦊] Node {unique_id} REMOVED! Cleaning up...")
+                        if unique_id in PENDING_DECISIONS:
+                            del PENDING_DECISIONS[unique_id]
+                        break
+                    
+                    if current_status == "rejected":
+                        PENDING_DECISIONS[unique_id]["status"] = "pending"
+                        coordinates = current_coordinates
+                    
+                    time.sleep(0.3)
         else:
-            print("[InSPLINE 🦊] Server not available, skipping pause logic.")
+            print("[InSPLINE ] Server not available, skipping pause logic.")
 
         if image is None or len(image) == 0:
             h, w = 512, 512
@@ -166,12 +181,19 @@ if SERVER_AVAILABLE:
             node_id = str(data.get("node_id"))
             decision = data.get("decision")
             coordinates = data.get("coordinates")
+            batch_mode = data.get("batch_mode", False)
             
             if node_id in PENDING_DECISIONS:
                 if decision == "approve":
                     PENDING_DECISIONS[node_id]["status"] = "approved"
                     if coordinates:
                         PENDING_DECISIONS[node_id]["coordinates"] = coordinates
+                    # Сохраняем preset если batch_mode активен
+                    if batch_mode and coordinates:
+                        _SAVED_MASK_PRESETS[node_id] = {
+                            "coordinates": coordinates, 
+                            "active": True
+                        }
                     
                 elif decision == "reject":
                     PENDING_DECISIONS[node_id]["status"] = "rejected"
@@ -180,6 +202,9 @@ if SERVER_AVAILABLE:
                     
                 elif decision == "cancel":
                     PENDING_DECISIONS[node_id]["status"] = "cancelled"
+                    # Очищаем preset при cancel
+                    if node_id in _SAVED_MASK_PRESETS:
+                        del _SAVED_MASK_PRESETS[node_id]
                     
                 return web.Response(status=200, text="Decision recorded")
             else:
@@ -206,6 +231,42 @@ if SERVER_AVAILABLE:
         except Exception as e:
             print(f"[InSPLINE 🦊] Cleanup Error: {e}")
             return web.Response(status=500, text=str(e))
+    
+    @PromptServer.instance.routes.post("/rayko/inspline/batch_toggle")
+    async def inspline_batch_toggle(request):
+        try:
+            data = await request.json()
+            node_id = str(data.get("node_id"))
+            enabled = data.get("enabled", False)
+            
+            if node_id in _SAVED_MASK_PRESETS:
+                _SAVED_MASK_PRESETS[node_id]["active"] = enabled
+            elif enabled and node_id in PENDING_DECISIONS:
+                coordinates = PENDING_DECISIONS[node_id].get("coordinates")
+                if coordinates:
+                    _SAVED_MASK_PRESETS[node_id] = {
+                        "coordinates": coordinates, 
+                        "active": True
+                    }
+            
+            return web.Response(status=200, text="OK")
+        except Exception as e:
+            print(f"[InSPLINE 🦊] Batch toggle Error: {e}")
+            return web.Response(status=500, text=str(e))
+
+    @PromptServer.instance.routes.post("/rayko/inspline/clear_preset")
+    async def inspline_clear_preset(request):
+        try:
+            data = await request.json()
+            node_id = str(data.get("node_id"))
+            
+            if node_id in _SAVED_MASK_PRESETS:
+                del _SAVED_MASK_PRESETS[node_id]
+            
+            return web.Response(status=200, text="OK")
+        except Exception as e:
+            print(f"[InSPLINE 🦊] Clear preset Error: {e}")
+            return web.Response(status=500, text=str(e))
 
 NODE_CLASS_MAPPINGS = {"RaykoIntermediateSplineMask": RaykoIntermediateSplineMask}
-NODE_DISPLAY_NAME_MAPPINGS = {"RaykoIntermediateSplineMask": "🦊 RS Intermediate Spline Mask"}
+NODE_DISPLAY_NAME_MAPPINGS = {"RaykoIntermediateSplineMask": " RS Intermediate Spline Mask"}

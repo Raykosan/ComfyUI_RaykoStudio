@@ -2,6 +2,10 @@ console.log("[InSPLINE ] intermediate_spline_mask.js LOADED!");
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 
+let queueWasRunning = false;
+let batchResetTimer = null;
+let allNodes = [];
+
 app.registerExtension({
     name: "RaykoIntermediateSplineMask",
     
@@ -18,6 +22,8 @@ app.registerExtension({
                 node.imageReady = false;
                 node.currentStatus = "Waiting...";
                 node.buttons = [];
+                node.batchMode = false;
+                node.hasPreset = false;
                 
                 const coordsWidget = node.widgets?.find(w => w.name === "coordinates");
                 if (coordsWidget) {
@@ -27,15 +33,16 @@ app.registerExtension({
                     };
                 }
                 
-                node.addButton = (label, color, callback) => {
+                node.addButton = (label, color, callback, isBatch = false) => {
                     node.buttons.push({
                         label: label, color: color, callback: callback,
-                        x: 0, y: 0, w: 0, h: 30, hover: false
+                        x: 0, y: 0, w: 0, h: 30, hover: false, isBatch: isBatch
                     });
                 };
                 
+                node.addButton("⚙️ BATCH", "#2196F3", () => node.toggleBatchMode(), true);
                 node.addButton("✔️ ACCEPT", "#28a745", () => node.sendDecision("approve"));
-                node.addButton("🔴 CLEAR POINTS", "#dc3545", () => node.sendDecision("reject"));
+                node.addButton("🔴 CLEAR MASK", "#dc3545", () => node.sendDecision("reject"));
                 node.addButton("❌ CANCEL", "#666666", () => node.sendDecision("cancel"));
                 
                 node.setSize([450, 600]);
@@ -159,9 +166,9 @@ app.registerExtension({
                 const createOverlayCanvas = () => {
                     if (_overlayCanvas) return;
                     _overlayCanvas = document.createElement("canvas");
-                    _overlayCanvas.className = "rayko-inspline-overlay"; // <-- Добавлен класс для надёжного поиска
+                    _overlayCanvas.className = "rayko-inspline-overlay";
                     _overlayCanvas.style.cssText = `
-                        position: fixed !important; z-index: 900 !important; // <-- Изменено на 900
+                        position: fixed !important; z-index: 900 !important;
                         pointer-events: auto !important; cursor: crosshair !important;
                         background: transparent !important; touch-action: none;
                         border: 1px dashed #00FF00 !important; box-sizing: border-box !important;
@@ -297,22 +304,31 @@ app.registerExtension({
                         
                         const btnH = 28;
                         const btnY = h - 45;
-                        const btnW = (w - 50) / 3;
+                        const btnW = (w - 60) / 4 + 3;
 
                         this.buttons[0].x = 15; this.buttons[0].y = btnY; this.buttons[0].w = btnW; this.buttons[0].h = btnH;
                         this.buttons[1].x = 20 + btnW; this.buttons[1].y = btnY; this.buttons[1].w = btnW; this.buttons[1].h = btnH;
                         this.buttons[2].x = 25 + (btnW * 2); this.buttons[2].y = btnY; this.buttons[2].w = btnW; this.buttons[2].h = btnH;
+                        this.buttons[3].x = 30 + (btnW * 3); this.buttons[3].y = btnY; this.buttons[3].w = btnW; this.buttons[3].h = btnH;
 
                         for (let btn of this.buttons) {
+                            let btnColor = btn.color;
+                            if (btn.isBatch && node.batchMode) {
+                                btnColor = "#ff9800";
+                                btn.label = "️⚙️ BATCH ON";
+                            } else if (btn.isBatch) {
+                                btn.label = "️⚙️ BATCH";
+                            }
+                            
                             ctx.fillStyle = btn.hover ? "#444" : "#2a2a2a";
                             ctx.beginPath();
                             if (ctx.roundRect) ctx.roundRect(btn.x, btn.y, btn.w, btn.h, 6);
                             else ctx.rect(btn.x, btn.y, btn.w, btn.h);
                             ctx.fill();
                             ctx.lineWidth = 1;
-                            ctx.strokeStyle = btn.color;
+                            ctx.strokeStyle = btnColor;
                             ctx.stroke();
-                            ctx.fillStyle = btn.color;
+                            ctx.fillStyle = btnColor;
                             ctx.font = "bold 11px Arial";
                             ctx.textAlign = "center";
                             ctx.textBaseline = "middle";
@@ -325,6 +341,7 @@ app.registerExtension({
                 const onResize = node.onResize;
                 node.onResize = function(size) {
                     if (onResize) onResize.apply(this, arguments);
+                    if (size[0] < 450) size[0] = 450;
                     _lastRect = null;
                 };
                 
@@ -354,6 +371,27 @@ app.registerExtension({
                     }
                 };
                 
+                node.toggleBatchMode = async function() {
+                    node.batchMode = !node.batchMode;
+                    if (node.batchMode) {
+                        node.hasPreset = false;
+                    }
+                    this.setDirtyCanvas(true, true);
+                    
+                    try {
+                        await fetch("/rayko/inspline/batch_toggle", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ 
+                                node_id: this.id.toString(), 
+                                enabled: node.batchMode
+                            })
+                        });
+                    } catch(e) {
+                        console.error("[InSPLINE ] Batch toggle failed:", e);
+                    }
+                };
+                
                 node.sendDecision = async function(decision) {
                     const currentCoords = node.properties?.spline_coords || "[]";
                     this.currentStatus = `Sending ${decision}...`;
@@ -363,6 +401,16 @@ app.registerExtension({
                         try {
                             await api.interrupt();
                         } catch (e) { console.error("Interrupt failed:", e); }
+                        
+                        node.batchMode = false;
+                        node.hasPreset = false;
+                        try {
+                            await fetch("/rayko/inspline/clear_preset", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ node_id: this.id.toString() })
+                            });
+                        } catch(e) {}
                     }
                     
                     if (decision === "reject") {
@@ -377,15 +425,21 @@ app.registerExtension({
                             body: JSON.stringify({ 
                                 node_id: this.id.toString(), 
                                 decision: decision,
-                                coordinates: currentCoords
+                                coordinates: currentCoords,
+                                batch_mode: node.batchMode
                             })
                         });
 
                         if (resp.ok) {
                             if (decision === "approve") {
-                                this.currentStatus = "✅ Approved! Processing...";
+                                if (node.batchMode) {
+                                    node.hasPreset = true;
+                                    // batchMode НЕ сбрасываем - кнопка остаётся оранжевой до конца очереди
+                                } else {
+                                    this.currentStatus = "✅ Approved! Processing...";
+                                }
                             } else if (decision === "reject") {
-                                this.currentStatus = "🔄 Points cleared. Draw & Approve!";
+                                this.currentStatus = "🔄 Mask cleared. Draw & Approve!";
                             } else {
                                 this.currentStatus = "❌ Cancelled.";
                             }
@@ -407,7 +461,7 @@ app.registerExtension({
                         _overlayCanvas = null; 
                     }
                     
-                    fetch("/rayko/inspline/cleanup", {
+                    fetch("/rayko/inspline/clear_preset", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ 
@@ -429,6 +483,8 @@ app.registerExtension({
                     }
                 };
                 
+                allNodes.push({node});
+                
             } catch (error) {
                 console.error("[InSPLINE ] Critical Error:", error);
             }
@@ -443,7 +499,6 @@ app.registerExtension({
                 node.image.src = image_url + "&t=" + Date.now();
                 node.image.onload = () => {
                     node.imageReady = true;
-                    // ИСПРАВЛЕНО: поиск по классу вместо жёсткой привязки к z-index
                     const overlay = document.querySelector('.rayko-inspline-overlay');
                     if (overlay) {
                         overlay.style.display = "block";
@@ -455,10 +510,38 @@ app.registerExtension({
                     node.setDirtyCanvas(true, true);
                 };
                 if (node.size[1] < 600) node.setSize([node.size[0], 600]);
-                node.currentStatus = "🎨 Draw mask, then APPROVE!";
+                node.currentStatus = " Draw mask, then APPROVE!";
                 app.canvas.centerOnNode(node);
                 node.setDirtyCanvas(true, true);
             }
+        });
+        
+        api.addEventListener("status", (e) => { 
+            const remaining = e.detail?.exec_info?.queue_remaining;
+            if (remaining > 0) {
+                queueWasRunning = true;
+                if (batchResetTimer) { clearTimeout(batchResetTimer); batchResetTimer = null; }
+            } else if (remaining === 0 && queueWasRunning) { 
+                queueWasRunning = false; 
+                if (!batchResetTimer) {
+                    batchResetTimer = setTimeout(() => {
+                        allNodes.forEach(({node}) => {
+                            if (node && (node.batchMode || node.hasPreset)) {
+                                node.batchMode = false;
+                                node.hasPreset = false;
+                                node.setDirtyCanvas(true, true);
+                                
+                                fetch("/rayko/inspline/clear_preset", { 
+                                    method: "POST", 
+                                    headers: { "Content-Type": "application/json" }, 
+                                    body: JSON.stringify({ node_id: String(node.id) }) 
+                                }).catch(err => console.error("Failed to clear preset:", err));
+                            }
+                        });
+                        batchResetTimer = null;
+                    }, 2000); 
+                }
+            } 
         });
     }
 });

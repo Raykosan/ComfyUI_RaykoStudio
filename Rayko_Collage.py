@@ -200,8 +200,10 @@ class RSCollage:
             fv = bool(data.get("flip_v"))
             op = float(data.get("opacity") or opacity)
             ft = data.get("feather_type") or feather_type
-            br = int(data.get("blur_radius") or blur_radius)
-            bh = int(data.get("blur_hardness") or blur_hardness)
+            br_raw = data.get("blur_radius")
+            bh_raw = data.get("blur_hardness")
+            br = int(br_raw) if br_raw is not None else blur_radius
+            bh = int(bh_raw) if bh_raw is not None else blur_hardness
             fcx = float(data.get("feather_center_x") or 0.5)
             fcy = float(data.get("feather_center_y") or 0.5)
 

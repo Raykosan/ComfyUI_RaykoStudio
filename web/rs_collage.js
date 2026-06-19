@@ -67,6 +67,14 @@ app.registerExtension({
             this.previewMaxSize = 512;
             this.pendingEditorData = null;
 
+            // Helper function to sync widget values
+            const syncWidgetValue = (widgetName, value) => {
+                const widget = this.widgets?.find(w => w.name === widgetName);
+                if (widget) {
+                    widget.value = value;
+                }
+            };
+
             // Hide default widgets
             ["opacity", "feather_type", "blur_radius", "blur_hardness"].forEach(n => {
                 const w = this.widgets?.find(w => w.name === n);
@@ -74,10 +82,10 @@ app.registerExtension({
             });
 
             // Add custom widgets
-            this.addWidget("slider", "opacity", 1.0, v => { this.opacity = v; this.previewDirty = true; this.setDirtyCanvas(true); }, { min: 0, max: 1, step: 0.01 });
-            this.addWidget("combo", "feather_type", "None", v => { this.featherType = v; this.previewDirty = true; this.setDirtyCanvas(true); }, { values: ["None", "Radial Blur In", "Radial Blur Out", "Ellipse Blur In", "Ellipse Blur Out"] });
-            this.addWidget("slider", "blur_radius", 50, v => { this.blurRadius = v; this.previewDirty = true; this.setDirtyCanvas(true); }, { min: 0, max: 100, step: 1 });
-            this.addWidget("slider", "blur_hardness", 0, v => { this.blurHardness = v; this.previewDirty = true; this.setDirtyCanvas(true); }, { min: 0, max: 100, step: 1 });
+            this.addWidget("slider", "opacity", 1.0, v => { this.opacity = v; syncWidgetValue("opacity", v); this.previewDirty = true; this.setDirtyCanvas(true); }, { min: 0, max: 1, step: 0.01 });
+            this.addWidget("combo", "feather_type", "None", v => { this.featherType = v; syncWidgetValue("feather_type", v); this.previewDirty = true; this.setDirtyCanvas(true); }, { values: ["None", "Radial Blur In", "Radial Blur Out", "Ellipse Blur In", "Ellipse Blur Out"] });
+            this.addWidget("slider", "blur_radius", 50, v => { this.blurRadius = v; syncWidgetValue("blur_radius", v); this.previewDirty = true; this.setDirtyCanvas(true); }, { min: 0, max: 100, step: 1 });
+            this.addWidget("slider", "blur_hardness", 0, v => { this.blurHardness = v; syncWidgetValue("blur_hardness", v); this.previewDirty = true; this.setDirtyCanvas(true); }, { min: 0, max: 100, step: 1 });
 
             // Create Overlay DOM
             if (!this.overlayContainer) {
@@ -140,9 +148,16 @@ app.registerExtension({
                 const sync = (key, type) => {
                     const el = this.overlayInputs[key];
                     const handler = () => {
-                        if (key === 'opacity') this.opacity = parseFloat(el.value) / 100;
-                        else if (type === 'float') this[key] = parseFloat(el.value);
-                        else this[key] = parseInt(el.value);
+                        if (key === 'opacity') {
+                            this.opacity = parseFloat(el.value) / 100;
+                            syncWidgetValue("opacity", this.opacity);
+                        } else if (type === 'float') {
+                            this[key] = parseFloat(el.value);
+                        } else {
+                            this[key] = parseInt(el.value);
+                            if (key === 'blurRadius') syncWidgetValue("blur_radius", this[key]);
+                            else if (key === 'blurHardness') syncWidgetValue("blur_hardness", this[key]);
+                        }
                         this.previewDirty = true;
                         this.setDirtyCanvas(true);
                     };
@@ -150,7 +165,12 @@ app.registerExtension({
                     el.addEventListener('change', handler);
                 };
                 sync('opacity', 'float');
-                this.overlayInputs.featherType.addEventListener('change', () => { this.featherType = this.overlayInputs.featherType.value; this.previewDirty = true; this.setDirtyCanvas(true); });
+                this.overlayInputs.featherType.addEventListener('change', () => { 
+                    this.featherType = this.overlayInputs.featherType.value; 
+                    syncWidgetValue("feather_type", this.featherType);
+                    this.previewDirty = true; 
+                    this.setDirtyCanvas(true); 
+                });
                 sync('blurRadius', 'int');
                 sync('blurHardness', 'int');
 
@@ -414,10 +434,17 @@ app.registerExtension({
             this.featherCenter = { x: 0.5, y: 0.5 };
             this.previewDirty = true;
 
-            ["opacity", "feather_type", "blur_radius", "blur_hardness"].forEach(n => {
-                const w = this.widgets?.find(w => w.name === n);
-                if (w) w.value = this[n];
-            });
+            // Sync widget values when opening editor
+            const syncWidgetValue = (widgetName, value) => {
+                const widget = this.widgets?.find(w => w.name === widgetName);
+                if (widget) {
+                    widget.value = value;
+                }
+            };
+            syncWidgetValue("opacity", this.opacity);
+            syncWidgetValue("feather_type", this.featherType);
+            syncWidgetValue("blur_radius", this.blurRadius);
+            syncWidgetValue("blur_hardness", this.blurHardness);
 
             this.realBackground = { width: data.bg_width, height: data.bg_height };
             this.realOverlay = { width: data.ov_width, height: data.ov_height };
@@ -550,18 +577,57 @@ app.registerExtension({
         nodeType.prototype.computeScreenHandles = function(rectX, rectY, useScale, useOffsetX, useOffsetY) {
             const hw = this.overlay.width / 2, hh = this.overlay.height / 2, rot = this.overlay.rotation * Math.PI / 180;
             const cos = Math.cos(rot), sin = Math.sin(rot), fx = this.overlay.flipH ? -1 : 1, fy = this.overlay.flipV ? -1 : 1;
-            const handles = { 'scale-tl': [-hw, -hh], 'scale-tr': [hw, -hh], 'scale-bl': [-hw, hh], 'scale-br': [hw, hh], 'scale-t': [0, -hh], 'scale-b': [0, hh], 'scale-l': [-hw, 0], 'scale-r': [hw, 0], 'rotate': [0, -hh - 40], 'feather-center': [(this.featherCenter.x - 0.5) * this.overlay.width, (this.featherCenter.y - 0.5) * this.overlay.height] };
+            const handles = { 
+                'scale-tl': [-hw, -hh], 
+                'scale-tr': [hw, -hh], 
+                'scale-bl': [-hw, hh], 
+                'scale-br': [hw, hh], 
+                'scale-t': [0, -hh], 
+                'scale-b': [0, hh], 
+                'scale-l': [-hw, 0], 
+                'scale-r': [hw, 0], 
+                'rotate': [0, -hh - 40]
+            };
             const screenHandles = {};
             for (const [name, loc] of Object.entries(handles)) {
                 const rx = loc[0] * cos - loc[1] * sin, ry = loc[0] * sin + loc[1] * cos;
                 screenHandles[name] = { x: rectX + useOffsetX + (this.overlay.x + rx * fx) * useScale, y: rectY + useOffsetY + (this.overlay.y + ry * fy) * useScale };
             }
+            
+            const fCxLocal = (this.featherCenter.x - 0.5) * this.overlay.width;
+            const fCyLocal = (this.featherCenter.y - 0.5) * this.overlay.height;
+            const fRx = fCxLocal * cos - fCyLocal * sin;
+            const fRy = fCxLocal * sin + fCyLocal * cos;
+            screenHandles['feather-center'] = { x: rectX + useOffsetX + (this.overlay.x + fRx * fx) * useScale, y: rectY + useOffsetY + (this.overlay.y + fRy * fy) * useScale };
+            
             return screenHandles;
         };
 
         nodeType.prototype.sendTransforms = async function() {
-            const payload = { id: String(this.id), transforms: this.getRealTransform(), opacity: this.opacity, feather_type: this.featherType, blur_radius: this.blurRadius, blur_hardness: this.blurHardness, feather_center_x: this.featherCenter.x, feather_center_y: this.featherCenter.y };
-            try { await api.fetchApi("/rayko/rs_collage", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); this.isEditing = false; this.setDirtyCanvas(true); } catch(e) {}
+            // Инвертируем координаты центра размытия при флипе,
+            // т.к. в Python feather применяется к уже отражённому изображению
+            const fcx = this.overlay.flipH ? 1.0 - this.featherCenter.x : this.featherCenter.x;
+            const fcy = this.overlay.flipV ? 1.0 - this.featherCenter.y : this.featherCenter.y;
+            
+            const payload = { 
+                id: String(this.id), 
+                transforms: this.getRealTransform(), 
+                opacity: this.opacity, 
+                feather_type: this.featherType, 
+                blur_radius: this.blurRadius, 
+                blur_hardness: this.blurHardness, 
+                feather_center_x: fcx, 
+                feather_center_y: fcy
+            };
+            try { 
+                await api.fetchApi("/rayko/rs_collage", { 
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" }, 
+                    body: JSON.stringify(payload) 
+                }); 
+                this.isEditing = false; 
+                this.setDirtyCanvas(true); 
+            } catch(e) {}
         };
 
         nodeType.prototype.cancelEditing = async function() {
@@ -596,7 +662,6 @@ app.registerExtension({
 
         // Node foreground drawing (ONLY for normal mode)
         nodeType.prototype.onDrawForeground = function(ctx) {
-            // Если включён Advanced Mode, нода НЕ рисуется. Это убирает "фантом".
             if (this.advancedMode) {
                 ctx.clearRect(0, 0, this.size[0], this.size[1]);
                 return;
@@ -643,7 +708,6 @@ app.registerExtension({
                 ctx.fillStyle = "#888"; ctx.font = "12px Arial"; ctx.fillText("▶ Run queue to start", rectX + cSize / 2 - 65, rectY + cSize / 2);
             }
 
-            // Normal mode buttons
             const toggleBtnW = 150, toggleBtnH = 24, toggleBtnX = (this.size[0] - toggleBtnW) / 2, toggleBtnY = 20;
             ctx.fillStyle = "#2a2a2a"; ctx.strokeStyle = "#2196F3"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(toggleBtnX + 6, toggleBtnY); ctx.lineTo(toggleBtnX + toggleBtnW - 6, toggleBtnY);
             ctx.quadraticCurveTo(toggleBtnX + toggleBtnW, toggleBtnY, toggleBtnX + toggleBtnW, toggleBtnY + 6); ctx.lineTo(toggleBtnX + toggleBtnW, toggleBtnY + toggleBtnH - 6);
@@ -723,7 +787,16 @@ app.registerExtension({
                 case 'rotate': { const cx = this.overlay.x, cy = this.overlay.y; const sA = Math.atan2(this.dragState.startMouseY - cy, this.dragState.startMouseX - cx); const cA = Math.atan2(worldMy - cy, worldMx - cx); this.overlay.rotation = this.dragState.startRotation + (cA - sA) * 180 / Math.PI; break; }
                 case 'scale-br': case 'scale-bl': case 'scale-tr': case 'scale-tl': { const cD = Math.hypot(worldMx - this.overlay.x, worldMy - this.overlay.y); const sD = this.dragState.startDist || 1; const sc = Math.max(0.05, cD / sD); this.overlay.width = Math.max(40, this.dragState.startW * sc); this.overlay.height = Math.max(40, this.dragState.startH * sc); this.overlay.x = this.dragState.startX; this.overlay.y = this.dragState.startY; break; }
                 case 'scale-r': case 'scale-l': case 'scale-b': case 'scale-t': { const aR = this.dragState.startRotation * Math.PI / 180; const c = Math.cos(aR), s = Math.sin(aR); const lDx = dx * c + dy * s, lDy = -dx * s + dy * c; let fW = this.dragState.startW, fH = this.dragState.startH; if(this.dragType === 'scale-r') fW += lDx; else if(this.dragType === 'scale-l') fW -= lDx; else if(this.dragType === 'scale-b') fH += lDy; else fH -= lDy; if(fW < 40) fW = 40; if(fH < 40) fH = 40; this.overlay.width = fW; this.overlay.height = fH; this.overlay.x = this.dragState.startX; this.overlay.y = this.dragState.startY; break; }
-                case 'feather-center': { const rD = -this.dragState.startRotation * Math.PI / 180; const c = Math.cos(rD), s = Math.sin(rD); const rdx = dx * c - dy * s, rdy = dx * s + dy * c; this.featherCenter.x = Math.max(0, Math.min(1, this.dragState.featherStartX + rdx / this.dragState.startW)); this.featherCenter.y = Math.max(0, Math.min(1, this.dragState.featherStartY + rdy / this.dragState.startH)); break; }
+                case 'feather-center': { 
+                    const rD = -this.dragState.startRotation * Math.PI / 180; 
+                    const c = Math.cos(rD), s = Math.sin(rD); 
+                    const rdx = dx * c - dy * s, rdy = dx * s + dy * c;
+                    const flipX = this.overlay.flipH ? -1 : 1;
+                    const flipY = this.overlay.flipV ? -1 : 1;
+                    this.featherCenter.x = Math.max(0, Math.min(1, this.dragState.featherStartX + (rdx * flipX) / this.dragState.startW)); 
+                    this.featherCenter.y = Math.max(0, Math.min(1, this.dragState.featherStartY + (rdy * flipY) / this.dragState.startH)); 
+                    break; 
+                }
             }
             this.previewDirty = true; this.setDirtyCanvas(true);
         };

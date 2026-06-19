@@ -6,8 +6,38 @@ let pendingDeleteName = null;
 
 const styleBlock = document.createElement('style');
 styleBlock.innerHTML = `
-    textarea.comfy-multiline-input { opacity: 1 !important; color: #fff !important; text-shadow: none !important; }
-    textarea.comfy-multiline-input:disabled { opacity: 0.5 !important; color: #888 !important; }
+    /* Стили ТОЛЬКО для кастомного textarea ноды RSPrompts */
+    .rs-custom-textarea {
+        flex: 1;
+        width: 100%;
+        min-height: 0;
+        border: 1px solid #444;
+        border-radius: 4px;
+        padding: 8px;
+        background: #111;
+        color: #fff;
+        font-family: system-ui, sans-serif;
+        font-size: 12px;
+        resize: none;
+        outline: none;
+        box-sizing: border-box;
+    }
+    
+    /* Светлая тема ComfyUI (классический UI) */
+    body.light-mode .rs-custom-textarea {
+        background: #fff;
+        color: #000;
+        border-color: #ccc;
+    }
+    
+    /* Светлая тема нового UI ComfyUI */
+    html[data-theme="light"] .rs-custom-textarea {
+        background: #fff;
+        color: #000;
+        border-color: #ccc;
+    }
+    
+    /* Оверлей ожидания */
     .rs-waiting-overlay {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
@@ -199,7 +229,7 @@ app.registerExtension({
             
             const customTextarea = document.createElement("textarea");
             customTextarea.className = "rs-custom-textarea";
-            customTextarea.style.cssText = "flex:1;width:100%;min-height:0;border:1px solid #444;border-radius:4px;padding:8px;background:#111;color:#fff;font-family:system-ui,sans-serif;font-size:12px;resize:none;outline:none;box-sizing:border-box;";
+            customTextarea.style.cssText = "flex:1;width:100%;min-height:0;resize:none;outline:none;box-sizing:border-box;";
             customTextarea.placeholder = "Enter your prompt here...";
             root.appendChild(customTextarea);
 

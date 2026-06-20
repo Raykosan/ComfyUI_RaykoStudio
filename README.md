@@ -289,8 +289,54 @@ height - Final output height (after optional resize)
 ---
 ---
 
+# 🦊 RS Image Compare  
+**A node that provides an interactive image comparison interface with zoom and pan controls**  
+
+<img width="723" height="933" alt="Screenshot_6" src="https://github.com/user-attachments/assets/06e78014-f95b-4064-8d1f-9a93992f72f6" />
+
+### 🔥 Features  
+- **Side-by-side comparison** - Compare two images using an interactive slider  
+- **Zoom control** - Zoom in from 1.0x to 10.0x with precise control  
+- **Pan controls** - Pan horizontally and vertically to explore zoomed images (-100% to +100%)  
+- **Interactive slider** - Drag the divider to reveal more of either image  
+- **Reset functionality** - Individual reset buttons for each parameter + global "Reset All" button  
+- **Auto-reset** - Parameters automatically reset to defaults when new images are loaded  
+
+### 🪛 Usage  
+**Slider** - Drag the vertical divider left or right to compare images  
+- Left position: Shows only `image_2`  
+- Right position: Shows only `image_1`  
+- Middle position: Shows both images equally  
+
+**Zoom** - Adjust zoom level from 1.0 to 10.0  
+- Drag the slider or click anywhere on the slider track to jump to that position  
+- Click the 🔃 button to reset to 1.0  
+
+**Pan H** - Horizontal panning from -100% to +100%  
+- Works in conjunction with zoom to navigate the image  
+- Click the 🔃 button to reset to 0  
+
+**Pan V** - Vertical panning from -100% to +100%  
+- Works in conjunction with zoom to navigate the image  
+- Click the 🔃 button to reset to 0  
+
+**🔄 Reset All Parameters** - Reset all controls (Zoom, Pan H, Pan V) to their default values  
+
+### ⚙️ Technical Details  
+All pan and zoom operations are performed relative to the image center  
+Pan values are expressed as percentages of the zoomed image dimensions  
+Images are automatically scaled to fit the display area while maintaining aspect ratio  
+
+### 🔎 Use Cases  
+Before/after image comparisons  
+Quality assessment between different models or configurations  
+Detailed inspection of image differences at various zoom levels  
+
+---
+---
+
 # 🦊 RS Load Image (former name RS Spline Mask)  
-**Node for load image and creating a spline mask**  
+**A node for load image and creating a spline mask**  
 
 <img width="800" height="715" alt="RS Load Image1" src="https://github.com/user-attachments/assets/c5150b6a-88b6-4e2a-86fa-7cd70346cab8" />
 

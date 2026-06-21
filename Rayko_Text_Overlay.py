@@ -236,6 +236,7 @@ class RS_TextOverlay:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "apply_text"
     CATEGORY = "🦊 RaykoStudio"
+    DESCRIPTION = "Node allows you to overlay text on images using masks"
 
     def __init__(self):
         self.debug = False

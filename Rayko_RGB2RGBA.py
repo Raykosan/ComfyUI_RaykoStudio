@@ -34,7 +34,7 @@ class LoadImageRGBA:
     RETURN_NAMES = ("rgba",)
     FUNCTION = "load_image"
     CATEGORY = "🦊 RaykoStudio"
-    DESCRIPTION = "Загружает изображение с сохранением альфа-канала (RGBA). Поддерживает PNG, WEBP, TIFF с прозрачностью."
+    DESCRIPTION = "Loads an image with the alpha channel (RGBA) preserved. Supports PNG, WEBP, TIFF with transparency"
 
     def load_image(self, image):
         image_path = os.path.join(folder_paths.get_input_directory(), image)

@@ -64,6 +64,7 @@ class RSComparer(PreviewImage):
     FUNCTION = "compare_images"
     CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
+    DESCRIPTION = "A node that provides an interactive image comparison interface with zoom and pan controls"
 
     def compare_images(
         self,

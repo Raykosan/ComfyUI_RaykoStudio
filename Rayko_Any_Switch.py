@@ -33,6 +33,7 @@ class RSAnySwitch:
     RETURN_NAMES = ("output",)
     FUNCTION = "switch_input"
     CATEGORY = "🦊 RaykoStudio"
+    DESCRIPTION = "Dynamic switch node that allows you to switch between multiple inputs of ANY data type"
 
     def switch_input(self, active_input: str, **kwargs) -> Tuple[Any]:
         if active_input in kwargs and kwargs[active_input] is not None:

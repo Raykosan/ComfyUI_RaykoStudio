@@ -44,6 +44,7 @@ class RaykoSplineMask:
     FUNCTION = "create_mask"
     CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
+    DESCRIPTION = "A node for load image and creating a spline mask"
 
     def create_mask(self, image, coordinates="[]"):
         img_path = None

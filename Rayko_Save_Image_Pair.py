@@ -127,6 +127,7 @@ class SaveImagePair:
     FUNCTION = "save_images_pair"
     OUTPUT_NODE = True
     CATEGORY = "🦊 RaykoStudio"
+    DESCRIPTION = "Node to save original and final images in a single image, while maintaining the workflow within the image"
 
     def save_images_pair(self, reference, final, filename_prefix="ThumbnailPair/img", concat_type="horizontal",
                          text1="", text2="", footer_height=100, font_name=None, font_size=50,

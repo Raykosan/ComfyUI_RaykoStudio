@@ -62,6 +62,7 @@ class RSCropImage:
     FUNCTION = "crop_image"
     CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
+    DESCRIPTION = "An interactive node that allows you to visually crop an image directly within the node interface"
 
     def crop_image(self, image, multiple_mode=False, multiple_of="8",
                    mask=None, crop_data="{}", unique_id=None, prompt_id=None):

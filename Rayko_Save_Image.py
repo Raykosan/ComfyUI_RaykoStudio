@@ -132,6 +132,7 @@ class RSSaveImage:
     FUNCTION = "save_images"
     OUTPUT_NODE = True
     CATEGORY = "🦊 RaykoStudio"
+    DESCRIPTION = "Node for adding explanatory text to an image"
 
     def save_images(self, images, node_data=None, prompt=None, extra_pnginfo=None):
         default_data = {

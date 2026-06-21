@@ -35,6 +35,7 @@ class RSInsertCropImage:
     FUNCTION = "insert_crop"
     CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
+    DESCRIPTION = "Node that allows insert a previously cut fragment back into the original image"
 
     def insert_crop(self, original_image, cropped_image, crop_data="{}"):
         try:

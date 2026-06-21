@@ -59,6 +59,7 @@ class RaykoIntermediateSplineMask:
     FUNCTION = "create_mask"
     CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
+    DESCRIPTION = "An interactive node for creating intermediate spline masks"
 
     def create_mask(self, image, coordinates="[]", unique_id=None, prompt_id=None):
         unique_id = str(unique_id) if unique_id else "unknown"

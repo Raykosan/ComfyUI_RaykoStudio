@@ -46,6 +46,7 @@ class LoadImageWithText:
     FUNCTION = "process"
     CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
+    DESCRIPTION = "Node embeds any hidden text into the image that can be used later"
 
     def process(self, mode, image, text_input="", filename_prefix="ComfyUI"):
         try:

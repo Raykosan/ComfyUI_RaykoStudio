@@ -47,6 +47,7 @@ class RaykoLoopSwitchSeed:
     FUNCTION = "process"
     CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
+    DESCRIPTION = "A combined node for generating a sequence of values with automatic switching"
 
     def process(self, start_at_step, end_at_step, jump, control_before_generate, 
                 value_1, value_2, value_3, value_4, value_5, 

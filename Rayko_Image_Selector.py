@@ -104,6 +104,7 @@ class RaykoImageSelect:
     FUNCTION = "select_batch"
     CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
+    DESCRIPTION = "Node for Interactive Batch Image Selection"
 
     def select_batch(self, images, unique_id):
         unique_id = str(unique_id)

@@ -29,6 +29,7 @@ class RS_Last_Frame:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "get_last_frame"
     CATEGORY = "🦊 RaykoStudio"
+    DESCRIPTION = "A lightweight node that extracts the last frame from any video input"
 
     def get_last_frame(self, video_frames):
         frames = None

@@ -99,6 +99,7 @@ class RSCollage:
     FUNCTION = "composite"
     CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
+    DESCRIPTION = "Interactive node for overlaying images with real-time positioning, scaling, rotation, and edge feathering directly on the canvas"
 
     def remove_black_corners(self, img):
         if img.mode != 'RGBA': return img

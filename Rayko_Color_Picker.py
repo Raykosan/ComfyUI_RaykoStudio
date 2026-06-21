@@ -18,18 +18,37 @@ class RSColorPicker:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "color": ("STRING", {"default": "#ff0000", "multiline": False, "tooltip": "Hex color value", "hidden": True}),
+                "color": ("STRING", {"default": "#ff0000"}),
             },
         }
-
-    RETURN_TYPES = ()
-    FUNCTION = "noop"
-    OUTPUT_NODE = True
+    
+    RETURN_TYPES = ("INT", "STRING", "STRING")
+    RETURN_NAMES = ("HEX_INT", "HEX_STR", "RGB")
+    FUNCTION = "get_color"
     CATEGORY = "🦊 RaykoStudio"
-    DESCRIPTION = "Interactive color picker widget with pipette support"
+    
+    def get_color(self, color):
+        hex_value = color.lstrip('#')
+        if len(hex_value) > 6:
+            hex_value = hex_value[:6]
+        elif len(hex_value) < 6:
+            hex_value = hex_value.ljust(6, '0')
+            
+        int_value = int(hex_value, 16)
+        hex_str = '#' + hex_value.upper()
+        
+        r = int(hex_value[0:2], 16) / 255.0
+        g = int(hex_value[2:4], 16) / 255.0
+        b = int(hex_value[4:6], 16) / 255.0
+        
+        rgb_str = f"{r:.3f}, {g:.3f}, {b:.3f}"
+        
+        return (int_value, hex_str, rgb_str)
 
-    def noop(self, color):
-        return ()
+NODE_CLASS_MAPPINGS = {
+    "RSColorPicker": RSColorPicker
+}
 
-NODE_CLASS_MAPPINGS = {"RSColorPicker": RSColorPicker}
-NODE_DISPLAY_NAME_MAPPINGS = {"RSColorPicker": "🦊 RS Color Picker"}
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "RSColorPicker": "🦊 RS Color Picker"
+}

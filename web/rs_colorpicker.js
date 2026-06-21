@@ -1,4 +1,3 @@
-console.log("[SPLINE 🦊] rs_colorpicker.js LOADED!");
 import { app } from "../../scripts/app.js";
 
 const NODE_CLASS = "RSColorPicker";
@@ -79,7 +78,6 @@ class CanvasEyedropper {
         this._onMouseMove = this._onMouseMove.bind(this);
         this._onClick = this._onClick.bind(this);
         this._onKeyDown = this._onKeyDown.bind(this);
-        console.log("[SPLINE 🦊] CanvasEyedropper initialized");
     }
     
     _createMagnifier() {
@@ -111,7 +109,6 @@ class CanvasEyedropper {
         document.addEventListener('mousemove', this._onMouseMove);
         document.addEventListener('click', this._onClick, true);
         document.addEventListener('keydown', this._onKeyDown);
-        console.log("[SPLINE 🦊] Eyedropper started");
     }
     
     stop() {
@@ -125,7 +122,6 @@ class CanvasEyedropper {
             cancelAnimationFrame(this.rafId);
             this.rafId = null;
         }
-        console.log("[SPLINE ] Eyedropper stopped");
     }
     
     _getColorAt(x, y) {
@@ -167,7 +163,6 @@ class CanvasEyedropper {
             const pixel = ctx.getImageData(Math.floor(px), Math.floor(py), 1, 1).data;
             return { r: pixel[0], g: pixel[1], b: pixel[2], a: pixel[3] };
         } catch (e) {
-            console.warn("[SPLINE ] CORS error:", e.message);
             return null;
         }
     }
@@ -221,16 +216,12 @@ class CanvasEyedropper {
         
         if (color) {
             const hex = rgbToHex(color.r, color.g, color.b);
-            console.log("[SPLINE ] Color picked:", hex);
             if (this.onPick) this.onPick(hex);
-        } else {
-            console.log("[SPLINE 🦊] No color found, cancelled");
         }
     }
     
     _onKeyDown(e) {
         if (e.key === 'Escape') {
-            console.log("[SPLINE 🦊] Eyedropper cancelled");
             this.stop();
         }
     }
@@ -265,7 +256,6 @@ app.registerExtension({
             
             const root = mkEl("div", "display:flex;flex-direction:column;gap:4px;padding:3px;overflow:hidden;");
             
-            // Label для основных цветов
             const basicLabel = mkEl("div", "color:#999;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;padding-left:2px;", { 
                 textContent: "Basic Colors" 
             });
@@ -294,7 +284,6 @@ app.registerExtension({
             
             const hexInput = mkEl("input", "width:10ch;padding:4px 6px;background:#1e1e1e;color:#ccc;border:1px solid #444;border-radius:4px;font-family:monospace;font-size:12px;flex-shrink:0;box-sizing:border-box;", { value: initialColor.toUpperCase() });
             
-            // Иконка палитры вместо кисти
             const eyedropperBtn = mkEl("button", "width:36px;height:36px;border-radius:4px;border:2px solid #444;background:#2a2a2a;color:#ccc;cursor:pointer;font-size:14px;flex-shrink:0;transition:all 0.1s;", { 
                 innerHTML: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>`,
                 title: "Color Palette" 
@@ -335,7 +324,6 @@ app.registerExtension({
             
             topRow.append(swatch, colorInput, hexInput, eyedropperBtn);
             
-            // Label для истории
             const recentLabel = mkEl("div", "color:#999;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;padding-left:2px;margin-top:5px;", { 
                 textContent: "Recent Colors" 
             });
@@ -358,7 +346,6 @@ app.registerExtension({
             };
             updateHistory();
             
-            // Новый порядок: basicLabel → presetsRow → topRow → recentLabel → historyRow
             root.append(basicLabel, presetsRow, topRow, recentLabel, historyRow);
             
             const syncOutputs = (color) => {

@@ -335,7 +335,7 @@ Detailed inspection of image differences at various zoom levels
 ---
 ---
 
-# 🦊 RS Load Image (former name RS Spline Mask)  
+# 🦊 RS Load Image  
 **A node for load image and creating a spline mask**  
 
 <img width="800" height="715" alt="RS Load Image1" src="https://github.com/user-attachments/assets/c5150b6a-88b6-4e2a-86fa-7cd70346cab8" />
@@ -802,13 +802,31 @@ Restart ComfyUI
 ---
 
 # 🦊 RS Color Picker  
-**A node for selecting a color and displaying its HEX parameters**  
+**Professional color picker node with advanced features including eyedropper and color history**  
 
-<img width="372" height="416" alt="Screenshot_3" src="https://github.com/user-attachments/assets/ab1681d0-0276-4ef6-a34d-56f181661034" />  
+<img width="470" height="664" alt="Screenshot_13" src="https://github.com/user-attachments/assets/0c5bb126-1c46-4ece-ae3d-037399a0b6c5" />
+
+### 🔥 Features  
+- **Visual Color Picker** - Intuitive color selection with live preview  
+- **Eyedropper Tool** - Pick colors from anywhere on screen (Chrome/Edge) or from ComfyUI canvas (all browsers)  
+- **Copy to Clipboard** - Double-click color swatch to copy HEX value  
+- **Basic Colors** - 8 preset colors for quick access  
+- **Recent Colors** - History of last 24 used colors (saved in localStorage)  
+- **Multiple Outputs** - HEX_INT, HEX_STR, and RGB formats  
+- **Clean UI** - Professional interface matching ComfyUI design  
 
 ### 🪛 Usage  
-Click on the color window, select the color with the cursor on the palette, or click the pipette icon and select a color anywhere on the monitor.  
-A HEX of this color will appear in the text field, which you can copy to the clipboard.  
+1. **Select a color using one of these methods:**  
+- Click the color swatch to open native color picker  
+- Click the palette icon (🎨) to activate eyedropper tool  
+- Click any preset color from the "Basic Colors" row  
+- Click any color from the "Recent Colors" history  
+- Type HEX value directly into the input field  
+
+2. **Connect outputs to other nodes:**  
+`HEX_INT` - Integer value (e.g., 16711680 for #FF0000)  
+`HEX_STR` - HEX string (e.g., "#FF0000")  
+`RGB` - Normalized RGB values (e.g., "1.000, 0.000, 0.000")  
 
 ---
 ---

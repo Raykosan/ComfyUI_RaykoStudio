@@ -221,14 +221,13 @@ app.registerExtension({
                 ];
                 
                 const buttonWidth = w;
-                const sliderWidth = buttonWidth - LABEL_WIDTH - INFO_WIDTH - RESET_WIDTH - 5 * INNER_PADDING;
+                const sliderWidth = buttonWidth - LABEL_WIDTH - INFO_WIDTH - RESET_WIDTH - 6 * INNER_PADDING;
                 
                 widgets.forEach((widget, i) => {
                     const rowY = widgetsY + i * (ROW_HEIGHT + ROW_GAP);
                     
-                    // Новый порядок: [label] [slider] [value] [reset]
                     const labelX = padding + INNER_PADDING;
-                    const sliderX = labelX + LABEL_WIDTH + INNER_PADDING;
+                    const sliderX = labelX + LABEL_WIDTH + INNER_PADDING * 2;
                     const infoX = sliderX + sliderWidth + INNER_PADDING;
                     const resetX = infoX + INFO_WIDTH + INNER_PADDING;
                     

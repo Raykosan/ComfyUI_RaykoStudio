@@ -20,6 +20,7 @@ import torch
 from aiohttp import web
 from concurrent.futures import Future
 import time
+from server import PromptServer
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROMPTS_DIR = os.path.join(CURRENT_DIR, "prompts")
@@ -30,6 +31,9 @@ if not os.path.exists(PROMPTS_DIR):
 PENDING_PROMPTS = {}
 
 class RSPrompts:
+    _encode_cache = {}
+    _CACHE_MAX_SIZE = 50
+    
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -65,7 +69,6 @@ class RSPrompts:
             effective_text_input = text_input
         
         if effective_text_input is not None and not pause_for_edit and instance_uid:
-            from server import PromptServer
             PromptServer.instance.send_sync("rs.prompt.update", {
                 "instance_uid": instance_uid,
                 "prompt": current_text
@@ -80,7 +83,6 @@ class RSPrompts:
                 "clip": clip
             }
             
-            from server import PromptServer
             PromptServer.instance.send_sync("rs.prompt.pause", {
                 "instance_uid": instance_uid,
                 "prompt": current_text
@@ -105,14 +107,25 @@ class RSPrompts:
             
             current_text = final_text
         
-        tokens_pos = clip.tokenize(current_text)
-        pos_cond = clip.encode_from_tokens_scheduled(tokens_pos)
+        cache_key = (current_text, id(clip))
         
-        neg_cond = []
-        for t in pos_cond:
-            d = t[1].copy() if len(t) > 1 else {}
-            neg_cond.append((torch.zeros_like(t[0]), d))
-
+        if cache_key in RSPrompts._encode_cache:
+            pos_cond, neg_cond = RSPrompts._encode_cache[cache_key]
+        else:
+            tokens_pos = clip.tokenize(current_text)
+            pos_cond = clip.encode_from_tokens_scheduled(tokens_pos)
+            
+            neg_cond = []
+            for t in pos_cond:
+                d = t[1].copy() if len(t) > 1 else {}
+                if "pooled_output" in d and d["pooled_output"] is not None:
+                    d["pooled_output"] = torch.zeros_like(d["pooled_output"])
+                neg_cond.append((torch.zeros_like(t[0]), d))
+            
+            if len(RSPrompts._encode_cache) >= RSPrompts._CACHE_MAX_SIZE:
+                RSPrompts._encode_cache.clear()
+            RSPrompts._encode_cache[cache_key] = (pos_cond, neg_cond)
+        
         return {
             "ui": {"text": [current_text]},
             "result": (pos_cond, neg_cond, current_text)

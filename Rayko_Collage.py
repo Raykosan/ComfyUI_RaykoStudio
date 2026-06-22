@@ -26,6 +26,7 @@ import folder_paths
 TRANSFORM_CACHE = {}
 PENDING_TRANSFORMS = {}
 
+
 @PromptServer.instance.routes.post("/rayko/rs_collage")
 async def transform_handler(request):
     try:
@@ -34,6 +35,7 @@ async def transform_handler(request):
         transforms = data.get("transforms")
         if node_id is None or transforms is None:
             return web.json_response({"error": "Missing data"}, status=400)
+
         TRANSFORM_CACHE[node_id] = {
             **transforms,
             "opacity": data.get("opacity", 1.0),
@@ -45,9 +47,11 @@ async def transform_handler(request):
         }
         if node_id in PENDING_TRANSFORMS:
             PENDING_TRANSFORMS[node_id]["status"] = "completed"
+            PENDING_TRANSFORMS[node_id]["last_heartbeat"] = time.time()
         return web.json_response({"status": "ok"})
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
+
 
 @PromptServer.instance.routes.post("/rayko/rs_collage/cancel")
 async def cancel_handler(request):
@@ -57,17 +61,22 @@ async def cancel_handler(request):
         if node_id not in PENDING_TRANSFORMS:
             PENDING_TRANSFORMS[node_id] = {}
         PENDING_TRANSFORMS[node_id]["status"] = "cancelled"
+        PENDING_TRANSFORMS[node_id]["last_heartbeat"] = time.time()
         return web.json_response({"status": "cancelled"})
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
+
 
 @PromptServer.instance.routes.post("/rayko/rs_collage/cleanup")
 async def cleanup_handler(request):
     try:
         data = await request.json()
         node_id = str(data.get("node_id"))
-        TRANSFORM_CACHE.pop(node_id, None)
-        PENDING_TRANSFORMS.pop(node_id, None)
+        if node_id in PENDING_TRANSFORMS:
+            PENDING_TRANSFORMS[node_id]["status"] = "removed"
+            PENDING_TRANSFORMS[node_id]["last_heartbeat"] = time.time()
+        
+        # Удаляем временные файлы
         temp_dir = folder_paths.get_temp_directory()
         for f in os.listdir(temp_dir):
             if f.startswith(f"rs_collage_{node_id}_"):
@@ -79,6 +88,20 @@ async def cleanup_handler(request):
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
 
+
+@PromptServer.instance.routes.post("/rayko/rs_collage/heartbeat")
+async def heartbeat_handler(request):
+    try:
+        data = await request.json()
+        node_id = str(data.get("node_id"))
+        if node_id in PENDING_TRANSFORMS:
+            PENDING_TRANSFORMS[node_id]["last_heartbeat"] = time.time()
+            return web.json_response({"status": "ok"})
+        return web.json_response({"status": "not_found"}, status=404)
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
+
+
 class RSCollage:
     @classmethod
     def INPUT_TYPES(cls):
@@ -88,7 +111,7 @@ class RSCollage:
                 "background_image": ("IMAGE",),
                 "opacity": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                 "feather_type": (["None", "Radial Blur In", "Radial Blur Out", "Ellipse Blur In", "Ellipse Blur Out"], {"default": "None"}),
-                "blur_radius": ("INT", {"default": 50, "min": 0, "max": 100, "step": 1}), 
+                "blur_radius": ("INT", {"default": 50, "min": 0, "max": 100, "step": 1}),
                 "blur_hardness": ("INT", {"default": 0, "min": 0, "max": 100, "step": 1}),
             },
             "optional": {"overlay_mask": ("MASK",)},
@@ -239,7 +262,10 @@ class RSCollage:
         bg_pil.save(os.path.join(td, bfn))
         ov_pil.save(os.path.join(td, ofn))
 
-        PENDING_TRANSFORMS[unique_id] = {"status": "pending"}
+        PENDING_TRANSFORMS[unique_id] = {
+            "status": "pending",
+            "last_heartbeat": time.time()
+        }
         PromptServer.instance.send_sync("rs-collage-start", {
             "id": unique_id, "bg_file": bfn, "ov_file": ofn, "bg_width": bg_w, "bg_height": bg_h,
             "ov_width": ov_pil.width, "ov_height": ov_pil.height, "timestamp": ts,
@@ -247,13 +273,40 @@ class RSCollage:
         })
 
         print(f"[RS Collage] Node {unique_id} waiting for user input (Apply/Cancel)...")
-        while unique_id not in TRANSFORM_CACHE:
+        
+        while True:
+            state = PENDING_TRANSFORMS.get(unique_id, {})
+            current_status = state.get("status", "pending")
+            last_hb = state.get("last_heartbeat", time.time())
+            
+            if current_status == "completed":
+                break
+            
+            elif current_status == "cancelled":
+                print(f"[RS Collage] Cancelled by user for node {unique_id}")
+                PENDING_TRANSFORMS.pop(unique_id, None)
+                for f in [bfn, ofn]:
+                    try: os.remove(os.path.join(td, f))
+                    except: pass
+                return (self.pil2tensor(bg_pil),)
+            
+            elif current_status == "removed":
+                print(f"[RS Collage] Node {unique_id} removed/cleaned up")
+                PENDING_TRANSFORMS.pop(unique_id, None)
+                for f in [bfn, ofn]:
+                    try: os.remove(os.path.join(td, f))
+                    except: pass
+                return (self.pil2tensor(bg_pil),)
+            
+            elif time.time() - last_hb > 10.0:
+                print(f"[RS Collage] Heartbeat timeout for node {unique_id}")
+                PENDING_TRANSFORMS.pop(unique_id, None)
+                for f in [bfn, ofn]:
+                    try: os.remove(os.path.join(td, f))
+                    except: pass
+                return (self.pil2tensor(bg_pil),)
+            
             time.sleep(0.2)
-            if unique_id in PENDING_TRANSFORMS:
-                if PENDING_TRANSFORMS[unique_id].get("status") == "cancelled":
-                    print(f"[RS Collage] Cancelled by user for node {unique_id}")
-                    PENDING_TRANSFORMS.pop(unique_id, None)
-                    return (self.pil2tensor(bg_pil),)
 
         print(f"[RS Collage] Input received for node {unique_id}")
         PENDING_TRANSFORMS.pop(unique_id, None)
@@ -267,6 +320,7 @@ class RSCollage:
 
     @classmethod
     def IS_CHANGED(cls, **kwargs): return time.time()
+
 
 NODE_CLASS_MAPPINGS = {"RSCollage": RSCollage}
 NODE_DISPLAY_NAME_MAPPINGS = {"RSCollage": "🦊 RS Collage"}

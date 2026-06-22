@@ -1,7 +1,7 @@
 [project]
 name = "ComfyUI_RaykoStudio"
 description = "Set of custom nodes for ComfyUI providing additional image processing capabilities"
-version = "0.25.0"
+version = "0.25.1"
 license = { file = "LICENSE" }
 dependencies = ["torch>=1.7.0", "numpy>=1.19.0", "Pillow>=8.0.0", "freetype-py>=2.5.1"]
 

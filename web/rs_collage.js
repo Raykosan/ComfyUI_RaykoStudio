@@ -5,6 +5,7 @@ let activeRSCollageNode = null;
 
 app.registerExtension({
     name: "RaykoStudio.RSCollage",
+
     async beforeRegisterNodeDef(nodeType, nodeData) {
         if (nodeData.name !== "RSCollage") return;
 
@@ -67,6 +68,9 @@ app.registerExtension({
             this.previewMaxSize = 512;
             this.pendingEditorData = null;
 
+            // Heartbeat
+            this.heartbeatInterval = null;
+
             // Helper function to sync widget values
             const syncWidgetValue = (widgetName, value) => {
                 const widget = this.widgets?.find(w => w.name === widgetName);
@@ -86,6 +90,27 @@ app.registerExtension({
             this.addWidget("combo", "feather_type", "None", v => { this.featherType = v; syncWidgetValue("feather_type", v); this.previewDirty = true; this.setDirtyCanvas(true); }, { values: ["None", "Radial Blur In", "Radial Blur Out", "Ellipse Blur In", "Ellipse Blur Out"] });
             this.addWidget("slider", "blur_radius", 50, v => { this.blurRadius = v; syncWidgetValue("blur_radius", v); this.previewDirty = true; this.setDirtyCanvas(true); }, { min: 0, max: 100, step: 1 });
             this.addWidget("slider", "blur_hardness", 0, v => { this.blurHardness = v; syncWidgetValue("blur_hardness", v); this.previewDirty = true; this.setDirtyCanvas(true); }, { min: 0, max: 100, step: 1 });
+
+            // Heartbeat methods
+            this.startHeartbeat = function() {
+                if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+                this.heartbeatInterval = setInterval(async () => {
+                    try {
+                        await fetch("/rayko/rs_collage/heartbeat", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ node_id: String(this.id) })
+                        });
+                    } catch (e) {}
+                }, 3000);
+            };
+
+            this.stopHeartbeat = function() {
+                if (this.heartbeatInterval) {
+                    clearInterval(this.heartbeatInterval);
+                    this.heartbeatInterval = null;
+                }
+            };
 
             // Create Overlay DOM
             if (!this.overlayContainer) {
@@ -165,11 +190,11 @@ app.registerExtension({
                     el.addEventListener('change', handler);
                 };
                 sync('opacity', 'float');
-                this.overlayInputs.featherType.addEventListener('change', () => { 
-                    this.featherType = this.overlayInputs.featherType.value; 
+                this.overlayInputs.featherType.addEventListener('change', () => {
+                    this.featherType = this.overlayInputs.featherType.value;
                     syncWidgetValue("feather_type", this.featherType);
-                    this.previewDirty = true; 
-                    this.setDirtyCanvas(true); 
+                    this.previewDirty = true;
+                    this.setDirtyCanvas(true);
                 });
                 sync('blurRadius', 'int');
                 sync('blurHardness', 'int');
@@ -194,7 +219,29 @@ app.registerExtension({
             // API Listeners
             api.addEventListener("rs-collage-start", (event) => { if (event.detail.id != this.id) return; this.pendingEditorData = event.detail; this.openDeferredEditor(); });
             api.addEventListener("rs-collage-ready", (event) => { if (event.detail.id != this.id) return; this.pendingEditorData = event.detail; });
-            api.addEventListener("interrupted", () => { this.pendingEditorData = null; this.isLoading = false; this.isEditing = false; this.dragType = null; this.dragState = null; this.setDirtyCanvas(true); });
+            api.addEventListener("interrupted", () => {
+                this.stopHeartbeat();
+                this.pendingEditorData = null;
+                this.isLoading = false;
+                this.isEditing = false;
+                this.dragType = null;
+                this.dragState = null;
+                this.setDirtyCanvas(true);
+            });
+
+            // Cleanup on node removal
+            const origOnRemoved = this.onRemoved;
+            this.onRemoved = function() {
+                this.stopHeartbeat();
+                try {
+                    fetch("/rayko/rs_collage/cleanup", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ node_id: String(this.id) })
+                    }).catch(() => {});
+                } catch(e) {}
+                if (origOnRemoved) origOnRemoved.call(this);
+            };
         };
 
         // Helpers
@@ -469,6 +516,7 @@ app.registerExtension({
                         this.computeAndApplyView();
                         this.isEditing = true;
                         this.setDirtyCanvas(true);
+                        this.startHeartbeat();
                     });
                 }
             };
@@ -512,7 +560,7 @@ app.registerExtension({
             const minX = Math.min(ovL, bgL), minY = Math.min(ovT, bgT), maxX = Math.max(ovR, bgR), maxY = Math.max(ovB, bgB);
             const contentW = Math.max(1, maxX - minX), contentH = Math.max(1, maxY - minY);
             const contentCX = (minX + maxX) / 2, contentCY = (minY + maxY) / 2;
-            
+
             if (this.advancedMode) {
                 const cw = this.overlayCanvas.width || (this.overlayCanvasWrapper ? this.overlayCanvasWrapper.clientWidth : 1000);
                 const ch = this.overlayCanvas.height || (this.overlayCanvasWrapper ? this.overlayCanvasWrapper.clientHeight : 800);
@@ -577,15 +625,15 @@ app.registerExtension({
         nodeType.prototype.computeScreenHandles = function(rectX, rectY, useScale, useOffsetX, useOffsetY) {
             const hw = this.overlay.width / 2, hh = this.overlay.height / 2, rot = this.overlay.rotation * Math.PI / 180;
             const cos = Math.cos(rot), sin = Math.sin(rot), fx = this.overlay.flipH ? -1 : 1, fy = this.overlay.flipV ? -1 : 1;
-            const handles = { 
-                'scale-tl': [-hw, -hh], 
-                'scale-tr': [hw, -hh], 
-                'scale-bl': [-hw, hh], 
-                'scale-br': [hw, hh], 
-                'scale-t': [0, -hh], 
-                'scale-b': [0, hh], 
-                'scale-l': [-hw, 0], 
-                'scale-r': [hw, 0], 
+            const handles = {
+                'scale-tl': [-hw, -hh],
+                'scale-tr': [hw, -hh],
+                'scale-bl': [-hw, hh],
+                'scale-br': [hw, hh],
+                'scale-t': [0, -hh],
+                'scale-b': [0, hh],
+                'scale-l': [-hw, 0],
+                'scale-r': [hw, 0],
                 'rotate': [0, -hh - 40]
             };
             const screenHandles = {};
@@ -593,13 +641,13 @@ app.registerExtension({
                 const rx = loc[0] * cos - loc[1] * sin, ry = loc[0] * sin + loc[1] * cos;
                 screenHandles[name] = { x: rectX + useOffsetX + (this.overlay.x + rx * fx) * useScale, y: rectY + useOffsetY + (this.overlay.y + ry * fy) * useScale };
             }
-            
+
             const fCxLocal = (this.featherCenter.x - 0.5) * this.overlay.width;
             const fCyLocal = (this.featherCenter.y - 0.5) * this.overlay.height;
             const fRx = fCxLocal * cos - fCyLocal * sin;
             const fRy = fCxLocal * sin + fCyLocal * cos;
             screenHandles['feather-center'] = { x: rectX + useOffsetX + (this.overlay.x + fRx * fx) * useScale, y: rectY + useOffsetY + (this.overlay.y + fRy * fy) * useScale };
-            
+
             return screenHandles;
         };
 
@@ -608,31 +656,33 @@ app.registerExtension({
             // т.к. в Python feather применяется к уже отражённому изображению
             const fcx = this.overlay.flipH ? 1.0 - this.featherCenter.x : this.featherCenter.x;
             const fcy = this.overlay.flipV ? 1.0 - this.featherCenter.y : this.featherCenter.y;
-            
-            const payload = { 
-                id: String(this.id), 
-                transforms: this.getRealTransform(), 
-                opacity: this.opacity, 
-                feather_type: this.featherType, 
-                blur_radius: this.blurRadius, 
-                blur_hardness: this.blurHardness, 
-                feather_center_x: fcx, 
+
+            const payload = {
+                id: String(this.id),
+                transforms: this.getRealTransform(),
+                opacity: this.opacity,
+                feather_type: this.featherType,
+                blur_radius: this.blurRadius,
+                blur_hardness: this.blurHardness,
+                feather_center_x: fcx,
                 feather_center_y: fcy
             };
-            try { 
-                await api.fetchApi("/rayko/rs_collage", { 
-                    method: "POST", 
-                    headers: { "Content-Type": "application/json" }, 
-                    body: JSON.stringify(payload) 
-                }); 
-                this.isEditing = false; 
-                this.setDirtyCanvas(true); 
+            try {
+                await api.fetchApi("/rayko/rs_collage", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                this.stopHeartbeat();
+                this.isEditing = false;
+                this.setDirtyCanvas(true);
             } catch(e) {}
         };
 
         nodeType.prototype.cancelEditing = async function() {
+            this.stopHeartbeat();
             try { await api.interrupt(); } catch(e) {}
-            await fetch("/rayko/rs_collage/cancel", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(this.id) }) });
+            await fetch("/rayko/rs_collage/cleanup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(this.id) }) });
             this.isEditing = false; this.isLoading = false; this.dragType = null; this.dragState = null; this.setDirtyCanvas(true);
         };
 
@@ -787,28 +837,41 @@ app.registerExtension({
                 case 'rotate': { const cx = this.overlay.x, cy = this.overlay.y; const sA = Math.atan2(this.dragState.startMouseY - cy, this.dragState.startMouseX - cx); const cA = Math.atan2(worldMy - cy, worldMx - cx); this.overlay.rotation = this.dragState.startRotation + (cA - sA) * 180 / Math.PI; break; }
                 case 'scale-br': case 'scale-bl': case 'scale-tr': case 'scale-tl': { const cD = Math.hypot(worldMx - this.overlay.x, worldMy - this.overlay.y); const sD = this.dragState.startDist || 1; const sc = Math.max(0.05, cD / sD); this.overlay.width = Math.max(40, this.dragState.startW * sc); this.overlay.height = Math.max(40, this.dragState.startH * sc); this.overlay.x = this.dragState.startX; this.overlay.y = this.dragState.startY; break; }
                 case 'scale-r': case 'scale-l': case 'scale-b': case 'scale-t': { const aR = this.dragState.startRotation * Math.PI / 180; const c = Math.cos(aR), s = Math.sin(aR); const lDx = dx * c + dy * s, lDy = -dx * s + dy * c; let fW = this.dragState.startW, fH = this.dragState.startH; if(this.dragType === 'scale-r') fW += lDx; else if(this.dragType === 'scale-l') fW -= lDx; else if(this.dragType === 'scale-b') fH += lDy; else fH -= lDy; if(fW < 40) fW = 40; if(fH < 40) fH = 40; this.overlay.width = fW; this.overlay.height = fH; this.overlay.x = this.dragState.startX; this.overlay.y = this.dragState.startY; break; }
-                case 'feather-center': { 
-                    const rD = -this.dragState.startRotation * Math.PI / 180; 
-                    const c = Math.cos(rD), s = Math.sin(rD); 
+                case 'feather-center': {
+                    const rD = -this.dragState.startRotation * Math.PI / 180;
+                    const c = Math.cos(rD), s = Math.sin(rD);
                     const rdx = dx * c - dy * s, rdy = dx * s + dy * c;
                     const flipX = this.overlay.flipH ? -1 : 1;
                     const flipY = this.overlay.flipV ? -1 : 1;
-                    this.featherCenter.x = Math.max(0, Math.min(1, this.dragState.featherStartX + (rdx * flipX) / this.dragState.startW)); 
-                    this.featherCenter.y = Math.max(0, Math.min(1, this.dragState.featherStartY + (rdy * flipY) / this.dragState.startH)); 
-                    break; 
+                    this.featherCenter.x = Math.max(0, Math.min(1, this.dragState.featherStartX + (rdx * flipX) / this.dragState.startW));
+                    this.featherCenter.y = Math.max(0, Math.min(1, this.dragState.featherStartY + (rdy * flipY) / this.dragState.startH));
+                    break;
                 }
             }
             this.previewDirty = true; this.setDirtyCanvas(true);
         };
 
         nodeType.prototype.onMouseUp = function() {
-            if (this.dragType) { 
-                this.updateRelativeFromAbsolute(); 
+            if (this.dragType) {
+                this.updateRelativeFromAbsolute();
                 if (!this.advancedMode) {
-                    this.computeAndApplyView(); 
+                    this.computeAndApplyView();
                 }
             }
             this.dragType = null; this.dragState = null;
         };
     }
+});
+
+// Глобальный обработчик закрытия вкладки
+window.addEventListener("beforeunload", () => {
+    const nodes = (app.graph && app.graph._nodes)
+        ? app.graph._nodes.filter(n => n.type === "RSCollage")
+        : [];
+    nodes.forEach(n => {
+        try {
+            navigator.sendBeacon("/rayko/rs_collage/cleanup",
+                JSON.stringify({ node_id: String(n.id) }));
+        } catch(e) {}
+    });
 });

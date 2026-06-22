@@ -26,6 +26,7 @@ class RSColorPicker:
     RETURN_NAMES = ("HEX_INT", "HEX_STR", "RGB")
     FUNCTION = "get_color"
     CATEGORY = "🦊 RaykoStudio"
+    DESCRIPTION = "Professional color picker node with advanced features including eyedropper and color history"
     
     def get_color(self, color):
         hex_value = color.lstrip('#')

@@ -758,7 +758,10 @@ Pause mode not working - Ensure toggle is ON before starting generation
 - **Color tools** — HEX input with validation + native color picker  
 - **Multiline support** — textarea with line spacing and letter spacing controls  
 - **Text alignment** — left / center / right with visual icons  
-- **State isolation** — each effect can be enabled/disabled independently; disabling resets parameters to defaults  
+- **State isolation** — each effect can be enabled/disabled independently; disabling resets parameters to defaults
+
+❗It requires the installation of the pycairo library (just install the dependencies requirements.txt )  
+The library is needed for high-quality text rendering and effects.  
 
 ### 🔤 Installing Fonts  
 

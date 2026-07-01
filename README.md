@@ -742,61 +742,106 @@ Pause mode not working - Ensure toggle is ON before starting generation
 ---
 ---
 
-# 🦊 RS Text Overlay  
-**Node allows you to overlay text on images using masks**  
-*The node is in the process of feature improvements, but the stated functionality is already working*
+# 🦊 RS Text Overlay Pro  
+**Interactive ComfyUI node for overlaying text on images with real-time positioning, scaling, rotation, and rich text effects**  
 
-![Screenshot_6](https://github.com/user-attachments/assets/d3943194-bd29-4f14-a964-20a25206022e)
+<img width="583" height="876" alt="Screenshot_2" src="https://github.com/user-attachments/assets/0908484b-7e9d-40ed-a122-89990d63e1da" />
+<img width="1778" height="1065" alt="Screenshot_1" src="https://github.com/user-attachments/assets/487b77a4-d543-48cd-bd0e-ebf2d1597641" />
 
 ### 🔥 Features  
-- **Automatic font size selection** — the text always fits perfectly into the mask area  
-- **Text rotation by mask** — the text is automatically aligned to the angle of the mask  
-- **Multiline text support** — automatic line splitting  
-- **Vertical and horizontal text orientation** - you write vertical text by typing one letter in each line  
-- **Adjusting the letter and line spacing**  
-- **Text outline** — customizable thickness and color  
-- **Shadow** — adjustable displacement, blurring and transparency
-- **Glow** — adjustable color, size, area and brightness  
-- **Color** — HEX format support (#RRGGBB or #RRGGBBAA)  
-- **Text transparency** — independent of stroke and shadow  
-- **Supersampling** — rendering text in increased resolution followed by compression for perfect smoothing  
-- **Edge Smoothing** — additional smoothing of text edges  
-- **High-quality interpolation** - Lanczos filter when zooming  
-- **Caching** — fonts, colors, sizes, and rendered layers  
-- **LRU cache** — automatic memory management  
-- **Optimized outline rendering** — 8-direction algorithms  
+- **Interactive canvas editor** — drag, scale, and rotate text overlay directly on the image  
+- **Rich text effects** — Outline, Glow, and Shadow with full parameter control  
+- **Hybrid rendering** — instant client-side preview + high-quality server-side final render  
+- **Font system** — custom font library with search and live preview  
+- **Smart UI** — collapsible sidebar sections with per-effect toggles  
+- **Dual modes** — compact widget mode inside the node + full-screen Advanced Mode editor  
+- **Color tools** — HEX input with validation + native color picker  
+- **Multiline support** — textarea with line spacing and letter spacing controls  
+- **Text alignment** — left / center / right with visual icons  
+- **State isolation** — each effect can be enabled/disabled independently; disabling resets parameters to defaults  
 
-### 🔤 Installing Fonts
+### 🔤 Installing Fonts  
 
-Place the font files in the fonts folder (.ttf, .otf, .ttc)  
+Place `.ttf`, `.otf`, or `.ttc` files in folder:  
+ComfyUI\custom_nodes\ComfyUI_RaykoStudio\fonts  
 Restart ComfyUI  
+Fonts are auto-detected on editor open. `Arial.ttf` is used as fallback.  
 
-### 🪛 Usage  
+### 🚀 Usage  
 
-| Parameter          | Description                          | Range                 |
-|--------------------|--------------------------------------|-----------------------|
-| TEXT               | Text to display (supports multiline) |                       |
-| FONT               | List of available fonts              |                       |
-| TEXT COLOR         | Color text in HEX format             | #000000 - #FFFFFF     |
-| OUTLINE THICK      | Outline thickness                    | 0 - 50                |
-| OUTLINE COLOR      | Outline color in HEX format          | #000000 - #FFFFFF     |
-| ROTATE WITH MASK   | Rotate text by the angle of mask     | ON/OFF                |
-| TEXT OPACITY       | Text transparency                    | 0.0 - 1.0             |
-| LINE SPACING       | Line spacing                         | 0.5 - 3.0             |
-| LETTER SPACING     | Letter spacing                       | -20 - +100            |
-| ENABLE GLOW        | Enable glow                          | ON/OFF                |
-| GLOW COLOR         | Color glow in HEX format             | #000000 - #FFFFFF     |
-| GLOW SIZE          | Glow size                            | -500 - +500           |
-| GLOW SPREAD        | Area of the glow                     | 0 - 500               |
-| GLOW BRIGHTNESS    | Brightness of the glow               | 0.0 - 1.0             |
-| ENABLE SHADOW      | Enable shadow                        | ON/OFF                |
-| SHADOW COLOR       | Shadow color in HEX format           | #000000 - #FFFFFF     |
-| SHADOW OFFSET X/Y  | Shifting the shadow                  | -500 - +500           |
-| SHADOW BLUR        | Blurring the shadow                  | 0.0 - 1.0             |
-| SHADOW BRIGHTNESS  | Brightness of the shadow             | 0.0 - 1.0             |
-| SUPERSAMPLING      | Enable supersampling                 | ON/OFF                |
-| SUPERSAMPLE FACTOR | Magnification factor                 | 2 - 4                 |
-| EDGE SMOOTHING     | Smoothing the edges                  | ON/OFF                |
+1. Add **🦊 RS Text Overlay Pro** node to your workflow  
+2. Connect an image to the `image` input  
+3. Run the queue  
+4. Configure text, effects, and position  
+5. Click **✔️ APPLY** to render the final image  
+
+### Quick start
+
+- Type your text in the **TEXT** section  
+- Pick a font and adjust size via the canvas handles  
+- Enable effects via toggles in **OUTLINE / GLOW / SHADOW** sections  
+- Drag the green bounding box to position the text, turn the image by the orange rotation knob  
+- Click **✔️ APPLY** when done  
+
+### ⚙️ Parameters  
+### TEXT
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| Text | textarea | `""` | Multiline text content |
+| Font | select | first in library | Font family |
+| Text Color | color | `#FFFFFF` | Fill color |
+| Text Opacity | slider | `1.0` | `0.0 – 1.0` |
+| Line Spacing | slider | `1.0` | `0.5 – 3.0` |
+| Letter Spacing | slider | `0.0` | `-20 – 100` |
+| Alignment | buttons | center | Left / Center / Right |
+
+### OUTLINE SETTINGS
+Enabled automatically when **Thickness > 0**.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| Thickness | slider | `0` | `0 – 50` px |
+| Color | color | `#808080` | Outline color |
+| Opacity | slider | `1.0` | `0.0 – 1.0` |
+
+### GLOW SETTINGS
+Toggle **ENABLE GLOW** to activate.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| Glow Color | color | `#FFFFFF` | Glow color |
+| Size | slider | `100` | `0 – 200` px |
+| Spread | slider | `150` | `0 – 300` px |
+| Opacity | slider | `1.0` | `0.0 – 1.0` |
+
+### SHADOW SETTINGS
+Toggle **ENABLE SHADOW** to activate.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| Shadow Color | color | `#333333` | Shadow color |
+| Offset X | slider | `10` | `-30 – 30` px |
+| Offset Y | slider | `10` | `-30 – 30` px |
+| Blur | slider | `15` | `0 – 100` px |
+| Opacity | slider | `0.8` | `0.0 – 1.0` |
+
+## ️ Controls
+
+### Normal Mode (inside node)
+- **🔍 ADVANCED MODE** button — opens full-screen editor
+- **✔️ APPLY** — renders and closes editor
+- **❌ CANCEL** — discards changes
+
+### Advanced Mode (full-screen editor)
+| Action | Control |
+|---|---|
+| Move text | Drag inside bounding box |
+| Scale | Drag corner/edge handles |
+| Rotate | Drag orange handle above box |
+| Zoom canvas | Mouse wheel |
+| Close editor | `Esc` key |
+| Toggle section | Click section header |
+| Enable effect | Click toggle in header |
 
 ---
 ---

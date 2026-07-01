@@ -13,10 +13,13 @@ Nodes do not require the installation of additional Python packages.
 
 ### 📃 Requirements  
 
-- torch>=1.7.0  
-- numpy>=1.19.0  
-- Pillow>=8.0.0  
-- freetype-py>=2.5.1  #only for the RS Text Overlay node  
+- torch
+- opencv-python
+- numpy
+- Pillow>=10.0.0
+- freetype-py>=2.5.1
+- pycairo>=1.29.0
+- scipy>=1.10.0
 
 ---
 ### 🛠 Installation  
@@ -760,7 +763,8 @@ Pause mode not working - Ensure toggle is ON before starting generation
 - **Text alignment** — left / center / right with visual icons  
 - **State isolation** — each effect can be enabled/disabled independently; disabling resets parameters to defaults
 
-❗It requires the installation of the pycairo library (just install the dependencies requirements.txt )  
+###❗Requirements  
+It requires the installation of the pycairo library (just install the dependencies requirements.txt )  
 The library is needed for high-quality text rendering and effects.  
 
 ### 🔤 Installing Fonts  

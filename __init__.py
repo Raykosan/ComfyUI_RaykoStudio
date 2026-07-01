@@ -29,7 +29,7 @@ IGNORED_MODULES: Set[str] = {'__init__.py'}
 REQUIRED_MODULES: Set[str] = set()
 
 PACKAGE_DISPLAY_NAME = "ComfyUI_RaykoStudio"
-__version__ = "0.25.2"
+__version__ = "0.26.0"
 
 def load_modules():
     print(f"🦊 {PACKAGE_DISPLAY_NAME}: Version: {__version__}")

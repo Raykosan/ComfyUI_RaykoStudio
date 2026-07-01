@@ -763,6 +763,19 @@ Pause mode not working - Ensure toggle is ON before starting generation
 - **Text alignment** — left / center / right with visual icons  
 - **State isolation** — each effect can be enabled/disabled independently; disabling resets parameters to defaults
 
+By default, the node is displayed as a standard node with a thumbnail and a minimal set of widgets.  
+All changes are immediately displayed.  
+Clicking on the "Advanced Mode" button opens a full-screen editor where you can visually manipulate the text.  
+
+## Advanced Mode:  
+- The canvas occupies the main part of the screen, with the settings panel on the left/right.  
+- The text can be dragged, resized by corners and sides, and rotated using a special pen.  
+- All changes are immediately displayed.  
+
+The control panel has sections: TEXT, OUTLINE SETTINGS, GLOW SETTINGS, SHADOW SETTINGS. Each section is collapsible. Controls: text field, sliders, color pickers, alignment and font selection buttons.  
+
+Interactive elements: they are highlighted when hovering, and there are pop-up windows for precise input for numeric values.  
+
 ###❗Requirements  
 It requires the installation of the pycairo library (just install the dependencies requirements.txt )  
 The library is needed for high-quality text rendering and effects.  

@@ -7,7 +7,6 @@ const HEAVY_PARAMS = ['text', 'font_name', 'outline_thickness', 'effect_mode', '
 const GLOW_PARAMS = ['enable_glow', 'glow_color', 'glow_size', 'glow_spread', 'glow_opacity'];
 const SHADOW_PARAMS = ['enable_shadow', 'shadow_color', 'shadow_offset_x', 'shadow_offset_y', 'shadow_opacity', 'shadow_blur'];
 
-// Дефолтные значения для эффектов
 const DEFAULT_EFFECTS = {
   outline: {
     outline_thickness: 0,
@@ -623,7 +622,6 @@ app.registerExtension({
 
         this.sidePanel.appendChild(textContent);
 
-        // OUTLINE секция (без чекбокса, включается через thickness)
         const outlineHeader = document.createElement('div');
         outlineHeader.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer;user-select:none;';
         const outlineChevron = document.createElement('span');
@@ -652,7 +650,6 @@ app.registerExtension({
         outlineContent.appendChild(div());
         this.sidePanel.appendChild(outlineContent);
 
-        // GLOW секция (с чекбоксом)
         const glowHeader = document.createElement('div');
         glowHeader.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer;user-select:none;';
         const glowChevron = document.createElement('span');
@@ -676,7 +673,6 @@ app.registerExtension({
           this.textParams.enable_glow = enabled;
   
           if (!enabled) {
-            // Сброс в дефолт
             this.textParams.glow_color = DEFAULT_EFFECTS.glow.glow_color;
             this.textParams.glow_size = DEFAULT_EFFECTS.glow.glow_size;
             this.textParams.glow_spread = DEFAULT_EFFECTS.glow.glow_spread;
@@ -709,7 +705,6 @@ app.registerExtension({
         glowContent.appendChild(div());
         this.sidePanel.appendChild(glowContent);
 
-        // SHADOW секция (с чекбоксом)
         const shadowHeader = document.createElement('div');
         shadowHeader.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer;user-select:none;';
         const shadowChevron = document.createElement('span');
@@ -733,7 +728,6 @@ app.registerExtension({
           this.textParams.enable_shadow = enabled;
   
           if (!enabled) {
-            // Сброс в дефолт
             this.textParams.shadow_color = DEFAULT_EFFECTS.shadow.shadow_color;
             this.textParams.shadow_offset_x = DEFAULT_EFFECTS.shadow.shadow_offset_x;
             this.textParams.shadow_offset_y = DEFAULT_EFFECTS.shadow.shadow_offset_y;

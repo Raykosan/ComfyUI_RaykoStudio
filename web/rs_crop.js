@@ -402,8 +402,8 @@ app.registerExtension({
                             
                             node._cropRect.x = Math.max(0, Math.min(x1, x2));
                             node._cropRect.y = Math.max(0, Math.min(y1, y2));
-                            node._cropRect.width = Math.max(64, Math.abs(x2 - x1));
-                            node._cropRect.height = Math.max(64, Math.abs(y2 - y1));
+                            node._cropRect.width = Math.max(32, Math.abs(x2 - x1));
+                            node._cropRect.height = Math.max(32, Math.abs(y2 - y1));
                             
                         } else if (_isDragging) {
                             node._cropRect.x = Math.max(0, _startRect.x + deltaX);
@@ -415,32 +415,32 @@ app.registerExtension({
                             let newY = _startRect.y;
                             let newW = _startRect.width;
                             let newH = _startRect.height;
-                            
+    
                             if (handle === 'tl' || handle === 'bl') {
                                 newW = _startRect.width - deltaX;
                                 newX = _startRect.x + deltaX;
-                                if (newW >= 64 && newX >= 0) {
+                                if (newW >= 32 && newX >= 0) {
                                     node._cropRect.width = newW;
                                     node._cropRect.x = newX;
                                 }
                             }
                             if (handle === 'tr' || handle === 'br') {
                                 newW = _startRect.width + deltaX;
-                                if (newW >= 64) {
+                                if (newW >= 32) {
                                     node._cropRect.width = newW;
                                 }
                             }
                             if (handle === 'tl' || handle === 'tr') {
                                 newH = _startRect.height - deltaY;
                                 newY = _startRect.y + deltaY;
-                                if (newH >= 64 && newY >= 0) {
+                                if (newH >= 32 && newY >= 0) {
                                     node._cropRect.height = newH;
                                     node._cropRect.y = newY;
                                 }
                             }
                             if (handle === 'bl' || handle === 'br') {
                                 newH = _startRect.height + deltaY;
-                                if (newH >= 64) {
+                                if (newH >= 32) {
                                     node._cropRect.height = newH;
                                 }
                             }
@@ -700,7 +700,12 @@ app.registerExtension({
                         node._overlayCanvas.remove(); 
                         node._overlayCanvas = null; 
                     }
-                    
+                    if (node.image) {
+                        node.image.src = "";
+                        node.image = null;
+                    }
+                    node.imageReady = false;
+    
                     fetch("/rayko/rscrop/cleanup", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },

@@ -93,11 +93,10 @@ class RSCropImage:
         updated_crop_data = json.dumps(crop_dict)
         
         if SERVER_AVAILABLE and unique_id:
-            if unique_id not in PENDING_DECISIONS:
-                PENDING_DECISIONS[unique_id] = {
-                    "status": "pending",
-                    "crop_data": updated_crop_data
-                }
+            PENDING_DECISIONS[unique_id] = {
+                "status": "pending",
+                "crop_data": updated_crop_data
+            }
             
             if prompt_id is None:
                 import uuid

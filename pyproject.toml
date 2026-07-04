@@ -3,7 +3,7 @@ name = "ComfyUI_RaykoStudio"
 description = "Set of custom nodes for ComfyUI providing additional image processing capabilities"
 version = "0.26.0"
 license = { file = "LICENSE" }
-dependencies = ["torch>=1.7.0", "numpy>=1.19.0", "Pillow>=8.0.0", "freetype-py>=2.5.1"]
+dependencies = ["torch", "numpy", "Pillow>=10.0.0", "freetype-py>=2.5.1", "pycairo>=1.29.0", "scipy>=1.10.0"]
 
 [project.urls]
 Repository = "https://github.com/Raykosan/ComfyUI_RaykoStudio"

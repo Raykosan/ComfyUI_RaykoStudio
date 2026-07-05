@@ -367,11 +367,29 @@ app.registerExtension({
                 if (node.graph) node.graph.setDirtyCanvas(true, true);
             };
             
+            let isColorPickerOpen = false;
+            
             colorInput.addEventListener("input", (e) => {
                 const color = normalizeHex(e.target.value);
                 swatch.style.background = color;
                 hexInput.value = color.toUpperCase();
+                isColorPickerOpen = true;
+            });
+            
+            colorInput.addEventListener("change", (e) => {
+                const color = normalizeHex(e.target.value);
+                swatch.style.background = color;
+                hexInput.value = color.toUpperCase();
                 syncOutputs(color);
+                isColorPickerOpen = false;
+            });
+            
+            document.addEventListener("mouseup", () => {
+                if (isColorPickerOpen) {
+                    const color = normalizeHex(colorInput.value);
+                    syncOutputs(color);
+                    isColorPickerOpen = false;
+                }
             });
             
             hexInput.addEventListener("change", (e) => {

@@ -423,6 +423,48 @@ Click "✔️ ACCEPT" to pass selected images to next nodes. Only selected image
 ---
 ---
 
+# 🦊 RS MultiLatent  
+**Universal latent generation node - automatically adapts to any VAE architecture.** 
+
+<img width="445" height="622" alt="Screenshot_3" src="https://github.com/user-attachments/assets/70994d2c-8a64-4f43-84b9-a2eea57df3fb" />
+
+### 🔥 Features  
+- **Automatic VAE Detection** - reads `latent_channels` and `scale_factor` directly from VAE  
+- **Universal Compatibility** - works with SD1.5, SDXL, Flux, Flux.2, Krea2, QwenImage, and many other models  
+- **Flexible Sizing** - three modes: Preset, Custom, and Megapixels  
+- **100+ Presets** - extensive library of ready-to-use resolutions  
+- **Smart Device Handling** - automatically matches VAE device and dtype  
+
+### 🪛 Usage  
+1. **Connect VAE**: Plug any VAE into the `vae` input  
+2. **Choose size mode**:  
+  - Preset: Select from 100+ predefined resolutions  
+  - Custom: Manually enter width and height  
+  - Megapixels: Specify target resolution in MP with aspect ratio  
+3. **Connect to sampler**: Use the `latent` output with KSampler or other nodes  
+
+### ⚙️ Settings  
+**size_mode**: Size definition mode  
+  - `Preset` - Use predefined resolutions  
+  - `Custom` - Manual width/height input  
+  - `Megapixels` - Target resolution in megapixels  
+
+**preset** (only for Preset mode): Choose from 100+ resolutions including:  
+  - Square formats (512×512 to 2016×2016)  
+  - Portrait formats (4:5, 3:4, 2:3, 9:16, 21:9, etc.)  
+  - Landscape formats (5:4, 4:3, 3:2, 16:9, 20:9, etc.)
+
+**width/height** (only for Custom mode): Custom dimensions (8-4096px)
+
+**megapixels** (only for Megapixels mode): Target resolution (0.1-10.0 MP)  
+
+**aspect_ratio** (only for Megapixels mode): 1:1, 3:2, 2:3, 4:3, 3:4, 16:9, 9:16, 21:9, 9:21, 4:5, 5:4  
+
+**batch_size**: Number of latent images to generate (1-64)  
+
+---
+---
+
 # 🦊 RS Image to Latent & 🦊 RS Image to Latent (simplified)  
 **A powerful and user-friendly ComfyUI node that converts images to latents with intelligent size optimization.**  
 

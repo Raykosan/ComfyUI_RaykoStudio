@@ -22,6 +22,12 @@ from nodes import UNETLoader, CLIPLoader, VAELoader, LoraLoader, DualCLIPLoader
 from server import PromptServer
 import aiohttp
 
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PRESETS_DIR = os.path.join(CURRENT_DIR, "preset_models")
+
+if not os.path.exists(PRESETS_DIR):
+    os.makedirs(PRESETS_DIR)
+
 class RaykoModelsLoader:
     @classmethod
     def INPUT_TYPES(cls):
@@ -29,7 +35,6 @@ class RaykoModelsLoader:
         clip_files = folder_paths.get_filename_list("clip")
         vae_files = folder_paths.get_filename_list("vae")
         
-        # Добавляем "pixel_space" в список VAE (как в нативной ноде ComfyUI)
         vae_files_with_pixel = vae_files + ["pixel_space"]
 
         weight_dtype_opts = ["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"]
@@ -57,7 +62,7 @@ class RaykoModelsLoader:
     RETURN_NAMES = ("MODEL", "CLIP", "VAE")
     FUNCTION = "load_models"
     CATEGORY = "🦊 RaykoStudio"
-    DESCRIPTION = "The node combines the loaders of the model, clip, vae and lore."
+    DESCRIPTION = "The node combines the loaders of the model, clip, vae and lore. Presets allow quick switching between model configurations (UNET/CLIP/VAE) without affecting LoRA settings."
 
     @classmethod
     def IS_CHANGED(cls, lora_data="[]", **kwargs):
@@ -80,7 +85,6 @@ class RaykoModelsLoader:
 
         dev = None if clip_device == "default" else clip_device
         
-        # CLIP loading logic with dual CLIP support
         if use_clip2 and clip_name2 and clip_name2 != "None":
             print(f"[Rayko] Using DualCLIPLoader mode")
             print(f"[Rayko] CLIP1: {clip_name}")
@@ -103,7 +107,6 @@ class RaykoModelsLoader:
             )[0]
         print(f"[Rayko] CLIP loaded successfully")
 
-        # VAE loading logic with pixel_space support
         if vae_name == "pixel_space":
             print(f"[Rayko] Using pixel_space VAE (fake VAE for direct pixel manipulation)")
             sd = {}
@@ -165,3 +168,69 @@ NODE_DISPLAY_NAME_MAPPINGS = {"RaykoModelsLoader": "🦊 RS Models Loader"}
 async def get_loras(request):
     loras = folder_paths.get_filename_list("loras")
     return aiohttp.web.json_response(sorted(loras, key=lambda x: x.lower()))
+
+@PromptServer.instance.routes.post("/rayko_models/save_preset")
+async def rayko_models_save_preset(request):
+    try:
+        data = await request.json()
+        name = data.get("name", "").strip()
+        if not name: 
+            return aiohttp.web.Response(status=400, text="Name required")
+        name = "".join(c for c in name if c.isalnum() or c in " _-").strip()
+        if not name: 
+            return aiohttp.web.Response(status=400, text="Invalid name")
+        filepath = os.path.join(PRESETS_DIR, f"{name}.json")
+        preset_data = {
+            "unet_name": data.get("unet_name", ""),
+            "weight_dtype": data.get("weight_dtype", "default"),
+            "use_clip2": data.get("use_clip2", False),
+            "clip_name": data.get("clip_name", ""),
+            "clip_name2": data.get("clip_name2", ""),
+            "clip_type": data.get("clip_type", "stable_diffusion"),
+            "clip_device": data.get("clip_device", "default"),
+            "vae_name": data.get("vae_name", "")
+        }
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(preset_data, f, indent=2)
+        return aiohttp.web.Response(status=200, text="OK")
+    except Exception as e:
+        return aiohttp.web.Response(status=500, text=str(e))
+
+@PromptServer.instance.routes.post("/rayko_models/list_presets")
+async def rayko_models_list_presets(request):
+    try:
+        presets = []
+        if os.path.exists(PRESETS_DIR):
+            presets = [f[:-5] for f in os.listdir(PRESETS_DIR) if f.endswith('.json')]
+        return aiohttp.web.json_response(sorted(presets, key=lambda x: x.lower()))
+    except Exception as e:
+        return aiohttp.web.Response(status=500, text=str(e))
+
+@PromptServer.instance.routes.post("/rayko_models/load_preset")
+async def rayko_models_load_preset(request):
+    try:
+        data = await request.json()
+        name = data.get("name")
+        filepath = os.path.join(PRESETS_DIR, f"{name}.json")
+        if os.path.exists(filepath):
+            with open(filepath, 'r', encoding='utf-8') as f:
+                result = json.load(f)
+                return aiohttp.web.json_response(result)
+        return aiohttp.web.Response(status=404, text="Preset not found")
+    except Exception as e:
+        return aiohttp.web.Response(status=500, text=str(e))
+
+@PromptServer.instance.routes.post("/rayko_models/delete_preset")
+async def rayko_models_delete_preset(request):
+    try:
+        data = await request.json()
+        name = data.get("name")
+        if not name: 
+            return aiohttp.web.Response(status=400, text="Name required")
+        filepath = os.path.join(PRESETS_DIR, f"{name}.json")
+        if os.path.exists(filepath):
+            os.remove(filepath)
+            return aiohttp.web.Response(status=200, text="OK")
+        return aiohttp.web.Response(status=404, text="Preset not found")
+    except Exception as e:
+        return aiohttp.web.Response(status=500, text=str(e))

@@ -35,15 +35,12 @@ app.registerExtension({
                     };
                 }
 
-                // Find widgets for CLIP2 disabled logic
                 const useClip2Widget = this.widgets.find(w => w.name === "use_clip2");
                 const clipName2Widget = this.widgets.find(w => w.name === "clip_name2");
                 
                 if (useClip2Widget && clipName2Widget) {
-                    // Set initial disabled state
                     clipName2Widget.disabled = !useClip2Widget.value;
                     
-                    // Apply CSS class for visual styling
                     if (clipName2Widget.element) {
                         if (clipName2Widget.disabled) {
                             clipName2Widget.element.classList.add("comfy-disabled");
@@ -52,7 +49,6 @@ app.registerExtension({
                         }
                     }
                     
-                    // Callback when use_clip2 changes
                     const originalCallback = useClip2Widget.callback;
                     useClip2Widget.callback = function(value) {
                         if (originalCallback) originalCallback(value);
@@ -69,6 +65,258 @@ app.registerExtension({
                 }
 
                 this.setSize([this.targetWidth, this.size[1]]);
+
+                const collectPresetData = () => {
+                    return {
+                        unet_name: this.widgets.find(w => w.name === "unet_name")?.value || "",
+                        weight_dtype: this.widgets.find(w => w.name === "weight_dtype")?.value || "default",
+                        use_clip2: this.widgets.find(w => w.name === "use_clip2")?.value || false,
+                        clip_name: this.widgets.find(w => w.name === "clip_name")?.value || "",
+                        clip_name2: this.widgets.find(w => w.name === "clip_name2")?.value || "",
+                        clip_type: this.widgets.find(w => w.name === "clip_type")?.value || "stable_diffusion",
+                        clip_device: this.widgets.find(w => w.name === "clip_device")?.value || "default",
+                        vae_name: this.widgets.find(w => w.name === "vae_name")?.value || ""
+                    };
+                };
+
+                const applyPresetData = (data) => {
+                    const setWidgetValue = (name, value) => {
+                        const widget = this.widgets.find(w => w.name === name);
+                        if (widget) {
+                            widget.value = value;
+                            if (widget.callback) widget.callback(value);
+                        }
+                    };
+                    
+                    setWidgetValue("unet_name", data.unet_name);
+                    setWidgetValue("weight_dtype", data.weight_dtype);
+                    setWidgetValue("use_clip2", data.use_clip2);
+                    setWidgetValue("clip_name", data.clip_name);
+                    setWidgetValue("clip_name2", data.clip_name2);
+                    setWidgetValue("clip_type", data.clip_type);
+                    setWidgetValue("clip_device", data.clip_device);
+                    setWidgetValue("vae_name", data.vae_name);
+                    
+                    this.loraRows = [];
+                    this.syncData();
+                    
+                    this.updateUI();
+                    if (this.graph) this.graph.setDirtyCanvas(true, true);
+                };
+
+                const presetListOverlay = document.createElement("div");
+                presetListOverlay.style.cssText = "position:fixed;display:none;flex-direction:column;max-height:300px;overflow-y:auto;background:#2a2a2a;border:1px solid #5090cc;border-radius:6px;z-index:10000;box-shadow:0 4px 12px rgba(0,0,0,0.8);min-width:250px;padding:5px;";
+                document.body.appendChild(presetListOverlay);
+                
+                const presetNameInput = document.createElement("div");
+                presetNameInput.style.cssText = "position:fixed;display:none;background:#2a2a2a;padding:10px;border:1px solid #5090cc;border-radius:6px;z-index:10000;box-shadow:0 4px 15px rgba(0,0,0,0.7);width:220px;text-align:center;";
+                
+                const inputLabel = document.createElement("div");
+                inputLabel.style.cssText = "color:#999;font-size:11px;margin-bottom:4px;text-align:left;";
+                inputLabel.textContent = "Preset name:";
+                
+                const inputField = document.createElement("input");
+                inputField.style.cssText = "width:100%;padding:5px;background:#111;color:#fff;border:1px solid #444;border-radius:3px;margin-bottom:5px;font-size:12px;box-sizing:border-box;";
+                
+                const inputBtns = document.createElement("div");
+                inputBtns.style.cssText = "display:flex;gap:5px;";
+                
+                const inputOk = document.createElement("button");
+                inputOk.style.cssText = "flex:1;padding:4px;background:#1a3a5a;color:#aadaff;border:1px solid #5090cc;border-radius:3px;cursor:pointer;font-size:11px;";
+                inputOk.textContent = "OK";
+                
+                const inputCancel = document.createElement("button");
+                inputCancel.style.cssText = "flex:1;padding:4px;background:#2a2a2a;color:#ccc;border:1px solid #444;border-radius:3px;cursor:pointer;font-size:11px;";
+                inputCancel.textContent = "Cancel";
+                
+                inputBtns.append(inputOk, inputCancel);
+                presetNameInput.append(inputLabel, inputField, inputBtns);
+                document.body.appendChild(presetNameInput);
+
+                const deleteConfirmOverlay = document.createElement("div");
+                deleteConfirmOverlay.style.cssText = "position:fixed;display:none;background:#2a2a2a;padding:10px;border:1px solid #5090cc;border-radius:6px;z-index:10000;box-shadow:0 4px 15px rgba(0,0,0,0.7);width:220px;text-align:center;";
+                
+                const deleteText = document.createElement("div");
+                deleteText.style.cssText = "color:#ccc;font-size:12px;margin-bottom:10px;word-break:break-word;";
+                
+                const deleteBtns = document.createElement("div");
+                deleteBtns.style.cssText = "display:flex;gap:5px;";
+                
+                const deleteOk = document.createElement("button");
+                deleteOk.style.cssText = "flex:1;padding:4px;background:#1a3a5a;color:#aadaff;border:1px solid #5090cc;border-radius:3px;cursor:pointer;font-size:11px;";
+                deleteOk.textContent = "OK";
+                
+                const deleteCancel = document.createElement("button");
+                deleteCancel.style.cssText = "flex:1;padding:4px;background:#2a2a2a;color:#ccc;border:1px solid #444;border-radius:3px;cursor:pointer;font-size:11px;";
+                deleteCancel.textContent = "Cancel";
+                
+                deleteBtns.append(deleteOk, deleteCancel);
+                deleteConfirmOverlay.append(deleteText, deleteBtns);
+                document.body.appendChild(deleteConfirmOverlay);
+
+                let pendingDeleteName = null;
+
+                const presetsRoot = document.createElement("div");
+                presetsRoot.style.cssText = "display:flex;gap:4px;width:100%;margin:0;padding:0;box-sizing:border-box;height:40px;align-items:center;";
+                
+                const savePresetBtn = document.createElement("button");
+                savePresetBtn.textContent = " Save preset";
+                savePresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;height:26px;margin:0;";
+                
+                const selectPresetBtn = document.createElement("button");
+                selectPresetBtn.textContent = "📂 Select preset";
+                selectPresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;height:26px;margin:0;";
+                
+                presetsRoot.append(savePresetBtn, selectPresetBtn);
+
+                savePresetBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    presetListOverlay.style.display = "none";
+                    deleteConfirmOverlay.style.display = "none";
+                    
+                    const saveBtnRect = savePresetBtn.getBoundingClientRect();
+                    presetNameInput.style.left = saveBtnRect.left + "px";
+                    presetNameInput.style.top = (saveBtnRect.bottom + 5) + "px";
+                    presetNameInput.style.display = "block";
+                    inputField.value = "";
+                    setTimeout(() => inputField.focus(), 50);
+                });
+
+                const performSave = () => {
+                    const name = inputField.value.trim();
+                    if (!name) return;
+                    presetNameInput.style.display = "none";
+                    const presetData = collectPresetData();
+                    fetch("/rayko_models/save_preset", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name, ...presetData })
+                    });
+                };
+
+                inputOk.addEventListener("click", performSave);
+                inputCancel.addEventListener("click", () => {
+                    presetNameInput.style.display = "none";
+                });
+                inputField.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter") performSave();
+                    if (e.key === "Escape") presetNameInput.style.display = "none";
+                });
+
+                selectPresetBtn.addEventListener("click", async (e) => {
+                    e.stopPropagation();
+                    presetNameInput.style.display = "none";
+                    deleteConfirmOverlay.style.display = "none";
+                    if (presetListOverlay.style.display === "flex") {
+                        presetListOverlay.style.display = "none";
+                        return;
+                    }
+                    
+                    const selectBtnRect = selectPresetBtn.getBoundingClientRect();
+                    presetListOverlay.style.left = selectBtnRect.left + "px";
+                    presetListOverlay.style.top = (selectBtnRect.bottom + 5) + "px";
+                    
+                    presetListOverlay.innerHTML = "<div style='padding:8px;color:#999;text-align:center;'>Loading...</div>";
+                    presetListOverlay.style.display = "flex";
+                    try {
+                        const res = await fetch("/rayko_models/list_presets", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" }
+                        });
+                        const list = await res.json();
+                        presetListOverlay.innerHTML = "";
+                        if (!list.length) {
+                            presetListOverlay.textContent = "No presets found";
+                            return;
+                        }
+                        list.forEach(name => {
+                            const row = document.createElement("div");
+                            row.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid #333;";
+                            
+                            const nameSpan = document.createElement("span");
+                            nameSpan.textContent = name;
+                            nameSpan.style.cssText = "flex:1;cursor:pointer;color:#ccc;font-size:12px;";
+                            nameSpan.onmouseenter = () => nameSpan.style.background = "#3a3a3a";
+                            nameSpan.onmouseleave = () => nameSpan.style.background = "transparent";
+                            nameSpan.onclick = async (e) => {
+                                e.stopPropagation();
+                                presetListOverlay.style.display = "none";
+                                const res2 = await fetch("/rayko_models/load_preset", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ name })
+                                });
+                                if (res2.ok) {
+                                    const data = await res2.json();
+                                    applyPresetData(data);
+                                }
+                            };
+                            
+                            const deleteBtn = document.createElement("span");
+                            deleteBtn.textContent = "❌";
+                            deleteBtn.style.cssText = "cursor:pointer;margin-left:8px;font-size:14px;opacity:0.7;";
+                            deleteBtn.onmouseenter = () => {
+                                deleteBtn.style.opacity = "1";
+                                deleteBtn.style.transform = "scale(1.2)";
+                            };
+                            deleteBtn.onmouseleave = () => {
+                                deleteBtn.style.opacity = "0.7";
+                                deleteBtn.style.transform = "scale(1)";
+                            };
+                            deleteBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                pendingDeleteName = name;
+                                deleteText.textContent = `Delete "${name}"?`;
+                                
+                                const selectBtnRect = selectPresetBtn.getBoundingClientRect();
+                                deleteConfirmOverlay.style.left = selectBtnRect.left + "px";
+                                deleteConfirmOverlay.style.top = (selectBtnRect.bottom + 5) + "px";
+                                deleteConfirmOverlay.style.display = "block";
+                            };
+                            
+                            row.appendChild(nameSpan);
+                            row.appendChild(deleteBtn);
+                            presetListOverlay.appendChild(row);
+                        });
+                    } catch (e) {
+                        presetListOverlay.textContent = "Error loading";
+                    }
+                });
+
+                deleteOk.addEventListener("click", async () => {
+                    if (pendingDeleteName) {
+                        await fetch("/rayko_models/delete_preset", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ name: pendingDeleteName })
+                        });
+                        deleteConfirmOverlay.style.display = "none";
+                        presetListOverlay.style.display = "none";
+                        pendingDeleteName = null;
+                    }
+                });
+
+                deleteCancel.addEventListener("click", () => {
+                    deleteConfirmOverlay.style.display = "none";
+                    pendingDeleteName = null;
+                });
+
+                document.addEventListener("click", (e) => {
+                    if (!presetListOverlay?.contains(e.target)) {
+                        presetListOverlay.style.display = "none";
+                    }
+                    if (!presetNameInput?.contains(e.target)) {
+                        presetNameInput.style.display = "none";
+                    }
+                    if (!deleteConfirmOverlay?.contains(e.target)) {
+                        deleteConfirmOverlay.style.display = "none";
+                    }
+                });
+
+                const presetsWidget = this.addDOMWidget("presets_ui", "custom", presetsRoot);
+                presetsWidget.computeSize = function() {
+                    return [this.width || 130, 50];
+                };
 
                 this.addWidget("button", "✔️ Update LoRA list", "", async () => {
                     await this.loadLoraList();
@@ -120,7 +368,6 @@ app.registerExtension({
                 const self = this;
                 this.loadLoraList().then(() => self.updateUI());
                 
-                // Restore disabled state of clip_name2 after configuration load
                 const useClip2Widget = this.widgets.find(w => w.name === "use_clip2");
                 const clipName2Widget = this.widgets.find(w => w.name === "clip_name2");
                 if (useClip2Widget && clipName2Widget) {
@@ -220,9 +467,9 @@ app.registerExtension({
             nodeType.prototype.onDrawForeground = function(ctx, visibleRect) {
                 if (this.loraRows.length === 0) return;
                 this.clickZones = [];
-                const visibleWidgets = this.widgets.filter(w => !w.hidden);
-                const lastWidget = visibleWidgets.length > 0 ? visibleWidgets[visibleWidgets.length - 1] : null;
-                const startY = lastWidget ? (lastWidget.y + lastWidget.height + 15) : 40;
+                
+                const addButton = this.widgets.find(w => w.name === " Add LoRA");
+                const startY = addButton ? (addButton.y + addButton.height + 15) : 40;
                 const padding = 10;
                 const rightPanelWidth = 180;
                 
@@ -340,11 +587,11 @@ app.registerExtension({
 
             nodeType.prototype.showLoraTreeSelector = function() {
                 const self = this;
-                const expandedFolders = {}; 
+                const expandedFolders = {};
                 let buttonElement = null;
                 const widgets = this.widgets;
-                for(let w of widgets) {
-                    if(w.name === "➕ Add LoRA" && w.element) {
+                for (let w of widgets) {
+                    if (w.name === "➕ Add LoRA" && w.element) {
                         buttonElement = w.element;
                         break;
                     }
@@ -368,8 +615,8 @@ app.registerExtension({
 
                 if (buttonElement) {
                     const rect = buttonElement.getBoundingClientRect();
-                    menuLeft = rect.right + 10; 
-                    menuTop = rect.top; 
+                    menuLeft = rect.right + 10;
+                    menuTop = rect.top;
                 } else {
                     menuLeft = (window.innerWidth / 2) - (menuWidth / 2);
                     menuTop = (window.innerHeight / 2) - (menuHeight / 2);
@@ -460,7 +707,7 @@ app.registerExtension({
                             });
                         }
                     } else {
-                        listContainer.innerHTML = ""; 
+                        listContainer.innerHTML = "";
                         createTreeItems("", self.loraTree, 0, listContainer, expandedFolders, self, null, null);
                     }
                 };
@@ -491,9 +738,8 @@ app.registerExtension({
                 this.loraRows.push({ name: loraName, strength_model: 1.0, strength_clip: 1.0, enabled: true });
                 this.syncData();
                 if (this.graph) {
-                    const visibleWidgets = this.widgets.filter(w => !w.hidden);
-                    const lastWidget = visibleWidgets.length > 0 ? visibleWidgets[visibleWidgets.length - 1] : null;
-                    const startY = lastWidget ? (lastWidget.y + lastWidget.height + 15) : 40;
+                    const addButton = this.widgets.find(w => w.name === "➕ Add LoRA");
+                    const startY = addButton ? (addButton.y + addButton.height + 15) : 40;
                     const newHeight = startY + (this.loraRows.length * this.rowHeight) + 10;
                     if (this.size[1] < newHeight) {
                         this.setSize([this.targetWidth, newHeight]);
@@ -583,7 +829,7 @@ function createTreeItems(path, tree, level, container, expandedFolders, self, he
             folderHeader.onclick = (e) => {
                 e.stopPropagation();
                 expandedFolders[itemPath] = !expandedFolders[itemPath];
-                container.innerHTML = ""; 
+                container.innerHTML = "";
                 createTreeItems("", self.loraTree, 0, container, expandedFolders, self, header, noneItem);
             };
             folderContainer.appendChild(folderHeader);
@@ -600,8 +846,8 @@ function createTreeItems(path, tree, level, container, expandedFolders, self, he
                 e.stopPropagation();
                 self.addLoraRow(itemPath);
                 let root = fileItem;
-                while(root.parentNode && root.parentNode !== document.body) root = root.parentNode;
-                if(root && root.parentNode === document.body) root.remove();
+                while (root.parentNode && root.parentNode !== document.body) root = root.parentNode;
+                if (root && root.parentNode === document.body) root.remove();
             };
             container.appendChild(fileItem);
         }

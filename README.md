@@ -676,7 +676,7 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 ---
 
 # 🦊 RS Models Loader  
-**A powerful all-in-one model loader node for ComfyUI that combines UNET, CLIP (with optional dual CLIP support), VAE, and LoRA loading into a single interface.**  
+**A powerful universal model loading node that combines UNET, CLIP (with additional dual-clip support), VAE and LoRa downloads in a single interface and the function of saving model configurations to preset presets.**  
 
 <img width="574" height="656" alt="Desktop 2026-07-09 19-46-48" src="https://github.com/user-attachments/assets/a33fc68f-9c29-4161-b132-63a912b31623" />
 

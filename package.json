@@ -24,6 +24,7 @@
       "Rayko_Last_Frame.py"
       "Rayko_Loop_Switch.py"
       "Rayko_Models_Loader.py"
+      "Rayko_MultiLatent.py"
       "Rayko_Outpaint.py"
       "Rayko_Prompts.py"
       "Rayko_RGB2RGBA.py"

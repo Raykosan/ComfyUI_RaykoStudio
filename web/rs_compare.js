@@ -154,7 +154,6 @@ app.registerExtension({
                 
                 if ((this.flags && this.flags.collapsed) || (!this.rs_img1 && !this.rs_img2)) return r;
                 
-                // Сохраняем состояние Canvas, чтобы не сломать нативную отрисовку LiteGraph
                 ctx.save();
                 
                 const getVal = (name, def) => {
@@ -316,7 +315,6 @@ app.registerExtension({
                 
                 this.rs_resetAllRect = { x: padding, y: resetAllY, w: buttonWidth, h: resetAllHeight };
                 
-                // Восстанавливаем состояние Canvas, чтобы не сломать нативную отрисовку LiteGraph
                 ctx.restore();
                 
                 return r;

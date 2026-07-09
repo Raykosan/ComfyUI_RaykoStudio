@@ -11,7 +11,6 @@ app.registerExtension({
             const result = onNodeCreated ? onNodeCreated.apply(this) : undefined;
             initCustomPresets(this);
             
-            // === ДОБАВЛЯЕМ ОГРАНИЧЕНИЕ МИНИМАЛЬНОГО РАЗМЕРА ===
             const minWidth = 240;
             const minHeight = 310;
             const origOnResize = this.onResize;
@@ -25,7 +24,6 @@ app.registerExtension({
                     this.setDirtyCanvas(true, true);
                 }
             };
-            // ================================================
             
             return result;
         };

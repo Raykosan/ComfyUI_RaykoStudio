@@ -13,13 +13,11 @@ app.registerExtension({
         nodeType.prototype.onNodeCreated = function() {
             if (onNodeCreated) onNodeCreated.apply(this, arguments);
 
-            // State
             this.overlay = { x: 0, y: 0, width: 100, height: 100, rotation: 0, flipH: false, flipV: false };
             this.overlayRelative = { x: 0.5, y: 0.5, width: 0.3, height: 0.3, rotation: 0, flipH: false, flipV: false };
             this.realOverlay = { width: 0, height: 0 };
             this.realBackground = { width: 0, height: 0 };
 
-            // View
             this.displayWidth = 420;
             this.displayHeight = 420;
             this.canvasPixelSize = 420;
@@ -27,7 +25,6 @@ app.registerExtension({
             this.viewOffsetX = 0;
             this.viewOffsetY = 0;
 
-            // Images & Editing
             this.overlayImage = null;
             this.backgroundImage = null;
             this.isEditing = false;
@@ -36,21 +33,18 @@ app.registerExtension({
             this.dragState = null;
             this.currentSessionTimestamp = null;
 
-            // Parameters
             this.opacity = 1.0;
             this.featherType = "None";
             this.blurRadius = 50;
             this.blurHardness = 0;
             this.advancedMode = false;
 
-            // Overlay DOM
             this.overlayContainer = null;
             this.overlayCanvas = null;
             this.overlayCtx = null;
             this.overlayRenderLoop = null;
             this.overlayInputs = {};
 
-            // Misc
             this.featherCenter = { x: 0.5, y: 0.5 };
             this.canvasRealWidth = 0;
             this.canvasRealHeight = 0;
@@ -68,10 +62,8 @@ app.registerExtension({
             this.previewMaxSize = 512;
             this.pendingEditorData = null;
 
-            // Heartbeat
             this.heartbeatInterval = null;
 
-            // Helper function to sync widget values
             const syncWidgetValue = (widgetName, value) => {
                 const widget = this.widgets?.find(w => w.name === widgetName);
                 if (widget) {
@@ -79,19 +71,16 @@ app.registerExtension({
                 }
             };
 
-            // Hide default widgets
             ["opacity", "feather_type", "blur_radius", "blur_hardness"].forEach(n => {
                 const w = this.widgets?.find(w => w.name === n);
                 if (w) w.hidden = true;
             });
 
-            // Add custom widgets
             this.addWidget("slider", "opacity", 1.0, v => { this.opacity = v; syncWidgetValue("opacity", v); this.previewDirty = true; this.setDirtyCanvas(true); }, { min: 0, max: 1, step: 0.01 });
             this.addWidget("combo", "feather_type", "None", v => { this.featherType = v; syncWidgetValue("feather_type", v); this.previewDirty = true; this.setDirtyCanvas(true); }, { values: ["None", "Radial Blur In", "Radial Blur Out", "Ellipse Blur In", "Ellipse Blur Out"] });
             this.addWidget("slider", "blur_radius", 50, v => { this.blurRadius = v; syncWidgetValue("blur_radius", v); this.previewDirty = true; this.setDirtyCanvas(true); }, { min: 0, max: 100, step: 1 });
             this.addWidget("slider", "blur_hardness", 0, v => { this.blurHardness = v; syncWidgetValue("blur_hardness", v); this.previewDirty = true; this.setDirtyCanvas(true); }, { min: 0, max: 100, step: 1 });
 
-            // Heartbeat methods
             this.startHeartbeat = function() {
                 if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
                 this.heartbeatInterval = setInterval(async () => {
@@ -112,7 +101,6 @@ app.registerExtension({
                 }
             };
 
-            // Create Overlay DOM
             if (!this.overlayContainer) {
                 this.overlayContainer = document.createElement('div');
                 this.overlayContainer.style.cssText = 'position:fixed;top:60px;left:0;right:0;bottom:0;background:rgba(10,10,10,0.96);z-index:999;display:none;flex-direction:row;align-items:stretch;font-family:system-ui,-apple-system,sans-serif;';
@@ -216,7 +204,6 @@ app.registerExtension({
                 this._resizeObserver.observe(this.overlayCanvasWrapper);
             }
 
-            // API Listeners
             api.addEventListener("rs-collage-start", (event) => { if (event.detail.id != this.id) return; this.pendingEditorData = event.detail; this.openDeferredEditor(); });
             api.addEventListener("rs-collage-ready", (event) => { if (event.detail.id != this.id) return; this.pendingEditorData = event.detail; });
             api.addEventListener("interrupted", () => {
@@ -229,7 +216,6 @@ app.registerExtension({
                 this.setDirtyCanvas(true);
             });
 
-            // Cleanup on node removal
             const origOnRemoved = this.onRemoved;
             this.onRemoved = function() {
                 this.stopHeartbeat();
@@ -244,7 +230,6 @@ app.registerExtension({
             };
         };
 
-        // Helpers
         nodeType.prototype._syncOverlayUI = function() {
             if (!this.advancedMode) return;
             this.overlayInputs.opacity.value = Math.round(this.opacity * 100);
@@ -349,7 +334,6 @@ app.registerExtension({
                 this.computeAndApplyView();
             });
 
-            // Mouse handlers
             this._overlayMouseHandler = (e) => this._handleOverlayEvent(e, e.type === 'mousedown' ? 'down' : e.type === 'mousemove' ? 'move' : 'up');
             this._overlayMouseLeaveHandler = () => this.onMouseUp();
             this.overlayCanvas.addEventListener('mousedown', this._overlayMouseHandler);
@@ -357,11 +341,9 @@ app.registerExtension({
             this.overlayCanvas.addEventListener('mouseup', this._overlayMouseHandler);
             this.overlayCanvas.addEventListener('mouseleave', this._overlayMouseLeaveHandler);
 
-            // Wheel handler (passive: false is mandatory for preventDefault)
             this._overlayWheelHandler = (e) => this._handleOverlayWheel(e);
             this.overlayCanvas.addEventListener('wheel', this._overlayWheelHandler, { passive: false });
 
-            // Keyboard
             this._globalKeyHandler = (e) => {
                 if (e.key === 'Escape' && activeRSCollageNode === this) {
                     this.sendTransforms();
@@ -370,7 +352,6 @@ app.registerExtension({
             };
             window.addEventListener('keydown', this._globalKeyHandler);
 
-            // Render loop (clears canvas before drawing to prevent phantom)
             this.overlayRenderLoop = () => {
                 if (!this.advancedMode || !this.overlayCtx) return;
                 this.overlayCtx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
@@ -380,7 +361,6 @@ app.registerExtension({
             requestAnimationFrame(this.overlayRenderLoop);
         };
 
-        // Dedicated overlay drawing method (separated from node drawing)
         nodeType.prototype.drawOverlayCanvas = function(ctx) {
             if (!this.isEditing || !this.backgroundImage) {
                 ctx.fillStyle = "#888";
@@ -481,7 +461,6 @@ app.registerExtension({
             this.featherCenter = { x: 0.5, y: 0.5 };
             this.previewDirty = true;
 
-            // Sync widget values when opening editor
             const syncWidgetValue = (widgetName, value) => {
                 const widget = this.widgets?.find(w => w.name === widgetName);
                 if (widget) {
@@ -652,8 +631,6 @@ app.registerExtension({
         };
 
         nodeType.prototype.sendTransforms = async function() {
-            // Инвертируем координаты центра размытия при флипе,
-            // т.к. в Python feather применяется к уже отражённому изображению
             const fcx = this.overlay.flipH ? 1.0 - this.featherCenter.x : this.featherCenter.x;
             const fcy = this.overlay.flipV ? 1.0 - this.featherCenter.y : this.featherCenter.y;
 
@@ -710,7 +687,6 @@ app.registerExtension({
             return { cSize, rectX, rectY };
         };
 
-        // Node foreground drawing (ONLY for normal mode)
         nodeType.prototype.onDrawForeground = function(ctx) {
             if (this.advancedMode) {
                 ctx.clearRect(0, 0, this.size[0], this.size[1]);
@@ -863,7 +839,6 @@ app.registerExtension({
     }
 });
 
-// Глобальный обработчик закрытия вкладки
 window.addEventListener("beforeunload", () => {
     const nodes = (app.graph && app.graph._nodes)
         ? app.graph._nodes.filter(n => n.type === "RSCollage")

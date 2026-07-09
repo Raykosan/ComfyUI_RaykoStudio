@@ -969,7 +969,6 @@ class RS_OverlayPro:
         text_mask = masks['text_mask']
         outline_mask = masks['outline_mask']
 
-        # Извлекаем shadow-параметры
         enable_shadow = bool(text_params.get('enable_shadow', False))
         shadow_color = text_params.get('shadow_color', '#333333')
         shadow_opacity = min(1.0, max(0.0, float(text_params.get('shadow_opacity', 0.8))))
@@ -1005,7 +1004,6 @@ class RS_OverlayPro:
 
         result = Image.new("RGBA", render_size, (0,0,0,0))
 
-        # 1. GLOW
         if include_glow and config.enable_glow and config.glow_size > 0:
             glow_mask = self._apply_glow_to_mask(
                 text_mask, config.glow_size, config.glow_spread, config.glow_opacity
@@ -1013,7 +1011,6 @@ class RS_OverlayPro:
             glow_colored = self._apply_color_to_mask(glow_mask, config.glow_color)
             result = Image.alpha_composite(result, glow_colored)
 
-        # 2. SHADOW (под текстом и outline)
         if config.enable_shadow:
             shadow_mask = self._apply_shadow_to_mask(
                 text_mask, config.shadow_blur, config.shadow_offset_x, config.shadow_offset_y
@@ -1021,12 +1018,10 @@ class RS_OverlayPro:
             shadow_colored = self._apply_color_to_mask(shadow_mask, config.shadow_color)
             result = Image.alpha_composite(result, shadow_colored)
 
-        # 3. OUTLINE
         if config.has_outline:
             outline_colored = self._apply_color_to_mask(outline_mask, config.outline_color)
             result = Image.alpha_composite(result, outline_colored)
 
-        # 4. TEXT
         text_colored = self._apply_color_to_mask(text_mask, config.text_color)
         result = Image.alpha_composite(result, text_colored)
 

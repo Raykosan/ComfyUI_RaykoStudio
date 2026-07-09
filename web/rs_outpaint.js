@@ -31,7 +31,6 @@ function setUIActive(dom, isActive) {
     const pointerEvents = isActive ? "auto" : "none";
     const filter = isActive ? "none" : "grayscale(100%)";
     
-    // Кнопки пресетов
     dom.savePresetBtn.style.opacity = opacity;
     dom.savePresetBtn.style.pointerEvents = pointerEvents;
     dom.savePresetBtn.style.filter = filter;
@@ -40,38 +39,32 @@ function setUIActive(dom, isActive) {
     dom.applyPresetBtn.style.pointerEvents = pointerEvents;
     dom.applyPresetBtn.style.filter = filter;
     
-    // Кнопки соотношений (chipBtns)
     for (const btn of dom.chipBtns) {
         btn.style.opacity = opacity;
         btn.style.pointerEvents = pointerEvents;
         btn.style.filter = filter;
     }
     
-    // Кнопки snap
     for (const btn of dom.snapBtns) {
         btn.style.opacity = opacity;
         btn.style.pointerEvents = pointerEvents;
         btn.style.filter = filter;
     }
     
-    // Кнопка замка
     dom.arBtn.style.opacity = opacity;
     dom.arBtn.style.pointerEvents = pointerEvents;
     dom.arBtn.style.filter = filter;
     
-    // Кнопка Reset
     dom.resetBtn.style.opacity = opacity;
     dom.resetBtn.style.pointerEvents = pointerEvents;
     dom.resetBtn.style.filter = filter;
     
-    // Поля ввода W/H
     dom.wInput.style.opacity = opacity;
     dom.wInput.style.pointerEvents = pointerEvents;
     
     dom.hInput.style.opacity = opacity;
     dom.hInput.style.pointerEvents = pointerEvents;
     
-    // Цвета (mask)
     dom.maskColorInput.picker.style.opacity = opacity;
     dom.maskColorInput.picker.style.pointerEvents = pointerEvents;
     dom.maskColorInput.hexInput.style.opacity = opacity;
@@ -79,7 +72,6 @@ function setUIActive(dom, isActive) {
     dom.maskColorInput.swatch.style.opacity = opacity;
     dom.maskColorInput.swatch.style.pointerEvents = pointerEvents;
     
-    // Цвета (bg)
     dom.bgColorInput.picker.style.opacity = opacity;
     dom.bgColorInput.picker.style.pointerEvents = pointerEvents;
     dom.bgColorInput.hexInput.style.opacity = opacity;
@@ -87,20 +79,17 @@ function setUIActive(dom, isActive) {
     dom.bgColorInput.swatch.style.opacity = opacity;
     dom.bgColorInput.swatch.style.pointerEvents = pointerEvents;
     
-    // Batch кнопка
     dom.batchBtn.style.opacity = opacity;
     dom.batchBtn.style.pointerEvents = pointerEvents;
     dom.batchBtn.style.filter = filter;
 }
 
 function resetNodeState(st, dom, widgets) {
-    // Сохраняем пользовательские цвета перед сбросом, чтобы не терять выбор
     const savedMaskColor = st.maskColor;
     const savedBgColor = st.bgColor;
 
     Object.assign(st, createState());
 
-    // Восстанавливаем пользовательские цвета
     st.maskColor = savedMaskColor;
     st.bgColor = savedBgColor;
 
@@ -147,7 +136,6 @@ function initLayout(st, wrapEl) {
     st.cr = srcToCr(def, st.sf, st.scale);
     st.cropAR = defW / defH;
     
-    // Output resolution теперь всегда 0 (используем размер рамки)
     st.outW = 0;
     st.outH = 0;
     st.arLocked = false; 
@@ -238,7 +226,6 @@ function buildUI() {
     const snapBtns = SNAP_DEFS.map(([key, label], i) => { const isFirst = i===0, isLast = i===SNAP_DEFS.length-1; const radius = isFirst ? "4px 0 0 4px" : (isLast ? "0 4px 4px 0" : "0"); const bl = isFirst ? "1px solid #444" : "none"; const b = mkEl("button", `padding:2px 7px;font-size:10px;border:1px solid #444;border-left:${bl};border-radius:${radius};background:#2a2a2a;color:#bbb;cursor:pointer;white-space:nowrap;`); b.textContent = label; b.dataset.snap = key; return b; });
     snapRow.append(snapLabel, ...snapBtns);
     
-    // Удален виджет output_resolution из UI
     ctrl.append(cropSizeRow, presetRow, snapRow);
     
     const maskColorInput = mkColorInput("mask:", "#ff0000");
@@ -274,7 +261,6 @@ function render(st, dom) {
     setMask(dom.maskTop, cr.x, cr.y, cr.w, Math.max(0, iy1 - cr.y)); setMask(dom.maskBot, cr.x, iy2, cr.w, Math.max(0, cr.y + cr.h - iy2)); setMask(dom.maskLeft, cr.x, iy1, Math.max(0, ix1 - cr.x), iy2 - iy1); setMask(dom.maskRight, ix2, iy1, Math.max(0, cr.x + cr.w - ix2), iy2 - iy1);
     const padT = Math.max(0, -s.y), padB = Math.max(0, s.y + s.h - srcH), padL = Math.max(0, -s.x), padR = Math.max(0, s.x + s.w - srcW);
     const outW = Math.round(s.w), outH = Math.round(s.h);
-    // Выходной размер теперь всегда равен размеру рамки (0 означает авто в бэкенде)
     dom.sizeLabel.textContent = `${outW} × ${outH}`;
     dom.sizeLabel.style.display = "block"; dom.sizeLabel.style.left = (cr.x + cr.w / 2) + "px"; dom.sizeLabel.style.top = (cr.y + cr.h - 18) + "px";
     const showPad = (el, text, show, cx, cy) => { el.textContent = text; el.style.display = show ? "block" : "none"; if (show) { el.style.left = cx + "px"; el.style.top = cy + "px"; el.style.transform = "translate(-50%,-50%)"; } };
@@ -293,7 +279,6 @@ function render(st, dom) {
 
 function fitCropInView(st, dom) { const wrapW = dom.wrap.clientWidth, wrapH = dom.wrap.clientHeight; if (wrapW <= 0 || wrapH <= 0) return; const pad = MARGIN; const bx1 = Math.min(st.sf.x, st.cr.x), by1 = Math.min(st.sf.y, st.cr.y), bx2 = Math.max(st.sf.x + st.sf.w, st.cr.x + st.cr.w), by2 = Math.max(st.sf.y + st.sf.h, st.cr.y + st.cr.h); const bw = bx2 - bx1, bh = by2 - by1; const fitZoom = Math.min((wrapW - pad * 2) / bw, (wrapH - pad * 2) / bh); const needsZoomOut = fitZoom < st.view.zoom; const z = needsZoomOut ? Math.max(0.15, fitZoom) : st.view.zoom; const scL = bx1 * z + st.view.panX, scT = by1 * z + st.view.panY, scR = bx2 * z + st.view.panX, scB = by2 * z + st.view.panY; const outOfBounds = scL < 0 || scT < 0 || scR > wrapW || scB > wrapH; if (!needsZoomOut && !outOfBounds) return; st.view.zoom = z; st.view.panX = (wrapW - bw * z) / 2 - bx1 * z; st.view.panY = (wrapH - bh * z) / 2 - by1 * z; }
 function syncWidgets(st, widgets, node) { const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale)); const hex = st.maskColor.replace("#", ""); const mR = parseInt(hex.substring(0,2), 16), mG = parseInt(hex.substring(2,4), 16), mB = parseInt(hex.substring(4,6), 16); 
-    // outW/outH всегда 0, чтобы бэкенд брал размеры рамки
     if (widgets.cropState) widgets.cropState.value = `${s.x},${s.y},${s.w},${s.h},0,0,${mR},${mG},${mB}`; 
     if (node.graph) node.graph.setDirtyCanvas(true, true); }
 function setArLocked(st, dom, locked) { st.arLocked = locked; if (locked && st.cr.h > 0) st.cropAR = st.cr.w / st.cr.h; dom.arBtn.textContent = locked ? "🔒" : "🔓"; dom.arBtn.style.border = `1px solid ${locked ? "#99c0ee" : "#444"}`; dom.arBtn.style.background = locked ? "#1a3a5a" : "#2a2a2a"; dom.arBtn.style.color = locked ? "#aadaff" : "#bbb"; dom.arBtn._active = locked; }
@@ -324,7 +309,6 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
         const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale)); 
         const hex = st.maskColor.replace("#", ""); 
         const mR = parseInt(hex.substring(0,2), 16), mG = parseInt(hex.substring(2,4), 16), mB = parseInt(hex.substring(4,6), 16); 
-        // outW/outH всегда 0
         const presetData = { crop_state: `${s.x},${s.y},${s.w},${s.h},0,0,${mR},${mG},${mB}`, maskColor: st.maskColor, bgColor: st.bgColor, outW: 0, outH: 0, cropAR: st.cropAR, arLocked: st.arLocked }; 
         fetch("/rs_outpaint/save_preset", { 
             method: "POST", 
@@ -444,10 +428,8 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
             setArLocked(st, dom, true);
             st.cropAR = targetAR;
             
-            // Рассчитываем новые размеры от ИСХОДНИКА
             const { w: newW, h: newH } = calcSizeByRatio(st.srcW, st.srcH, targetAR);
             
-            // Центрируем относительно ИСХОДНОГО изображения
             const centerX = st.srcW / 2;
             const centerY = st.srcH / 2;
             

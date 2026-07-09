@@ -537,7 +537,6 @@ app.registerExtension({
         const btnCancel = makeBtn("❌ CANCEL", "#dc3545", () => { this.cancelEditing(); this._toggleAdvancedMode(); });
         buttonContainer.appendChild(btnCancel);
 
-        // TEXT секция (всегда раскрыта, без чекбокса)
         const textHeader = document.createElement('div');
         textHeader.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;';
         const textChevron = document.createElement('span');

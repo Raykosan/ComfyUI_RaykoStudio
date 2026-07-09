@@ -12,7 +12,6 @@ app.registerExtension({
             nodeType.prototype.onNodeCreated = function() {
                 const result = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
                 
-                // Initialize data
                 this.data = {
                     active_csv_file: "",
                     styles: [],
@@ -29,7 +28,6 @@ app.registerExtension({
                 
                 const self = this;
                 
-                // Find hidden widget
                 this.hiddenWidget = this.widgets.find(w => w.name === "node_data");
                 if (this.hiddenWidget) {
                     this.hiddenWidget.hidden = true;
@@ -41,15 +39,12 @@ app.registerExtension({
                         this.hiddenWidget.element.style.pointerEvents = "none";
                     }
                     
-                    // CRITICAL FIX: Load data from widget value
                     try {
                         const savedData = JSON.parse(this.hiddenWidget.value || "{}");
                         if (savedData && typeof savedData === 'object') {
-                            // Restore saved data, but keep csv_list if empty
                             this.data = { 
                                 ...this.data, 
                                 ...savedData,
-                                // Ensure csv_list doesn't override with empty from save
                                 csv_list: this.data.csv_list.length > 0 ? this.data.csv_list : savedData.csv_list || []
                             };
                         }
@@ -57,14 +52,12 @@ app.registerExtension({
                         console.error("[Rayko] Error loading saved data", e);
                     }
                     
-                    // Override serializeValue to always return current data
                     this.hiddenWidget.serializeValue = () => {
                         this.syncData();
                         return JSON.stringify(this.data);
                     };
                 }
                 
-                // Hide all other widgets
                 if (this.widgets) {
                     this.widgets.forEach(w => {
                         if (w.name !== "node_data") {
@@ -75,7 +68,6 @@ app.registerExtension({
                 
                 this.setSize([this.targetWidth, 300]);
 
-                // --- Core Data Loader ---
                 this.loadCSVList = async function() {
                     try {
                         const response = await api.fetchApi("/rayko_get_csv_files");
@@ -94,7 +86,6 @@ app.registerExtension({
                     }
                 };
 
-                // --- Helper Drawing Methods ---
                 this.drawSeparator = function(ctx, text, x, y, w, h) {
                     ctx.fillStyle = "#444";
                     ctx.fillRect(x, y + 8, w, 1);
@@ -155,7 +146,6 @@ app.registerExtension({
                     ctx.fillText(label, x + w/2 + 8, y + h/2);
                 };
 
-                // --- Main Rendering ---
                 this.onDrawForeground = function(ctx, visibleRect) {
                     this.clickZones = [];
                     const startY = 80;
@@ -234,7 +224,6 @@ app.registerExtension({
                     }
                 };
 
-                // --- Input Handling ---
                 this.onMouseDown = function(e, pos, canvas) {
                     if (!this.clickZones.length) return false;
                     
@@ -273,7 +262,6 @@ app.registerExtension({
                     return false;
                 };
 
-                // --- Popup: CSV Selector ---
                 this.showCSVSelector = function(clickEvent) {
                     const list = self.data.csv_list || [];
                     if (!list.length) return;
@@ -324,7 +312,6 @@ app.registerExtension({
                     document.addEventListener("keydown", closeEsc, true);
                 };
 
-                // --- Upload Logic ---
                 this.uploadCSVFile = async function() {
                     const fileInput = document.createElement("input");
                     fileInput.type = "file";
@@ -361,7 +348,6 @@ app.registerExtension({
                     fileInput.click();
                 };
 
-                // --- Style Selector Trigger ---
                 this.showStyleSelector = async function(clickEvent) {
                     if (!self.data.active_csv_file || self.data.active_csv_file === "No CSV files") {
                         alert("⚠️ Upload CSV first!");
@@ -421,7 +407,6 @@ app.registerExtension({
                     }
                 };
 
-                // --- Popup: Style Tree Menu ---
                 this.showStyleTreeMenu = function(tree, expandedFolders, fixedPosition) {
                     const currentScroll = self.menuScrollPosition || 0;
                     
@@ -551,7 +536,6 @@ app.registerExtension({
                     document.addEventListener("keydown", closeEsc, true);
                 };
 
-                // --- Core Logic ---
                 this.addStyleRow = function(styleFullName, styleDisplayName) {
                     const exists = self.data.styles.some(row => row.name === styleFullName && row.file === self.data.active_csv_file);
                     if (exists) { alert("⚠️ Already added!"); return; }
@@ -567,7 +551,6 @@ app.registerExtension({
                     if (this.hiddenWidget) {
                         this.hiddenWidget.value = JSON.stringify(this.data);
                     }
-                    // Mark graph as changed to trigger auto-save
                     if (this.graph) {
                         this.graph.changeTracker?.dispatchEvent(new Event("change"));
                     }
@@ -581,7 +564,6 @@ app.registerExtension({
                     }
                 };
 
-                // CRITICAL: Override serialize method to ensure data is saved
                 const onSerialize = this.onSerialize;
                 this.onSerialize = function(o) {
                     self.syncData();
@@ -590,19 +572,16 @@ app.registerExtension({
                     }
                 };
                 
-                // CRITICAL: Override onConfigure to restore data after load
                 const onConfigure = this.onConfigure;
                 this.onConfigure = function(o) {
                     if (onConfigure) {
                         onConfigure.apply(this, arguments);
                     }
-                    // Restore data from widget after configuration
                     if (this.hiddenWidget && this.hiddenWidget.value) {
                         try {
                             const restoredData = JSON.parse(this.hiddenWidget.value);
                             if (restoredData) {
                                 this.data = { ...this.data, ...restoredData };
-                                // Don't lose csv_list if empty
                                 if (!this.data.csv_list.length && restoredData.csv_list) {
                                     this.data.csv_list = restoredData.csv_list;
                                 }
@@ -615,7 +594,6 @@ app.registerExtension({
                     }
                 };
 
-                // Load CSV list after everything is set up
                 this.loadCSVList();
                 
                 return result;

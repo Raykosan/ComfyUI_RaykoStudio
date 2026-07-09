@@ -15,21 +15,17 @@ app.registerExtension({
             const result = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
             const node = this;
             
-            // Инициализация данных
             node.data = {
                 selected_image: "",
                 spline_coords: "[]"
             };
             
-            // Настройка размеров
             node.targetWidth = 450;
             node.setSize([node.targetWidth, 600]);
             
-            // Находим скрытые виджеты
             const imageWidget = node.widgets?.find(w => w.name === "image");
             const coordsWidget = node.widgets?.find(w => w.name === "coordinates");
             
-            // Скрываем виджеты
             if (imageWidget) {
                 imageWidget.hidden = true;
                 if (imageWidget.element) imageWidget.element.style.display = "none";
@@ -39,11 +35,9 @@ app.registerExtension({
                 if (coordsWidget.element) coordsWidget.element.style.display = "none";
             }
             
-            // Загружаем сохраненные данные из виджетов
             if (imageWidget && imageWidget.value) node.data.selected_image = imageWidget.value;
             if (coordsWidget && coordsWidget.value) node.data.spline_coords = coordsWidget.value;
             
-            // Переопределяем serializeValue для виджетов
             if (imageWidget) {
                 imageWidget.serializeValue = () => node.data.selected_image;
             }
@@ -51,14 +45,12 @@ app.registerExtension({
                 coordsWidget.serializeValue = () => node.data.spline_coords;
             }
             
-            // Состояние
             node.image = new Image();
             node.imageLoaded = false;
             node.imageLoading = false;
             node.buttons = [];
             node.imageList = [];
             
-            // Кнопки
             node.buttons = [
                 { label: "🎨 IMAGE", color: "#2196F3", callback: () => node.showImageSelector(), hover: false },
                 { label: "🖼️ UPLOAD", color: "#4CAF50", callback: () => node.triggerFileUpload(), hover: false },
@@ -148,12 +140,9 @@ app.registerExtension({
                 return false;
             };
 
-            // ✅ НОВОЕ: Глобальный перехват дропа с проверкой координат ноды
-            // Это решает проблему, когда _overlayCanvas скрыт (display: none)
             const handleCanvasDrop = (e) => {
                 if (!e.dataTransfer || !e.dataTransfer.files.length) return;
                 
-                // Проверяем, находится ли курсор над этой конкретной нодой
                 const rect = app.canvas.canvas.getBoundingClientRect();
                 const ds = app.canvas.ds;
                 const nodeX = rect.left + ((node.pos[0] + ds.offset[0]) * ds.scale);
@@ -189,11 +178,9 @@ app.registerExtension({
                     e.clientY >= nodeY && e.clientY <= nodeY + nodeH) {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Визуальный фидбек можно добавить здесь, если захочется
                 }
             };
 
-            // Регистрируем слушатели с capture: true, чтобы перехватить событие ДО глобального обработчика ComfyUI
             app.canvas.canvas.addEventListener('dragover', handleCanvasDragOver, { capture: true });
             app.canvas.canvas.addEventListener('drop', handleCanvasDrop, { capture: true });
             
@@ -621,7 +608,6 @@ app.registerExtension({
                 const menu = document.querySelector('.spline-image-menu');
                 if (menu) menu.remove();
                 
-                // ✅ НОВОЕ: Очистка глобальных слушателей при удалении ноды (предотвращает утечки памяти)
                 app.canvas.canvas.removeEventListener('dragover', handleCanvasDragOver, { capture: true });
                 app.canvas.canvas.removeEventListener('drop', handleCanvasDrop, { capture: true });
                 

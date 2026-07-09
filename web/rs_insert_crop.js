@@ -39,13 +39,11 @@ app.registerExtension({
                     }
                 };
                 
-                // ⚠️ Сбрасываем статус ПЕРЕД выполнением
                 node.onExecuted = function(message) {
                     this.currentStatus = "✅ Inserted";
                     this.setDirtyCanvas(true, true);
                 };
                 
-                // ⚠️ Обновляем статус при запуске workflow
                 const onDrawForeground = node.onDrawForeground;
                 node.onDrawForeground = function(ctx) {
                     if (!this.flags.collapsed) {
@@ -64,7 +62,6 @@ app.registerExtension({
         };
     },
     
-    // ⚠️ Глобальный слушатель начала выполнения
     setup(app) {
         app.api.addEventListener("executing", (event) => {
             const nodeId = event.detail;

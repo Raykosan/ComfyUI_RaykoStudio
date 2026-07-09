@@ -107,9 +107,9 @@ class RS_Image_MultiLatent:
     RETURN_NAMES = ("latent", "width_px", "height_px")
     FUNCTION = "generate"
     CATEGORY = "🦊 RaykoStudio"
+    DESCRIPTION = "Universal latent generation node - automatically adapts to any VAE architecture."
 
     def generate(self, vae, size_mode, active_preset, preset_standard, preset_qwen, preset_krea2, width, height, megapixels, aspect_ratio, batch_size):
-        # Определение параметров из VAE
         latent_channels = 4
         scale_factor = 8
         
@@ -128,7 +128,6 @@ class RS_Image_MultiLatent:
             except:
                 pass
         
-        # Валидация
         if latent_channels <= 0 or latent_channels > 256:
             raise ValueError(f"Invalid latent_channels: {latent_channels}")
         if scale_factor <= 0 or scale_factor > 64:
@@ -136,9 +135,7 @@ class RS_Image_MultiLatent:
         
         print(f"[RS_Image_MultiLatent] VAE: {latent_channels} channels, {scale_factor}x scale. Active: {active_preset}")
         
-        # Расчёт размеров
         if size_mode == "Preset":
-            # Выбираем значение из активного списка
             if active_preset == "Standard":
                 preset = preset_standard
             elif active_preset == "Qwen":
@@ -147,7 +144,7 @@ class RS_Image_MultiLatent:
                 preset = preset_krea2
             
             size_map = {
-                # Standard & Krea2 (одинаковые размеры)
+                # Standard & Krea2
                 "Square - 512x512 (1:1)": (512, 512), "Square - 640x640 (1:1)": (640, 640),
                 "Square - 768x768 (1:1)": (768, 768), "Square - 1024x1024 (1:1)": (1024, 1024),
                 "Square - 1280x1280 (1:1)": (1280, 1280), "Square - 1536x1536 (1:1)": (1536, 1536),

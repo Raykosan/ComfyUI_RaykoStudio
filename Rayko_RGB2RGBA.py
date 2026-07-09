@@ -39,17 +39,13 @@ class LoadImageRGBA:
     def load_image(self, image):
         image_path = os.path.join(folder_paths.get_input_directory(), image)
         
-        # Загружаем изображение в PIL
         img = Image.open(image_path)
         
-        # Принудительно конвертируем в RGBA, чтобы гарантировать 4 канала
         if img.mode != 'RGBA':
             img = img.convert('RGBA')
         
-        # Конвертируем в numpy array (нормализуем 0-1)
         img_array = np.array(img).astype(np.float32) / 255.0
         
-        # Добавляем размерность батча [1, H, W, C]
         tensor = torch.from_numpy(img_array).unsqueeze(0)
         
         print(f"[rgb2rgba ] Loaded {image}: {img.size}, mode={img.mode}")

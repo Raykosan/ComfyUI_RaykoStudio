@@ -6,7 +6,6 @@ let pendingDeleteName = null;
 
 const styleBlock = document.createElement('style');
 styleBlock.innerHTML = `
-    /* Стили ТОЛЬКО для кастомного textarea ноды RSPrompts */
     .rs-custom-textarea {
         flex: 1;
         width: 100%;
@@ -23,21 +22,18 @@ styleBlock.innerHTML = `
         box-sizing: border-box;
     }
     
-    /* Светлая тема ComfyUI (классический UI) */
     body.light-mode .rs-custom-textarea {
         background: #fff;
         color: #000;
         border-color: #ccc;
     }
     
-    /* Светлая тема нового UI ComfyUI */
     html[data-theme="light"] .rs-custom-textarea {
         background: #fff;
         color: #000;
         border-color: #ccc;
     }
     
-    /* Оверлей ожидания */
     .rs-waiting-overlay {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;

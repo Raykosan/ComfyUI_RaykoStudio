@@ -686,14 +686,14 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 - **LoRA Management** - Add, enable/disable, and adjust strengths for multiple LoRAs with an intuitive visual interface  
 - **Persistent Storage** - LoRA configurations are saved per node and persist across sessions  
 - **Folder Structure** - Browse LoRAs with folder tree navigation  
-- **Search Functionality** - Quickly find LoRAs by name
+- **Search Functionality** - Quickly find LoRAs by name  
+- **Presets of model sets** - Save model sets to presets for quick switching between models   
 
-### 📃 Notes
-
-- When dual CLIP mode is disabled, clip_name2 is visible but disabled (grayed out)
-- The node automatically falls back to single CLIP mode if clip_name2 is empty
-- LoRA strengths can be set independently for model and CLIP
-- All settings are saved with your workflow and persist across ComfyUI sessions
+### 📃 Notes  
+- When dual CLIP mode is disabled, clip_name2 is visible but disabled (grayed out)  
+- The node automatically falls back to single CLIP mode if clip_name2 is empty  
+- LoRA strengths can be set independently for model and CLIP  
+- All settings are saved with your workflow and persist across ComfyUI sessions  
 
 ---
 ---

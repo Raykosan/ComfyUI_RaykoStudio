@@ -468,7 +468,7 @@ app.registerExtension({
                 if (this.loraRows.length === 0) return;
                 this.clickZones = [];
                 
-                const addButton = this.widgets.find(w => w.name === " Add LoRA");
+                const addButton = this.widgets.find(w => w.name === "➕ Add LoRA");
                 const startY = addButton ? (addButton.y + addButton.height + 15) : 40;
                 const padding = 10;
                 const rightPanelWidth = 180;

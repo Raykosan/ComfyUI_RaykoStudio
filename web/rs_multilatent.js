@@ -7,11 +7,13 @@ app.registerExtension({
         if (nodeData.name !== "RS_Image_MultiLatent") return;
         
         const onNodeCreated = nodeType.prototype.onNodeCreated;
+        const onConfigure = nodeType.prototype.onConfigure;
+        
         nodeType.prototype.onNodeCreated = function() {
             const result = onNodeCreated ? onNodeCreated.apply(this) : undefined;
             initCustomPresets(this);
             
-            const minWidth = 240;
+            const minWidth = 260;
             const minHeight = 310;
             const origOnResize = this.onResize;
             this.onResize = function(size) {
@@ -27,10 +29,67 @@ app.registerExtension({
             
             return result;
         };
+        
+        nodeType.prototype.onConfigure = function(info) {
+            const result = onConfigure ? onConfigure.apply(this, [info]) : undefined;
+            queueMicrotask(() => {
+                hideSystemWidgets(this);
+                if (this.updatePresetUI) {
+                    this.updatePresetUI();
+                }
+            });
+            return result;
+        };
     }
 });
 
+function hideSystemWidgets(node) {
+    const wActive = node.widgets.find(w => w.name === "active_preset");
+    const wStd = node.widgets.find(w => w.name === "preset_standard");
+    const wQwen = node.widgets.find(w => w.name === "preset_qwen");
+    const wKrea = node.widgets.find(w => w.name === "preset_krea2");
+    
+    [wStd, wQwen, wKrea, wActive].forEach(w => {
+        if (w) {
+            w.type = "hidden";
+            w.hidden = true;
+            w.computeSize = () => [0, 0];
+        }
+    });
+}
+
+function saveNodeState(node) {
+    const wActive = node.widgets.find(w => w.name === "active_preset");
+    const wStd = node.widgets.find(w => w.name === "preset_standard");
+    const wQwen = node.widgets.find(w => w.name === "preset_qwen");
+    const wKrea = node.widgets.find(w => w.name === "preset_krea2");
+    
+    if (wActive && wStd && wQwen && wKrea) {
+        const state = {
+            active: wActive.value,
+            std: wStd.value,
+            qwen: wQwen.value,
+            krea: wKrea.value
+        };
+        try {
+            localStorage.setItem(`rs_multilatent_${node.id}`, JSON.stringify(state));
+        } catch (e) {}
+    }
+}
+
+function loadNodeState(node) {
+    try {
+        const stateStr = localStorage.getItem(`rs_multilatent_${node.id}`);
+        if (stateStr) {
+            return JSON.parse(stateStr);
+        }
+    } catch (e) {}
+    return null;
+}
+
 function initCustomPresets(node) {
+    hideSystemWidgets(node);
+    
     const wActive = node.widgets.find(w => w.name === "active_preset");
     const wStd = node.widgets.find(w => w.name === "preset_standard");
     const wQwen = node.widgets.find(w => w.name === "preset_qwen");
@@ -38,14 +97,16 @@ function initCustomPresets(node) {
     
     if (!wActive || !wStd || !wQwen || !wKrea) return;
 
-    [wStd, wQwen, wKrea, wActive].forEach(w => {
-        w.type = "hidden";
-        w.hidden = true;
-        w.computeSize = () => [0, 0];
-    });
+    const savedState = loadNodeState(node);
+    if (savedState) {
+        wActive.value = savedState.active;
+        wStd.value = savedState.std;
+        wQwen.value = savedState.qwen;
+        wKrea.value = savedState.krea;
+    }
 
     const container = document.createElement("div");
-    container.style.display = "flex";
+    container.style.display = "none";
     container.style.flexDirection = "column";
     container.style.gap = "4px";
     container.style.padding = "4px 0";
@@ -139,6 +200,7 @@ function initCustomPresets(node) {
             wActive.value = list.id;
             updateAllButtons();
             updateInfo();
+            saveNodeState(node);
             node.setDirtyCanvas(true, true);
 
             const dropdown = document.createElement("div");
@@ -189,6 +251,7 @@ function initCustomPresets(node) {
                     currentOpen = null;
                     updateAllButtons();
                     updateInfo();
+                    saveNodeState(node);
                     node.setDirtyCanvas(true, true);
                 };
                 
@@ -215,6 +278,14 @@ function initCustomPresets(node) {
         });
     };
 
+    node.updatePresetUI = () => {
+        updateAllButtons();
+        updateInfo();
+        if (container.style.display === "none") {
+            container.style.display = "flex";
+        }
+    };
+
     updateAllButtons();
     updateInfo();
 
@@ -233,7 +304,33 @@ function initCustomPresets(node) {
         if (originalCallback) originalCallback.apply(this, arguments);
         updateAllButtons();
         updateInfo();
+        saveNodeState(node);
     };
 
-    node.size = [240, 310];
+    container.style.display = "flex";
+    node.size = [260, 310];
 }
+
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && app && app.graph) {
+        queueMicrotask(() => {
+            app.graph._nodes.forEach(node => {
+                if (node.type === "RS_Image_MultiLatent" && node.updatePresetUI) {
+                    node.updatePresetUI();
+                }
+            });
+        });
+    }
+});
+
+window.addEventListener("focus", () => {
+    if (app && app.graph) {
+        queueMicrotask(() => {
+            app.graph._nodes.forEach(node => {
+                if (node.type === "RS_Image_MultiLatent" && node.updatePresetUI) {
+                    node.updatePresetUI();
+                }
+            });
+        });
+    }
+});

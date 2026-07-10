@@ -29,7 +29,8 @@ Set of nodes can be installed in several ways:
 git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git  
 ```
 - Copy ComfyUI_RaykoStudio folder to: ComfyUI/custom_nodes/  
-- You can install this node using the ComfyUI_Manager   
+- You can install this node using the ComfyUI_Manager
+- To update ComfyUI_RaykoStudio, use the update.bat file
 
 ---
 ---

@@ -293,6 +293,44 @@ height - Final output height (after optional resize)
 ---
 ---
 
+# 🦊 RS Ref 2 Latent 
+**A lightweight node that encodes a reference image into latent space and injects it into positive/negative conditioning for reference-based generation workflows.**  
+
+<img width="490" height="286" alt="Screenshot_1" src="https://github.com/user-attachments/assets/d8d41f90-765e-4618-84b0-f54af656f1f5" />
+
+### 🔥 Features  
+- **Image Processing** - Takes reference image and encodes it through VAE  
+- **Conditioning Injection** - Automatically adds reference latents to both positive and negative conditioning  
+- **Automatic Size Handling** - Intelligently scales image dimensions to match VAE requirements  
+- **Clean & Simple** - No unnecessary complexity - just reference image → latent → conditioning  
+- **Compatible** - Works with all VAE-based models  
+
+### ↔️ Inputs and Outputs  
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `vae` | VAE | VAE model used to encode the image into latent space |
+| `image` | IMAGE | Reference image to encode |
+| `positive` | CONDITIONING | Positive conditioning from CLIP text encoder |
+| `negative` | CONDITIONING | Negative conditioning from CLIP text encoder |
+
+
+| Output | Type | Description |
+|--------|------|-------------|
+| `positive` | CONDITIONING | Modified positive conditioning with reference latents |
+| `negative` | CONDITIONING | Modified negative conditioning with reference latents |
+| `latent` | LATENT | Encoded reference image as latent |
+
+### 🪛 Usage  
+1. **Input Processing**: The node receives your reference image and VAE  
+2. **Size Calculation**: Automatically calculates optimal dimensions (multiples of 64 for most VAEs)  
+3. **Encoding**: Upscales the image using Lanczos interpolation and encodes it through VAE  
+4. **Conditioning Injection**: Adds the encoded latent to both positive and negative conditioning under the key `reference_latents`  
+5. **Output**: Returns modified conditioning and the latent representation  
+
+---
+---
+
 # 🦊 RS Image Compare  
 **A node that provides an interactive image comparison interface with zoom and pan controls**  
 

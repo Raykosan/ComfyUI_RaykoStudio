@@ -112,6 +112,41 @@ You can create a chain of these nodes by connecting the Image output to the Back
 ---
 ---
 
+# 🦊 RS RS Bypass Manager  
+**A powerful node for managing the states of Bypass nodes and groups in complex ComfyUI circuits. If your workflow has turned into a "spaghetti monster" and you need to quickly disable entire modules (for example, switch between txt2img, inpaint and upscale), this node will save you dozens of clicks and nerves.**  
+
+<img width="1185" height="464" alt="Screenshot_2" src="https://github.com/user-attachments/assets/d848f970-7b8a-49fc-a17e-df1f688f4308" />
+
+### 🔥 Features  
+**Smart Search** - Instant search for the desired nodes and groups by name right inside the drop-down menu.  
+**Group Support** - Works with ComfyUI groups. Groups can be collapsed and expanded to select individual nodes within them.  
+**Color indication**:  
+ * 🔴 **Red** — the group or node is completely blocked.  
+ * 🟠 **Orange** — only part of the node is bypassed in the group (partial bypass).  
+ * ⚪ **Gray** — the node/group is active.
+   
+**List of active bypasses** - All blocked elements are displayed directly on the node. You can delete a bypass by clicking on the node or group name.  
+**Smart State saving** - The bypass status is saved directly in the JSON workflow. No data is lost when restarting ComfyUI, switching tabs, or sharing PNG/JSON.  
+**Dynamic size** - The node automatically adjusts its height to the number of mounted elements.  
+**Advanced UX**:  
+  * The menu **does not close** when you click on an item, you can quickly reset several nodes in a row.  
+  * The menu closes automatically when the mouse cursor moves outside of it (with a slight delay for comfort).  
+  * The `SELECT' field...` is highlighted in orange while the menu is open.  
+  * The node excludes itself from the list of elements available for bypass.  
+
+### 🪛 Usage  
+Add the **🦊 RS Bypass** node to the canvas (category `🦊 RaykoStudio').  
+Click on the **SELECT...** field. A menu opens with all the groups and nodes of your scheme.  
+If there are a large number of nodes, use the search bar to filter.  
+Click on groups or nodes to switch their state (Bypass/Active).  
+   * *Tip: Clicking on the name of the group bypasses it entirely. Clicking on the arrow (▶) will expand the group to select individual nodes.*
+     
+When you're done, just move the mouse cursor outside the menu — it will close itself in half a second.  
+To remove the bypass, click on the name of the desired item in the list on the node itself.  
+
+---
+---
+
 # 🦊 RS rgb2rgba  
 **A lightweight ComfyUI custom node that loads images while preserving the alpha channel (RGBA). Ideal for workflows that require transparency handling in PNG, WebP, and TIFF formats.**  
 

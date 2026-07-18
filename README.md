@@ -115,7 +115,7 @@ You can create a chain of these nodes by connecting the Image output to the Back
 # 🦊 RS RS Bypass Manager  
 **A powerful node for managing the states of Bypass nodes and groups in complex ComfyUI circuits. If your workflow has turned into a "spaghetti monster" and you need to quickly disable entire modules (for example, switch between txt2img, inpaint and upscale), this node will save you dozens of clicks and nerves.**  
 
-<img width="899" height="591" alt="Screenshot_4" src="https://github.com/user-attachments/assets/23558a0c-9469-4c2d-a23a-21610e5649ec" />
+<img width="623" height="583" alt="Screenshot_5" src="https://github.com/user-attachments/assets/c4193648-0e3b-4499-bb14-aff6d59e0345" />
 
 ### 🔥 Features  
 **Smart Search** - Instant search for the desired nodes and groups by name right inside the drop-down menu.  

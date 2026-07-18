@@ -38,9 +38,11 @@ app.registerExtension({
                 self.rowHeight = 28;
                 self.padding = 10;
                 self.clickZones = [];
+                self._lastBypassedCount = -1;
                 
                 const stateWidget = self.widgets.find(w => w.name === "bypass_state");
-                
+                const isNewNode = !stateWidget.value || stateWidget.value === "{}";
+
                 if (stateWidget) {
                     stateWidget.hidden = true;
                     stateWidget.tooltip = "";
@@ -53,14 +55,16 @@ app.registerExtension({
                     
                     stateWidget.computeSize = () => [0, 0];
                     
-                    try {
-                        const savedData = JSON.parse(stateWidget.value || "{}");
-                        if (savedData && typeof savedData === 'object') {
-                            if (savedData.nodes) self.data.bypassedNodes = savedData.nodes;
-                            if (savedData.groups) self.data.bypassedGroups = savedData.groups;
+                    if (!isNewNode) {
+                        try {
+                            const savedData = JSON.parse(stateWidget.value || "{}");
+                            if (savedData && typeof savedData === 'object') {
+                                if (savedData.nodes) self.data.bypassedNodes = savedData.nodes;
+                                if (savedData.groups) self.data.bypassedGroups = savedData.groups;
+                            }
+                        } catch (e) {
+                            console.error("[Rayko] Error loading saved data", e);
                         }
-                    } catch (e) {
-                        console.error("[Rayko] Error loading saved data", e);
                     }
                     
                     stateWidget.serializeValue = () => {
@@ -72,12 +76,12 @@ app.registerExtension({
                     };
                 }
                 
-                self.setSize([210, 180]);
+                self.setSize([220, 180]);
                 
                 self.computeSize = function() {
                     const count = self.data.bypassedNodes.length + self.data.bypassedGroups.length;
                     const calculatedHeight = 63 + (count * 28);
-                    return [210, Math.max(80, calculatedHeight)];
+                    return [220, Math.max(80, calculatedHeight)];
                 };
                 
                 self.drawLabel = function(ctx, text, x, y, w, h) {
@@ -130,24 +134,29 @@ app.registerExtension({
                     y += rowH + 10;
 
                     const bypassedItems = [];
+                    const nodes = app.graph._nodes || [];
+                    const groups = app.graph._groups || [];
                     
-                    self.data.bypassedGroups.forEach(groupId => {
-                        const group = app.graph._groups.find(g => g.id === groupId);
-                        if (group) {
-                            bypassedItems.push({ type: "group", id: groupId, title: " " + (group.title || "Group") });
+                    const fullyBypassedGroupIds = [];
+                    groups.forEach(group => {
+                        if (!group || !group.bounding && !group._bounding) return;
+                        const groupNodes = nodes.filter(n => n.comfyClass !== "RS_Bypass" && isNodeInGroup(n, group));
+                        if (groupNodes.length > 0 && groupNodes.every(n => n.mode === 4)) {
+                            fullyBypassedGroupIds.push(group.id);
+                            bypassedItems.push({ type: "group", id: group.id, title: "📁 " + (group.title || "Group") });
                         }
                     });
                     
-                    self.data.bypassedNodes.forEach(nodeId => {
-                        const targetNode = app.graph._nodes.find(n => n.id === nodeId);
-                        if (targetNode) {
-                            const inBypassedGroup = self.data.bypassedGroups.some(groupId => {
-                                const group = app.graph._groups.find(g => g.id === groupId);
-                                return group && isNodeInGroup(targetNode, group);
+                    nodes.forEach(n => {
+                        if (n.comfyClass === "RS_Bypass") return;
+                        if (n.mode === 4) {
+                            const inBypassedGroup = fullyBypassedGroupIds.some(groupId => {
+                                const group = groups.find(g => g.id === groupId);
+                                return group && isNodeInGroup(n, group);
                             });
                             
                             if (!inBypassedGroup) {
-                                bypassedItems.push({ type: "node", id: nodeId, title: "⚙️ " + (targetNode.title || targetNode.type) });
+                                bypassedItems.push({ type: "node", id: n.id, title: "⚙️ " + (n.title || n.type) });
                             }
                         }
                     });
@@ -157,6 +166,12 @@ app.registerExtension({
                         self.drawBypassedItem(ctx, item.title, pad, itemY, self.size[0] - pad*2, rowH, index);
                         self.clickZones.push({ type: "remove", itemType: item.type, id: item.id, x: pad, y: itemY, w: self.size[0] - pad*2, h: rowH });
                     });
+
+                    const bypassedCount = bypassedItems.length;
+                    if (self._lastBypassedCount !== bypassedCount) {
+                        self._lastBypassedCount = bypassedCount;
+                        self._rs_updateUI();
+                    }
                 };
 
                 self.showBypassMenu = function(clickEvent) {
@@ -174,7 +189,7 @@ app.registerExtension({
                     
                     const searchInput = document.createElement("input");
                     searchInput.type = "text";
-                    searchInput.placeholder = "🔍 Search nodes/groups...";
+                    searchInput.placeholder = " Search nodes/groups...";
                     searchInput.style.cssText = "width:100%;padding:10px;background:#252525;color:#fff;border:none;border-bottom:1px solid #333;box-sizing:border-box;font-size:12px;outline:none;";
                     searchInput.value = self.data.menuSearch || "";
                     menu.appendChild(searchInput);
@@ -189,7 +204,7 @@ app.registerExtension({
                     }
                     
                     let closeTimer = null;
-                    const closeDelay = 500;
+                    const closeDelay = 300;
                     
                     menu.addEventListener("mouseleave", () => {
                         closeTimer = setTimeout(() => {
@@ -250,7 +265,7 @@ app.registerExtension({
                             groupItem.appendChild(arrow);
                             
                             const groupText = document.createElement("span");
-                            groupText.textContent = "📁 " + title;
+                            groupText.textContent = " " + title;
                             groupText.style.cssText = "flex:1;";
                             groupText.onclick = (ev) => {
                                 ev.stopPropagation();
@@ -285,7 +300,7 @@ app.registerExtension({
                                     const nodeColor = isNodeBypassed ? "#ff4444" : "#ddd";
                                     
                                     const nodeItem = document.createElement("div");
-                                    nodeItem.textContent = "⚙️ " + nodeTitle;
+                                    nodeItem.textContent = "️ " + nodeTitle;
                                     nodeItem.style.cssText = "padding:10px 12px 10px 32px;cursor:pointer;color:" + nodeColor + ";border-bottom:1px solid #333;font-size:12px;transition:background-color 0.15s;";
                                     nodeItem.onmouseover = () => nodeItem.style.background = "#333";
                                     nodeItem.onmouseout = () => nodeItem.style.background = "#1a1a1a";
@@ -391,16 +406,18 @@ app.registerExtension({
                             }
                             if (zone.type === "remove") {
                                 if (zone.itemType === "group") {
-                                    self.data.bypassedGroups = self.data.bypassedGroups.filter(id => id !== zone.id);
                                     const group = app.graph._groups.find(g => g.id === zone.id);
                                     if (group) {
                                         const groupNodes = app.graph._nodes.filter(n => isNodeInGroup(n, group));
                                         groupNodes.forEach(n => setNodeBypass(n, false));
+                                        self.data.bypassedGroups = self.data.bypassedGroups.filter(id => id !== zone.id);
                                     }
                                 } else {
-                                    self.data.bypassedNodes = self.data.bypassedNodes.filter(id => id !== zone.id);
                                     const targetNode = app.graph._nodes.find(n => n.id === zone.id);
-                                    if (targetNode) setNodeBypass(targetNode, false);
+                                    if (targetNode) {
+                                        setNodeBypass(targetNode, false);
+                                        self.data.bypassedNodes = self.data.bypassedNodes.filter(id => id !== zone.id);
+                                    }
                                 }
                                 self._rs_syncData();
                                 self._rs_updateUI();
@@ -414,7 +431,7 @@ app.registerExtension({
                 self._rs_updateUI = function() {
                     const pad = self.padding;
                     const rowH = self.rowHeight;
-                    const bypassedItemsCount = self.data.bypassedGroups.length + self.data.bypassedNodes.length;
+                    const bypassedItemsCount = self._lastBypassedCount >= 0 ? self._lastBypassedCount : (self.data.bypassedGroups.length + self.data.bypassedNodes.length);
                     
                     let y = 5;
                     y += rowH;
@@ -423,12 +440,14 @@ app.registerExtension({
                     y += 20;
                     
                     const minHeight = 80;
-                    const minWidth = 210;
+                    const minWidth = 220;
                     
                     const newHeight = Math.max(minHeight, y);
                     const newWidth = Math.max(minWidth, self.size[0]);
                     
-                    self.setSize([newWidth, newHeight]);
+                    if (self.size[1] !== newHeight || self.size[0] !== newWidth) {
+                        self.setSize([newWidth, newHeight]);
+                    }
                     self.graph?.setDirtyCanvas(true, true);
                 };
 
@@ -453,6 +472,35 @@ app.registerExtension({
                             });
                             if (!inBypassedGroup) {
                                 setNodeBypass(targetNode, true);
+                            }
+                        }
+                    });
+                };
+
+                self._rs_discoverExistingBypasses = function() {
+                    const nodes = app.graph._nodes || [];
+                    const groups = app.graph._groups || [];
+                    
+                    groups.forEach(group => {
+                        if (!group || !group.bounding && !group._bounding) return;
+                        const groupNodes = nodes.filter(n => n.comfyClass !== "RS_Bypass" && isNodeInGroup(n, group));
+                        if (groupNodes.length > 0 && groupNodes.every(n => n.mode === 4)) {
+                            if (!self.data.bypassedGroups.includes(group.id)) {
+                                self.data.bypassedGroups.push(group.id);
+                            }
+                        }
+                    });
+
+                    nodes.forEach(n => {
+                        if (n.comfyClass === "RS_Bypass") return;
+                        if (n.mode === 4) {
+                            const inBypassedGroup = self.data.bypassedGroups.some(groupId => {
+                                const group = groups.find(g => g.id === groupId);
+                                return group && isNodeInGroup(n, group);
+                            });
+                            
+                            if (!inBypassedGroup && !self.data.bypassedNodes.includes(n.id)) {
+                                self.data.bypassedNodes.push(n.id);
                             }
                         }
                     });
@@ -506,9 +554,14 @@ app.registerExtension({
                 };
 
                 setTimeout(() => {
-                    self._rs_applyBypass();
+                    if (isNewNode) {
+                        self._rs_discoverExistingBypasses();
+                        self._rs_syncData();
+                    } else {
+                        self._rs_applyBypass();
+                    }
                     self._rs_updateUI();
-                }, 50);
+                }, 100);
 
                 return result;
             };

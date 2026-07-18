@@ -144,6 +144,9 @@ Click on groups or nodes to switch their state (Bypass/Active).
 When you're done, just move the mouse cursor outside the menu — it will close itself in half a second.  
 To remove the bypass, click on the name of the desired item in the list on the node itself.  
 
+If a node is added to a circuit that already has bypass nodes, it will automatically display them in the interface.  
+Also, when using bypass using comfi's own methods (the context menu is bypass, bypass in the NodeMap side menu, or bypass buttons above the node), all changes will instantly appear in the node.  
+
 ---
 ---
 

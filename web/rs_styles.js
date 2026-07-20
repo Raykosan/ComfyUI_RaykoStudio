@@ -458,7 +458,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "favorites", x: pad, y: y, w: self.size[0] - pad*2, h: rowH });
                     y += rowH + 10;
 
-                    self.drawButton(ctx, " ADD STYLE", pad, y, self.size[0] - pad*2, rowH, "#9C27B0");
+                    self.drawButton(ctx, "➕ ADD STYLE", pad, y, self.size[0] - pad*2, rowH, "#9C27B0");
                     this.clickZones.push({ type: "add_style", x: pad, y: y, w: self.size[0] - pad*2, h: rowH });
                     y += rowH + 15;
 
@@ -486,7 +486,7 @@ app.registerExtension({
                     const totalW = clearW + resetW + saveW + loadW + gap * 3;
                     const startX = pad + (availableWidth - totalW) / 2;
                     
-                    self.drawToolbarButton(ctx, "Clear", "", startX, toolbarY, clearW, toolbarH, "#f44336", self.data.styles.length > 0);
+                    self.drawToolbarButton(ctx, "Clear", "🔴", startX, toolbarY, clearW, toolbarH, "#f44336", self.data.styles.length > 0);
                     this.clickZones.push({ type: "clear_all", x: startX, y: toolbarY, w: clearW, h: toolbarH });
                     
                     const resetX = startX + clearW + gap;

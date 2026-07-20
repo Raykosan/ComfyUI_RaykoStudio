@@ -692,7 +692,7 @@ Scale up the node, draw a precise rectangle around a face, send it to a face-swa
 # 🦊 RS Styles Loader  
 **A node designed for managing, combining, and saving styles from CSV files. The node generates ready-made Positive and Negative promptes based on selected styles, providing an advanced and intuitive interface.**  
 
-<img width="438" height="579" alt="Screenshot_1" src="https://github.com/user-attachments/assets/d8602740-192e-47d8-902d-392dd82b55c9" />
+<img width="497" height="625" alt="Screenshot_2" src="https://github.com/user-attachments/assets/fe6b80d6-efe4-45da-a02b-cdc21156c27c" />
 
 ### 🔥 Features  
 - **Download CSV files** - Upload your files with styles directly through the interface  

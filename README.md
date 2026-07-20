@@ -690,9 +690,9 @@ Scale up the node, draw a precise rectangle around a face, send it to a face-swa
 ---
 
 # 🦊 RS Styles Loader  
-**Node for uploading and managing styles from CSV files**  
+**A node designed for managing, combining, and saving styles from CSV files. The node generates ready-made Positive and Negative promptes based on selected styles, providing an advanced and intuitive interface.**  
 
-![Screenshot_1](https://github.com/user-attachments/assets/9c3d45f2-8efc-4600-93f7-0c0b7a74e366)
+<img width="438" height="579" alt="Screenshot_1" src="https://github.com/user-attachments/assets/d8602740-192e-47d8-902d-392dd82b55c9" />
 
 ### 🔥 Features  
 - **Download CSV files** - Upload your files with styles directly through the interface  
@@ -700,13 +700,27 @@ Scale up the node, draw a precise rectangle around a face, send it to a face-swa
 - **Visual selection** - User-friendly interface with drop-down lists  
 - **Bypass styles** - Turn styles on/off without deleting them from the list  
 - **Combining** - Multiple styles are combined into one prompt  
-- **Save to workflow** - All settings are saved along with the project
-- 
+- **Automatic recycle** - The height of the node automatically adjusts to the number of styles (up to 10 visible lines), after which convenient mouse wheel scrolling is enabled  
+- **Save to workflow** - All settings are saved along with the project  
+
+### ⭐ Favorites System  
+* Quick access to frequently used styles via the **FAVORITES** button.  
+* Add to favorites directly from the style selection menu (star icon).  
+* **Global Conservation** - Favorites are stored on the server (`favorites.json`) and is available for all nodes in any workflow.  
+
+### 💾 Preset System  
+* **Save / Load:** - Save and download complete sets of styles (along with the selected CSV file) in one click.  
+* **Management:** - Remove unnecessary presets directly from the download menu.  
+
 ### 🪛 Usage  
 **Buttons**  
 SELECT CSV FILE - Select the desired CSV file from the list of files that you have already uploaded earlier.  
 📂 UPLOAD NEW CSV FILE - Download a new CSV file from anywhere on your PC. It will automatically appear in the styles folder and in the future you will be able to select it with the "SELECT CSV FILE" button.  
 ➕ ADD STYLE - Choosing the styles you need  
+🔴 Clear - Instantly clears the list of active styles  
+🔄️ Reset - Resets the node size to the default size (by the number of styles) if you manually stretched it  
+💾 Save - Saves all active styles to a preset (along with the name of the selected CSV file)  
+📂 Load - Loads the saved preset (along with the CSV preset file)  
 🟢 - Bypass on/off. You can choose an infinite number of styles and change them to create the combination you need.  
 ❌ - Removing a style from the panel  
 
@@ -717,7 +731,7 @@ https://github.com/vaulthunt3r/ComfyUI-Style-Prompts-Collection
 https://github.com/Art-xmaster/comfyui-AGSoft/tree/main/styles  
 
 ### ⚠️ Notes  
-The styles folder is created automatically at the first startup.  
+The styles, favorites and presets folders is created automatically at the first startup.  
 When deleting a node from workflow, the uploaded CSV files are not deleted.  
 To update the list of files after adding CSV manually, restart ComfyUI.  
 

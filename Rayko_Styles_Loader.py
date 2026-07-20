@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 class RaykoStylesCSVLoader:
     STYLES_FOLDER = "styles"
+    FAVORITES_FILE = "favorites.json"
+    PRESETS_SUBFOLDER = "presets"
     
     @classmethod
     def get_node_dir(cls) -> str:
@@ -32,6 +34,14 @@ class RaykoStylesCSVLoader:
     @classmethod
     def get_styles_folder_path(cls) -> str:
         return os.path.join(cls.get_node_dir(), cls.STYLES_FOLDER)
+    
+    @classmethod
+    def get_favorites_path(cls) -> str:
+        return os.path.join(cls.get_styles_folder_path(), cls.FAVORITES_FILE)
+    
+    @classmethod
+    def get_presets_folder_path(cls) -> str:
+        return os.path.join(cls.get_styles_folder_path(), cls.PRESETS_SUBFOLDER)
     
     @classmethod
     def get_available_style_files(cls) -> List[str]:
@@ -112,6 +122,96 @@ class RaykoStylesCSVLoader:
                 return (styles[key][0], styles[key][1])
         
         return ("", "")
+    
+    @classmethod
+    def load_favorites(cls) -> Dict[str, List[Dict[str, str]]]:
+        favorites_path = cls.get_favorites_path()
+        if not os.path.exists(favorites_path):
+            return {}
+        
+        try:
+            with open(favorites_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+                return {}
+        except Exception as e:
+            logger.error(f"Error loading favorites: {str(e)}")
+            return {}
+    
+    @classmethod
+    def save_favorites(cls, favorites: Dict[str, List[Dict[str, str]]]) -> bool:
+        favorites_path = cls.get_favorites_path()
+        styles_folder = cls.get_styles_folder_path()
+        
+        try:
+            os.makedirs(styles_folder, exist_ok=True)
+            with open(favorites_path, "w", encoding="utf-8") as f:
+                json.dump(favorites, f, ensure_ascii=False, indent=2)
+            return True
+        except Exception as e:
+            logger.error(f"Error saving favorites: {str(e)}")
+            return False
+    
+    @classmethod
+    def list_presets(cls) -> List[str]:
+        presets_folder = cls.get_presets_folder_path()
+        if not os.path.exists(presets_folder):
+            return []
+        
+        try:
+            presets = [
+                f[:-5] for f in os.listdir(presets_folder)
+                if f.endswith('.json')
+            ]
+            return sorted(presets, key=lambda x: x.lower())
+        except Exception as e:
+            logger.error(f"Error listing presets: {str(e)}")
+            return []
+    
+    @classmethod
+    def save_preset(cls, name: str, preset_data: Dict) -> bool:
+        presets_folder = cls.get_presets_folder_path()
+        
+        try:
+            os.makedirs(presets_folder, exist_ok=True)
+            filepath = os.path.join(presets_folder, f"{name}.json")
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(preset_data, f, ensure_ascii=False, indent=2)
+            return True
+        except Exception as e:
+            logger.error(f"Error saving preset: {str(e)}")
+            return False
+    
+    @classmethod
+    def load_preset(cls, name: str) -> Optional[Dict]:
+        presets_folder = cls.get_presets_folder_path()
+        filepath = os.path.join(presets_folder, f"{name}.json")
+        
+        if not os.path.exists(filepath):
+            return None
+        
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"Error loading preset: {str(e)}")
+            return None
+    
+    @classmethod
+    def delete_preset(cls, name: str) -> bool:
+        presets_folder = cls.get_presets_folder_path()
+        filepath = os.path.join(presets_folder, f"{name}.json")
+        
+        if not os.path.exists(filepath):
+            return False
+        
+        try:
+            os.remove(filepath)
+            return True
+        except Exception as e:
+            logger.error(f"Error deleting preset: {str(e)}")
+            return False
     
     @classmethod
     def INPUT_TYPES(cls) -> Dict[str, Any]:
@@ -266,6 +366,100 @@ class RaykoServer:
                     return web.json_response({'styles': list(styles.keys())})
                 except Exception as e:
                     logger.error(f"Error loading styles: {e}")
+                    return web.json_response({'error': str(e)}, status=500)
+            
+            @server.PromptServer.instance.routes.get("/rayko_get_favorites")
+            async def get_favorites(request):
+                try:
+                    favorites = RaykoStylesCSVLoader.load_favorites()
+                    return web.json_response(favorites)
+                except Exception as e:
+                    logger.error(f"Error getting favorites: {e}")
+                    return web.json_response({"error": str(e)}, status=500)
+            
+            @server.PromptServer.instance.routes.post("/rayko_save_favorites")
+            async def save_favorites(request):
+                try:
+                    data = await request.json()
+                    if not isinstance(data, dict):
+                        return web.json_response({'error': 'Invalid data format'}, status=400)
+                    
+                    success = RaykoStylesCSVLoader.save_favorites(data)
+                    if success:
+                        return web.json_response({'success': True})
+                    else:
+                        return web.json_response({'error': 'Failed to save favorites'}, status=500)
+                except Exception as e:
+                    logger.error(f"Error saving favorites: {e}")
+                    return web.json_response({'error': str(e)}, status=500)
+            
+            @server.PromptServer.instance.routes.get("/rayko_get_presets")
+            async def get_presets(request):
+                try:
+                    presets = RaykoStylesCSVLoader.list_presets()
+                    return web.json_response(presets)
+                except Exception as e:
+                    logger.error(f"Error getting presets: {e}")
+                    return web.json_response({"error": str(e)}, status=500)
+            
+            @server.PromptServer.instance.routes.post("/rayko_save_preset")
+            async def save_preset(request):
+                try:
+                    data = await request.json()
+                    name = data.get("name", "").strip()
+                    if not name:
+                        return web.json_response({'error': 'Name required'}, status=400)
+                    
+                    name = "".join(c for c in name if c.isalnum() or c in " _-").strip()
+                    if not name:
+                        return web.json_response({'error': 'Invalid name'}, status=400)
+                    
+                    preset_data = {
+                        "csv_file": data.get("csv_file", ""),
+                        "styles": data.get("styles", [])
+                    }
+                    
+                    success = RaykoStylesCSVLoader.save_preset(name, preset_data)
+                    if success:
+                        return web.json_response({'success': True})
+                    else:
+                        return web.json_response({'error': 'Failed to save preset'}, status=500)
+                except Exception as e:
+                    logger.error(f"Error saving preset: {e}")
+                    return web.json_response({'error': str(e)}, status=500)
+            
+            @server.PromptServer.instance.routes.post("/rayko_load_preset")
+            async def load_preset(request):
+                try:
+                    data = await request.json()
+                    name = data.get("name")
+                    if not name:
+                        return web.json_response({'error': 'Name required'}, status=400)
+                    
+                    preset = RaykoStylesCSVLoader.load_preset(name)
+                    if preset:
+                        return web.json_response(preset)
+                    else:
+                        return web.json_response({'error': 'Preset not found'}, status=404)
+                except Exception as e:
+                    logger.error(f"Error loading preset: {e}")
+                    return web.json_response({'error': str(e)}, status=500)
+            
+            @server.PromptServer.instance.routes.post("/rayko_delete_preset")
+            async def delete_preset(request):
+                try:
+                    data = await request.json()
+                    name = data.get("name")
+                    if not name:
+                        return web.json_response({'error': 'Name required'}, status=400)
+                    
+                    success = RaykoStylesCSVLoader.delete_preset(name)
+                    if success:
+                        return web.json_response({'success': True})
+                    else:
+                        return web.json_response({'error': 'Preset not found'}, status=404)
+                except Exception as e:
+                    logger.error(f"Error deleting preset: {e}")
                     return web.json_response({'error': str(e)}, status=500)
         except Exception as e:
             logger.error(f"Failed to register server routes: {e}")

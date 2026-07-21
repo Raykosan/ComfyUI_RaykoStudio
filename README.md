@@ -1,39 +1,46 @@
 # 🦊 ComfyUI_RaykoStudio  
 Set of custom nodes for ComfyUI providing additional image processing capabilities  
 ---  
-Nodes do not require the installation of additional Python packages.  
-🖥️ Performance has been tested for:  
+
+<details>
+  <summary>🖥️ Performance has been tested for</summary>
 
 - ComfyUI 0.15 and above  
 - Python 3.10 and above  
-- Torch 2.8 and above
-- Cuda 12.4 and above 
+- Torch 2.8 and above  
+- Cuda 12.4 and above  
 
----
+</details>
+<details>
+  <summary>📃 Requirements</summary>
 
-### 📃 Requirements  
+- torch  
+- opencv-python  
+- numpy  
+- Pillow>=10.0.0  
+- freetype-py>=2.5.1  
+- pycairo>=1.29.0  
+- scipy>=1.10.0  
 
-- torch
-- opencv-python
-- numpy
-- Pillow>=10.0.0
-- freetype-py>=2.5.1
-- pycairo>=1.29.0
-- scipy>=1.10.0
-
----
-### 🛠 Installation  
+</details>
+<details>
+  <summary>🛠 Installation</summary>	
+  
 Set of nodes can be installed in several ways:  
 - Clone repository to `ComfyUI/custom_nodes/` folder:  
 ```
 git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git  
 ```
 - Copy ComfyUI_RaykoStudio folder to: ComfyUI/custom_nodes/  
-- You can install this node using the ComfyUI_Manager
-- To update ComfyUI_RaykoStudio, use the update.bat file
+- You can install this node using the ComfyUI_Manager  
+- To update ComfyUI_RaykoStudio, use the update.bat file  
+
+</details>
 
 ---
 ---
+
+# NODES
 <details>
   <summary>🦊 RS Collage Node</summary>	
 	

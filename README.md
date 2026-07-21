@@ -692,7 +692,7 @@ Scale up the node, draw a precise rectangle around a face, send it to a face-swa
 # 🦊 RS Styles Loader  
 **A node designed for managing, combining, and saving styles from CSV files. The node generates ready-made Positive and Negative promptes based on selected styles, providing an advanced and intuitive interface.**  
 
-<img width="497" height="625" alt="Screenshot_2" src="https://github.com/user-attachments/assets/fe6b80d6-efe4-45da-a02b-cdc21156c27c" />
+<img width="572" height="720" alt="Screenshot_1" src="https://github.com/user-attachments/assets/2ca33792-d826-482a-b7c0-636ea63005ac" />
 
 ### 🔥 Features  
 - **Download CSV files** - Upload your files with styles directly through the interface  
@@ -717,8 +717,8 @@ Scale up the node, draw a precise rectangle around a face, send it to a face-swa
 SELECT CSV FILE - Select the desired CSV file from the list of files that you have already uploaded earlier.  
 📂 UPLOAD NEW CSV FILE - Download a new CSV file from anywhere on your PC. It will automatically appear in the styles folder and in the future you will be able to select it with the "SELECT CSV FILE" button.  
 ➕ ADD STYLE - Choosing the styles you need  
-🔴 Clear - Instantly clears the list of active styles  
-🔄️ Reset - Resets the node size to the default size (by the number of styles) if you manually stretched it  
+🔴 Clear All - Instantly clears the list of active styles  
+🔄️ Reset Size - Resets the node size to the default size (by the number of styles) if you manually stretched it  
 💾 Save - Saves all active styles to a preset (along with the name of the selected CSV file)  
 📂 Load - Loads the saved preset (along with the CSV preset file)  
 🟢 - Bypass on/off. You can choose an infinite number of styles and change them to create the combination you need.  

@@ -40,25 +40,15 @@ app.registerExtension({
                 
                 if (useClip2Widget && clipName2Widget) {
                     clipName2Widget.disabled = !useClip2Widget.value;
-                    
                     if (clipName2Widget.element) {
-                        if (clipName2Widget.disabled) {
-                            clipName2Widget.element.classList.add("comfy-disabled");
-                        } else {
-                            clipName2Widget.element.classList.remove("comfy-disabled");
-                        }
+                        clipName2Widget.element.classList.toggle("comfy-disabled", clipName2Widget.disabled);
                     }
-                    
                     const originalCallback = useClip2Widget.callback;
                     useClip2Widget.callback = function(value) {
                         if (originalCallback) originalCallback(value);
                         clipName2Widget.disabled = !value;
                         if (clipName2Widget.element) {
-                            if (clipName2Widget.disabled) {
-                                clipName2Widget.element.classList.add("comfy-disabled");
-                            } else {
-                                clipName2Widget.element.classList.remove("comfy-disabled");
-                            }
+                            clipName2Widget.element.classList.toggle("comfy-disabled", clipName2Widget.disabled);
                         }
                         nodeRef.graph?.setDirtyCanvas(true, true);
                     };
@@ -66,18 +56,16 @@ app.registerExtension({
 
                 this.setSize([this.targetWidth, this.size[1]]);
 
-                const collectPresetData = () => {
-                    return {
-                        unet_name: this.widgets.find(w => w.name === "unet_name")?.value || "",
-                        weight_dtype: this.widgets.find(w => w.name === "weight_dtype")?.value || "default",
-                        use_clip2: this.widgets.find(w => w.name === "use_clip2")?.value || false,
-                        clip_name: this.widgets.find(w => w.name === "clip_name")?.value || "",
-                        clip_name2: this.widgets.find(w => w.name === "clip_name2")?.value || "",
-                        clip_type: this.widgets.find(w => w.name === "clip_type")?.value || "stable_diffusion",
-                        clip_device: this.widgets.find(w => w.name === "clip_device")?.value || "default",
-                        vae_name: this.widgets.find(w => w.name === "vae_name")?.value || ""
-                    };
-                };
+                const collectPresetData = () => ({
+                    unet_name: this.widgets.find(w => w.name === "unet_name")?.value || "",
+                    weight_dtype: this.widgets.find(w => w.name === "weight_dtype")?.value || "default",
+                    use_clip2: this.widgets.find(w => w.name === "use_clip2")?.value || false,
+                    clip_name: this.widgets.find(w => w.name === "clip_name")?.value || "",
+                    clip_name2: this.widgets.find(w => w.name === "clip_name2")?.value || "",
+                    clip_type: this.widgets.find(w => w.name === "clip_type")?.value || "stable_diffusion",
+                    clip_device: this.widgets.find(w => w.name === "clip_device")?.value || "default",
+                    vae_name: this.widgets.find(w => w.name === "vae_name")?.value || ""
+                });
 
                 const applyPresetData = (data) => {
                     const setWidgetValue = (name, value) => {
@@ -87,21 +75,30 @@ app.registerExtension({
                             if (widget.callback) widget.callback(value);
                         }
                     };
-                    
-                    setWidgetValue("unet_name", data.unet_name);
-                    setWidgetValue("weight_dtype", data.weight_dtype);
-                    setWidgetValue("use_clip2", data.use_clip2);
-                    setWidgetValue("clip_name", data.clip_name);
-                    setWidgetValue("clip_name2", data.clip_name2);
-                    setWidgetValue("clip_type", data.clip_type);
-                    setWidgetValue("clip_device", data.clip_device);
-                    setWidgetValue("vae_name", data.vae_name);
-                    
+                    ["unet_name", "weight_dtype", "use_clip2", "clip_name", "clip_name2", "clip_type", "clip_device", "vae_name"].forEach(k => setWidgetValue(k, data[k]));
                     this.loraRows = [];
                     this.syncData();
-                    
                     this.updateUI();
-                    if (this.graph) this.graph.setDirtyCanvas(true, true);
+                };
+
+                const collectLoraPresetData = () => ({
+                    lora_rows: this.loraRows.map(row => ({
+                        name: row.name,
+                        strength_model: row.strength_model,
+                        strength_clip: row.strength_clip,
+                        enabled: row.enabled
+                    }))
+                });
+
+                const applyLoraPresetData = (data) => {
+                    this.loraRows = (data.lora_rows || []).map(row => ({
+                        name: row.name || "",
+                        strength_model: parseFloat(row.strength_model) || 1.0,
+                        strength_clip: parseFloat(row.strength_clip) || 1.0,
+                        enabled: row.enabled !== undefined ? row.enabled : true
+                    }));
+                    this.syncData();
+                    this.updateUI();
                 };
 
                 const presetListOverlay = document.createElement("div");
@@ -154,75 +151,101 @@ app.registerExtension({
                 deleteConfirmOverlay.append(deleteText, deleteBtns);
                 document.body.appendChild(deleteConfirmOverlay);
 
+                let pendingSaveType = "model";
+                let pendingSelectType = "model";
+                let pendingDeleteType = "model";
                 let pendingDeleteName = null;
 
+                const presetsWrapper = document.createElement("div");
+                presetsWrapper.style.cssText = "display:flex;flex-direction:column;gap:4px;width:100%;margin:0;padding:0;box-sizing:border-box;";
+
+                // --- MODEL PRESETS ROW ---
                 const presetsRoot = document.createElement("div");
-                presetsRoot.style.cssText = "display:flex;gap:4px;width:100%;margin:0;padding:0;box-sizing:border-box;height:40px;align-items:center;";
+                presetsRoot.style.cssText = "display:flex;gap:4px;width:100%;align-items:center;height:30px;";
                 
                 const savePresetBtn = document.createElement("button");
-                savePresetBtn.textContent = " Save preset";
+                savePresetBtn.textContent = " 💾 Save models preset";
                 savePresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;height:26px;margin:0;";
                 
                 const selectPresetBtn = document.createElement("button");
-                selectPresetBtn.textContent = "📂 Select preset";
+                selectPresetBtn.textContent = " 📂 Select models preset";
                 selectPresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;height:26px;margin:0;";
-                
                 presetsRoot.append(savePresetBtn, selectPresetBtn);
 
-                savePresetBtn.addEventListener("click", (e) => {
-                    e.stopPropagation();
+                // --- LORA PRESETS ROW (Pale Green) ---
+                const loraPresetsRoot = document.createElement("div");
+                loraPresetsRoot.style.cssText = "display:flex;gap:4px;width:100%;align-items:center;height:30px;";
+                
+                const saveLoraPresetBtn = document.createElement("button");
+                saveLoraPresetBtn.textContent = " 💾 Save LoRA preset";
+                saveLoraPresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #50cc90;border-radius:5px;background:#1a3a2a;color:#aaffcc;cursor:pointer;height:26px;margin:0;";
+                
+                const selectLoraPresetBtn = document.createElement("button");
+                selectLoraPresetBtn.textContent = " 📂 Select LoRA preset";
+                selectLoraPresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #50cc90;border-radius:5px;background:#1a3a2a;color:#aaffcc;cursor:pointer;height:26px;margin:0;";
+                loraPresetsRoot.append(saveLoraPresetBtn, selectLoraPresetBtn);
+                
+                presetsWrapper.append(presetsRoot, loraPresetsRoot);
+
+                const presetsWidget = this.addDOMWidget("presets_ui", "custom", presetsWrapper);
+                presetsWidget.computeSize = function() { return [this.width || 130, 70]; };
+
+                const openSaveDialog = (type, btnElement) => {
                     presetListOverlay.style.display = "none";
                     deleteConfirmOverlay.style.display = "none";
-                    
-                    const saveBtnRect = savePresetBtn.getBoundingClientRect();
-                    presetNameInput.style.left = saveBtnRect.left + "px";
-                    presetNameInput.style.top = (saveBtnRect.bottom + 5) + "px";
+                    pendingSaveType = type;
+                    const rect = btnElement.getBoundingClientRect();
+                    presetNameInput.style.left = rect.left + "px";
+                    presetNameInput.style.top = (rect.bottom + 5) + "px";
                     presetNameInput.style.display = "block";
                     inputField.value = "";
                     setTimeout(() => inputField.focus(), 50);
-                });
+                };
+
+                savePresetBtn.addEventListener("click", (e) => { e.stopPropagation(); openSaveDialog("model", savePresetBtn); });
+                saveLoraPresetBtn.addEventListener("click", (e) => { e.stopPropagation(); openSaveDialog("lora", saveLoraPresetBtn); });
 
                 const performSave = () => {
                     const name = inputField.value.trim();
                     if (!name) return;
                     presetNameInput.style.display = "none";
-                    const presetData = collectPresetData();
-                    fetch("/rayko_models/save_preset", {
+                    
+                    const endpoint = pendingSaveType === "model" ? "/rayko_models/save_preset" : "/rayko_loras/save_preset";
+                    const payload = pendingSaveType === "model" ? { name, ...collectPresetData() } : { name, ...collectLoraPresetData() };
+
+                    fetch(endpoint, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ name, ...presetData })
+                        body: JSON.stringify(payload)
+                    })
+                    .then(res => {
+                        if (!res.ok) {
+                            return res.text().then(text => { throw new Error(text || res.statusText); });
+                        }
+                    })
+                    .catch(err => {
+                        console.error(`[Rayko] Failed to save preset:`, err);
+                        alert(`Failed to save preset:\n${err.message}`);
                     });
                 };
 
                 inputOk.addEventListener("click", performSave);
-                inputCancel.addEventListener("click", () => {
-                    presetNameInput.style.display = "none";
-                });
+                inputCancel.addEventListener("click", () => { presetNameInput.style.display = "none"; });
                 inputField.addEventListener("keydown", (e) => {
                     if (e.key === "Enter") performSave();
                     if (e.key === "Escape") presetNameInput.style.display = "none";
                 });
 
-                selectPresetBtn.addEventListener("click", async (e) => {
-                    e.stopPropagation();
-                    presetNameInput.style.display = "none";
-                    deleteConfirmOverlay.style.display = "none";
-                    if (presetListOverlay.style.display === "flex") {
-                        presetListOverlay.style.display = "none";
-                        return;
-                    }
-                    
-                    const selectBtnRect = selectPresetBtn.getBoundingClientRect();
-                    presetListOverlay.style.left = selectBtnRect.left + "px";
-                    presetListOverlay.style.top = (selectBtnRect.bottom + 5) + "px";
-                    
+                const showPresetList = async (btnElement) => {
+                    const rect = btnElement.getBoundingClientRect();
+                    presetListOverlay.style.left = rect.left + "px";
+                    presetListOverlay.style.top = (rect.bottom + 5) + "px";
                     presetListOverlay.innerHTML = "<div style='padding:8px;color:#999;text-align:center;'>Loading...</div>";
                     presetListOverlay.style.display = "flex";
                     try {
-                        const res = await fetch("/rayko_models/list_presets", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" }
-                        });
+                        const endpoint = pendingSelectType === "model" ? "/rayko_models/list_presets" : "/rayko_loras/list_presets";
+                        const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" } });
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
                         const list = await res.json();
                         presetListOverlay.innerHTML = "";
                         if (!list.length) {
@@ -241,91 +264,92 @@ app.registerExtension({
                             nameSpan.onclick = async (e) => {
                                 e.stopPropagation();
                                 presetListOverlay.style.display = "none";
-                                const res2 = await fetch("/rayko_models/load_preset", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ name })
-                                });
-                                if (res2.ok) {
+                                const loadEndpoint = pendingSelectType === "model" ? "/rayko_models/load_preset" : "/rayko_loras/load_preset";
+                                try {
+                                    const res2 = await fetch(loadEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
+                                    if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
                                     const data = await res2.json();
-                                    applyPresetData(data);
+                                    if (pendingSelectType === "model") applyPresetData(data);
+                                    else applyLoraPresetData(data);
+                                } catch (err) {
+                                    console.error(`[Rayko] Failed to load preset:`, err);
+                                    alert(`Failed to load preset: ${err.message}`);
                                 }
                             };
                             
-                            const deleteBtn = document.createElement("span");
-                            deleteBtn.textContent = "❌";
-                            deleteBtn.style.cssText = "cursor:pointer;margin-left:8px;font-size:14px;opacity:0.7;";
-                            deleteBtn.onmouseenter = () => {
-                                deleteBtn.style.opacity = "1";
-                                deleteBtn.style.transform = "scale(1.2)";
-                            };
-                            deleteBtn.onmouseleave = () => {
-                                deleteBtn.style.opacity = "0.7";
-                                deleteBtn.style.transform = "scale(1)";
-                            };
-                            deleteBtn.onclick = (e) => {
+                            const delBtn = document.createElement("span");
+                            delBtn.textContent = "❌";
+                            delBtn.style.cssText = "cursor:pointer;margin-left:8px;font-size:14px;opacity:0.7;";
+                            delBtn.onmouseenter = () => { delBtn.style.opacity = "1"; delBtn.style.transform = "scale(1.2)"; };
+                            delBtn.onmouseleave = () => { delBtn.style.opacity = "0.7"; delBtn.style.transform = "scale(1)"; };
+                            delBtn.onclick = (e) => {
                                 e.stopPropagation();
                                 pendingDeleteName = name;
+                                pendingDeleteType = pendingSelectType;
                                 deleteText.textContent = `Delete "${name}"?`;
-                                
-                                const selectBtnRect = selectPresetBtn.getBoundingClientRect();
-                                deleteConfirmOverlay.style.left = selectBtnRect.left + "px";
-                                deleteConfirmOverlay.style.top = (selectBtnRect.bottom + 5) + "px";
+                                const r = btnElement.getBoundingClientRect();
+                                deleteConfirmOverlay.style.left = r.left + "px";
+                                deleteConfirmOverlay.style.top = (r.bottom + 5) + "px";
                                 deleteConfirmOverlay.style.display = "block";
                             };
-                            
                             row.appendChild(nameSpan);
-                            row.appendChild(deleteBtn);
+                            row.appendChild(delBtn);
                             presetListOverlay.appendChild(row);
                         });
                     } catch (e) {
+                        console.error(`[Rayko] Failed to list presets:`, e);
                         presetListOverlay.textContent = "Error loading";
                     }
+                };
+
+                selectPresetBtn.addEventListener("click", async (e) => {
+                    e.stopPropagation();
+                    presetNameInput.style.display = "none";
+                    deleteConfirmOverlay.style.display = "none";
+                    if (presetListOverlay.style.display === "flex") { presetListOverlay.style.display = "none"; return; }
+                    pendingSelectType = "model";
+                    showPresetList(selectPresetBtn);
+                });
+
+                selectLoraPresetBtn.addEventListener("click", async (e) => {
+                    e.stopPropagation();
+                    presetNameInput.style.display = "none";
+                    deleteConfirmOverlay.style.display = "none";
+                    if (presetListOverlay.style.display === "flex") { presetListOverlay.style.display = "none"; return; }
+                    pendingSelectType = "lora";
+                    showPresetList(selectLoraPresetBtn);
                 });
 
                 deleteOk.addEventListener("click", async () => {
                     if (pendingDeleteName) {
-                        await fetch("/rayko_models/delete_preset", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ name: pendingDeleteName })
-                        });
-                        deleteConfirmOverlay.style.display = "none";
-                        presetListOverlay.style.display = "none";
-                        pendingDeleteName = null;
+                        const endpoint = pendingDeleteType === "model" ? "/rayko_models/delete_preset" : "/rayko_loras/delete_preset";
+                        try {
+                            const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: pendingDeleteName }) });
+                            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                            deleteConfirmOverlay.style.display = "none";
+                            presetListOverlay.style.display = "none";
+                            pendingDeleteName = null;
+                        } catch (err) {
+                            console.error(`[Rayko] Failed to delete preset:`, err);
+                            alert(`Failed to delete preset: ${err.message}`);
+                        }
                     }
                 });
 
-                deleteCancel.addEventListener("click", () => {
-                    deleteConfirmOverlay.style.display = "none";
-                    pendingDeleteName = null;
-                });
+                deleteCancel.addEventListener("click", () => { deleteConfirmOverlay.style.display = "none"; pendingDeleteName = null; });
 
                 document.addEventListener("click", (e) => {
-                    if (!presetListOverlay?.contains(e.target)) {
-                        presetListOverlay.style.display = "none";
-                    }
-                    if (!presetNameInput?.contains(e.target)) {
-                        presetNameInput.style.display = "none";
-                    }
-                    if (!deleteConfirmOverlay?.contains(e.target)) {
-                        deleteConfirmOverlay.style.display = "none";
-                    }
+                    if (!presetListOverlay?.contains(e.target)) presetListOverlay.style.display = "none";
+                    if (!presetNameInput?.contains(e.target)) presetNameInput.style.display = "none";
+                    if (!deleteConfirmOverlay?.contains(e.target)) deleteConfirmOverlay.style.display = "none";
                 });
-
-                const presetsWidget = this.addDOMWidget("presets_ui", "custom", presetsRoot);
-                presetsWidget.computeSize = function() {
-                    return [this.width || 130, 50];
-                };
 
                 this.addWidget("button", "✔️ Update LoRA list", "", async () => {
                     await this.loadLoraList();
                     if (this.graph) this.graph.setDirtyCanvas(true, true);
                 });
 
-                this.addWidget("button", "➕ Add LoRA", "", () => {
-                    this.showLoraTreeSelector();
-                });
+                this.addWidget("button", "➕ Add LoRA", "", () => { this.showLoraTreeSelector(); });
 
                 const self = this;
                 setTimeout(() => {
@@ -373,24 +397,16 @@ app.registerExtension({
                 if (useClip2Widget && clipName2Widget) {
                     clipName2Widget.disabled = !useClip2Widget.value;
                     if (clipName2Widget.element) {
-                        if (clipName2Widget.disabled) {
-                            clipName2Widget.element.classList.add("comfy-disabled");
-                        } else {
-                            clipName2Widget.element.classList.remove("comfy-disabled");
-                        }
+                        clipName2Widget.element.classList.toggle("comfy-disabled", clipName2Widget.disabled);
                     }
                 }
-                
                 return originalOnConfigure ? originalOnConfigure.apply(this, arguments) : undefined;
             };
 
             nodeType.prototype.saveToStorage = function() {
                 if (!this.storageKey) return;
                 try {
-                    localStorage.setItem(this.storageKey, JSON.stringify({
-                        loraRows: this.loraRows,
-                        timestamp: Date.now()
-                    }));
+                    localStorage.setItem(this.storageKey, JSON.stringify({ loraRows: this.loraRows, timestamp: Date.now() }));
                 } catch (e) {}
             };
 
@@ -400,9 +416,7 @@ app.registerExtension({
                     const stored = localStorage.getItem(this.storageKey);
                     if (stored) {
                         const data = JSON.parse(stored);
-                        if (Date.now() - data.timestamp < 86400000 && Array.isArray(data.loraRows)) {
-                            return data.loraRows;
-                        }
+                        if (Date.now() - data.timestamp < 86400000 && Array.isArray(data.loraRows)) return data.loraRows;
                     }
                 } catch (e) {}
                 return null;
@@ -414,19 +428,13 @@ app.registerExtension({
                 if (this.properties && this.properties["lora_rows"]) {
                     try {
                         savedData = JSON.parse(this.properties["lora_rows"]);
-                        if (Array.isArray(savedData) && savedData.length > 0) {
-                            this.loraRows = savedData;
-                            return;
-                        }
+                        if (Array.isArray(savedData) && savedData.length > 0) { this.loraRows = savedData; return; }
                     } catch (e) {}
                 }
                 if (!savedData && this.hiddenWidget && this.hiddenWidget.value) {
                     try {
                         const widgetVal = JSON.parse(this.hiddenWidget.value);
-                        if (Array.isArray(widgetVal) && widgetVal.length > 0) {
-                            this.loraRows = widgetVal;
-                            return;
-                        }
+                        if (Array.isArray(widgetVal) && widgetVal.length > 0) { this.loraRows = widgetVal; return; }
                     } catch (e) {}
                 }
                 if (!savedData) {
@@ -467,7 +475,6 @@ app.registerExtension({
             nodeType.prototype.onDrawForeground = function(ctx, visibleRect) {
                 if (this.loraRows.length === 0) return;
                 this.clickZones = [];
-                
                 const addButton = this.widgets.find(w => w.name === "➕ Add LoRA");
                 const startY = addButton ? (addButton.y + addButton.height + 15) : 40;
                 const padding = 10;

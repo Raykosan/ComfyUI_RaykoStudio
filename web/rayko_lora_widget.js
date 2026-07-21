@@ -15,12 +15,19 @@ app.registerExtension({
                 this.loraRows = [];
                 this.loraOptions = [];
                 this.loraTree = {};
-                this.targetWidth = 450;
+                this.targetWidth = 400;
                 this.rowHeight = 30;
                 this.clickZones = [];
                 this.storageKey = null;
                 this.isRestoring = false;
                 this.isInitialized = false;
+                this.manual_size = false;
+                this.isAutoResizing = false;
+                this.MIN_WIDTH = 400;
+                this.scrollOffset = 0;
+                this.oldWheelCanvas = null;
+                this.oldWheelHandler = null;
+                this.currentFilter = "";
                 
                 this.hiddenWidget = this.widgets.find(w => w.name === "lora_data");
                 const nodeRef = this;
@@ -77,8 +84,23 @@ app.registerExtension({
                     };
                     ["unet_name", "weight_dtype", "use_clip2", "clip_name", "clip_name2", "clip_type", "clip_device", "vae_name"].forEach(k => setWidgetValue(k, data[k]));
                     this.loraRows = [];
+                    this.scrollOffset = 0;
+                    this.manual_size = false;
                     this.syncData();
-                    this.updateUI();
+                    
+                    requestAnimationFrame(() => {
+                        const startY = this.getLoraListStartY();
+                        const calculatedHeight = startY + this.rowHeight + 10;
+                        this.isAutoResizing = true;
+                        this.setSize([this.size[0], calculatedHeight]);
+                        this.isAutoResizing = false;
+                        if (this.graph) {
+                            this.graph.setDirtyCanvas(true, true);
+                            setTimeout(() => this.graph.setDirtyCanvas(true, true), 50);
+                            setTimeout(() => this.graph.setDirtyCanvas(true, true), 100);
+                            setTimeout(() => this.graph.setDirtyCanvas(true, true), 150);
+                        }
+                    });
                 };
 
                 const collectLoraPresetData = () => ({
@@ -97,8 +119,24 @@ app.registerExtension({
                         strength_clip: parseFloat(row.strength_clip) || 1.0,
                         enabled: row.enabled !== undefined ? row.enabled : true
                     }));
+                    this.scrollOffset = 0;
+                    this.manual_size = false;
                     this.syncData();
-                    this.updateUI();
+                    
+                    requestAnimationFrame(() => {
+                        const startY = this.getLoraListStartY();
+                        const desiredVisible = Math.max(1, Math.min(this.loraRows.length, 10));
+                        const calculatedHeight = startY + (desiredVisible * this.rowHeight) + 10;
+                        this.isAutoResizing = true;
+                        this.setSize([this.size[0], calculatedHeight]);
+                        this.isAutoResizing = false;
+                        if (this.graph) {
+                            this.graph.setDirtyCanvas(true, true);
+                            setTimeout(() => this.graph.setDirtyCanvas(true, true), 50);
+                            setTimeout(() => this.graph.setDirtyCanvas(true, true), 100);
+                            setTimeout(() => this.graph.setDirtyCanvas(true, true), 150);
+                        }
+                    });
                 };
 
                 const presetListOverlay = document.createElement("div");
@@ -159,7 +197,6 @@ app.registerExtension({
                 const presetsWrapper = document.createElement("div");
                 presetsWrapper.style.cssText = "display:flex;flex-direction:column;gap:4px;width:100%;margin:0;padding:0;box-sizing:border-box;";
 
-                // --- MODEL PRESETS ROW ---
                 const presetsRoot = document.createElement("div");
                 presetsRoot.style.cssText = "display:flex;gap:4px;width:100%;align-items:center;height:30px;";
                 
@@ -172,7 +209,6 @@ app.registerExtension({
                 selectPresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;height:26px;margin:0;";
                 presetsRoot.append(savePresetBtn, selectPresetBtn);
 
-                // --- LORA PRESETS ROW (Pale Green) ---
                 const loraPresetsRoot = document.createElement("div");
                 loraPresetsRoot.style.cssText = "display:flex;gap:4px;width:100%;align-items:center;height:30px;";
                 
@@ -349,9 +385,87 @@ app.registerExtension({
                     if (this.graph) this.graph.setDirtyCanvas(true, true);
                 });
 
-                this.addWidget("button", "➕ Add LoRA", "", () => { this.showLoraTreeSelector(); });
+                this.addWidget("button", "➕ Add LoRA", "", () => {
+                    const btnWidget = this.widgets.find(w => w.name === "➕ Add LoRA");
+                    this.showLoraTreeSelector(btnWidget);
+                });
 
                 const self = this;
+                
+                this.wheelHandler = function(e) {
+                    if (app.canvas.node_over !== self) return;
+
+                    const graphPos = app.canvas.graph_mouse;
+                    if (!graphPos) return;
+
+                    const relY = graphPos[1] - self.pos[1];
+                    const startY = self.getLoraListStartY();
+                    const rowH = self.rowHeight;
+                    
+                    const availableHeight = self.size[1] - startY - 10;
+                    const maxVisibleStyles = Math.max(1, Math.floor(availableHeight / rowH));
+                    const stylesEndY = startY + maxVisibleStyles * rowH;
+                    
+                    if (relY < startY || relY > stylesEndY) return;
+                    if (self.loraRows.length <= maxVisibleStyles) return;
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    const delta = e.deltaY > 0 ? 1 : -1;
+                    const maxOffset = self.loraRows.length - maxVisibleStyles;
+                    const newOffset = Math.max(0, Math.min(self.scrollOffset + delta, maxOffset));
+                    
+                    if (newOffset !== self.scrollOffset) {
+                        self.scrollOffset = newOffset;
+                        self.syncData();
+                        self.graph.setDirtyCanvas(true, true);
+                    }
+                };
+
+                const initialCanvas = app.canvas.canvas;
+                initialCanvas.addEventListener('wheel', this.wheelHandler, { capture: true, passive: false });
+                this.oldWheelCanvas = initialCanvas;
+                this.oldWheelHandler = this.wheelHandler;
+
+                this.visibilityHandler = function() {
+                    if (!document.hidden) {
+                        setTimeout(() => {
+                            const currentCanvas = app.canvas.canvas;
+                            if (self.oldWheelCanvas && self.oldWheelCanvas !== currentCanvas) {
+                                self.oldWheelCanvas.removeEventListener('wheel', self.oldWheelHandler, { capture: true, passive: false });
+                                currentCanvas.addEventListener('wheel', self.wheelHandler, { capture: true, passive: false });
+                                self.oldWheelCanvas = currentCanvas;
+                                self.oldWheelHandler = self.wheelHandler;
+                            }
+                        }, 150);
+                    }
+                };
+                document.addEventListener("visibilitychange", this.visibilityHandler);
+
+                const onResize = this.onResize;
+                this.onResize = function(size) {
+                    if (size[0] < self.MIN_WIDTH) size[0] = self.MIN_WIDTH;
+                    const minH = self.getLoraListStartY() + self.rowHeight + 10;
+                    if (size[1] < minH) size[1] = minH;
+                    
+                    const availableHeight = size[1] - self.getLoraListStartY() - 10;
+                    const maxVisibleStyles = Math.max(1, Math.floor(availableHeight / self.rowHeight));
+                    const maxOffset = Math.max(0, self.loraRows.length - maxVisibleStyles);
+                    if (self.scrollOffset > maxOffset) {
+                        self.scrollOffset = maxOffset;
+                    }
+                    
+                    if (!self.isAutoResizing) {
+                        self.manual_size = true;
+                        self.syncData();
+                    }
+                    if (onResize) {
+                        return onResize.apply(this, arguments);
+                    }
+                };
+
                 setTimeout(() => {
                     if (this.id) {
                         this.storageKey = `rayko_lora_${this.id}`;
@@ -374,6 +488,12 @@ app.registerExtension({
                         if (Array.isArray(saved)) this.loraRows = saved;
                     } catch (e) {}
                 }
+                if (info.properties && info.properties["manual_size"] !== undefined) {
+                    this.manual_size = info.properties["manual_size"];
+                }
+                if (info.properties && info.properties["scrollOffset"] !== undefined) {
+                    this.scrollOffset = info.properties["scrollOffset"];
+                }
                 if (info.widgets_values && Array.isArray(info.widgets_values)) {
                     for (let i = 0; i < info.widgets_values.length; i++) {
                         const val = info.widgets_values[i];
@@ -390,7 +510,26 @@ app.registerExtension({
                 }
                 this.isRestoring = false;
                 const self = this;
-                this.loadLoraList().then(() => self.updateUI());
+                this.loadLoraList().then(() => {
+                    self.updateUI();
+                    
+                    requestAnimationFrame(() => {
+                        if (!self.manual_size) {
+                            const startY = self.getLoraListStartY();
+                            const desiredVisible = Math.max(1, Math.min(self.loraRows.length, 10));
+                            const calculatedHeight = startY + (desiredVisible * self.rowHeight) + 10;
+                            self.isAutoResizing = true;
+                            self.setSize([self.size[0], calculatedHeight]);
+                            self.isAutoResizing = false;
+                            if (self.graph) {
+                                self.graph.setDirtyCanvas(true, true);
+                                setTimeout(() => self.graph.setDirtyCanvas(true, true), 50);
+                                setTimeout(() => self.graph.setDirtyCanvas(true, true), 100);
+                                setTimeout(() => self.graph.setDirtyCanvas(true, true), 150);
+                            }
+                        }
+                    });
+                });
                 
                 const useClip2Widget = this.widgets.find(w => w.name === "use_clip2");
                 const clipName2Widget = this.widgets.find(w => w.name === "clip_name2");
@@ -472,29 +611,69 @@ app.registerExtension({
                 return tree;
             };
 
-            nodeType.prototype.onDrawForeground = function(ctx, visibleRect) {
-                if (this.loraRows.length === 0) return;
-                this.clickZones = [];
+            nodeType.prototype.getLoraListStartY = function() {
                 const addButton = this.widgets.find(w => w.name === "➕ Add LoRA");
-                const startY = addButton ? (addButton.y + addButton.height + 15) : 40;
+                if (!addButton) return 40;
+                return addButton.y + addButton.height + 15;
+            };
+
+            nodeType.prototype.onDrawForeground = function(ctx, visibleRect) {
+                if (this.loraRows.length === 0) {
+                    if (!this.manual_size && this.graph) {
+                        const startY = this.getLoraListStartY();
+                        const baseHeight = startY + this.rowHeight + 10;
+                        if (Math.abs(this.size[1] - baseHeight) > 1) {
+                            this.isAutoResizing = true;
+                            this.setSize([this.size[0], baseHeight]);
+                            this.isAutoResizing = false;
+                        }
+                    }
+                    return;
+                }
+
+                this.clickZones = [];
+                const startY = this.getLoraListStartY();
                 const padding = 10;
                 const rightPanelWidth = 180;
+
+                const availableHeight = this.size[1] - startY - 10;
+                const maxVisibleStyles = Math.max(1, Math.floor(availableHeight / this.rowHeight));
                 
-                for (let i = 0; i < this.loraRows.length; i++) {
-                    const row = this.loraRows[i];
+                const maxOffset = Math.max(0, this.loraRows.length - maxVisibleStyles);
+                if (this.scrollOffset > maxOffset) {
+                    this.scrollOffset = maxOffset;
+                }
+
+                if (!this.manual_size && this.graph) {
+                    const desiredVisible = Math.max(1, Math.min(this.loraRows.length, 10));
+                    const calculatedHeight = startY + (desiredVisible * this.rowHeight) + 10;
+                    
+                    if (Math.abs(this.size[1] - calculatedHeight) > 1) {
+                        this.isAutoResizing = true;
+                        this.setSize([this.size[0], calculatedHeight]);
+                        this.isAutoResizing = false;
+                    }
+                }
+
+                const visibleStart = this.scrollOffset;
+                const visibleEnd = Math.min(visibleStart + maxVisibleStyles, this.loraRows.length);
+
+                for (let i = 0; i < visibleEnd - visibleStart; i++) {
+                    const dataIdx = visibleStart + i;
+                    const row = this.loraRows[dataIdx];
                     const y = startY + (i * this.rowHeight);
                     const h = this.rowHeight - 2;
+                    const toggleY = y + h/2;
 
                     ctx.fillStyle = i % 2 === 0 ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.15)";
                     ctx.fillRect(padding, y, this.size[0] - (padding * 2), h);
 
                     const toggleX = padding + 5;
-                    const toggleY = y + h/2;
                     ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
                     ctx.beginPath();
                     ctx.arc(toggleX + 8, toggleY, 7, 0, Math.PI * 2);
                     ctx.fill();
-                    this.clickZones.push({ type: "toggle", index: i, x: toggleX, y: y, w: 24, h: h });
+                    this.clickZones.push({ type: "toggle", index: dataIdx, x: toggleX, y: y, w: 24, h: h });
 
                     const nameX = toggleX + 30;
                     const nameW = this.size[0] - (padding * 2) - 30 - rightPanelWidth - 20;
@@ -508,7 +687,7 @@ app.registerExtension({
                         displayName += "...";
                     }
                     ctx.fillText(displayName, nameX, toggleY + 4);
-                    this.clickZones.push({ type: "name", index: i, x: nameX, y: y, w: nameW, h: h });
+                    this.clickZones.push({ type: "name", index: dataIdx, x: nameX, y: y, w: nameW, h: h });
 
                     const arrowLX = this.size[0] - rightPanelWidth + 10;
                     ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
@@ -517,7 +696,7 @@ app.registerExtension({
                     ctx.lineTo(arrowLX + 8, toggleY);
                     ctx.lineTo(arrowLX + 18, y + 22);
                     ctx.fill();
-                    this.clickZones.push({ type: "left", index: i, x: arrowLX, y: y, w: 28, h: h });
+                    this.clickZones.push({ type: "left", index: dataIdx, x: arrowLX, y: y, w: 28, h: h });
 
                     const strInputX = arrowLX + 33;
                     const strInputW = 55;
@@ -529,7 +708,7 @@ app.registerExtension({
                     ctx.textAlign = "center";
                     ctx.fillText(row.strength_model.toFixed(2), strInputX + strInputW/2, toggleY + 4);
                     ctx.textAlign = "left";
-                    this.clickZones.push({ type: "strength_input", index: i, x: strInputX, y: y, w: strInputW, h: h });
+                    this.clickZones.push({ type: "strength_input", index: dataIdx, x: strInputX, y: y, w: strInputW, h: h });
 
                     const arrowRX = strInputX + strInputW + 5;
                     ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
@@ -538,16 +717,35 @@ app.registerExtension({
                     ctx.lineTo(arrowRX + 20, toggleY);
                     ctx.lineTo(arrowRX + 10, y + 22);
                     ctx.fill();
-                    this.clickZones.push({ type: "right", index: i, x: arrowRX, y: y, w: 28, h: h });
+                    this.clickZones.push({ type: "right", index: dataIdx, x: arrowRX, y: y, w: 28, h: h });
 
                     ctx.fillStyle = "#f44336";
                     ctx.fillText("❌️", arrowRX + 35, toggleY + 4);
-                    this.clickZones.push({ type: "delete", index: i, x: arrowRX + 35, y: y, w: 30, h: h });
+                    this.clickZones.push({ type: "delete", index: dataIdx, x: arrowRX + 35, y: y, w: 30, h: h });
                 }
 
-                const totalH = startY + (this.loraRows.length * this.rowHeight) + 10;
-                if (this.size[1] < totalH) {
-                    this.setSize([this.targetWidth, totalH]);
+                if (this.loraRows.length > maxVisibleStyles) {
+                    if (this.scrollOffset > 0) {
+                        const indicatorY = startY - 2;
+                        ctx.fillStyle = "rgba(255, 215, 0, 0.6)";
+                        ctx.beginPath();
+                        ctx.moveTo(this.size[0]/2 - 8, indicatorY);
+                        ctx.lineTo(this.size[0]/2 + 8, indicatorY);
+                        ctx.lineTo(this.size[0]/2, indicatorY - 8);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                    
+                    if (visibleEnd < this.loraRows.length) {
+                        const indicatorY = startY + (visibleEnd - visibleStart) * this.rowHeight + 2;
+                        ctx.fillStyle = "rgba(255, 215, 0, 0.6)";
+                        ctx.beginPath();
+                        ctx.moveTo(this.size[0]/2 - 8, indicatorY);
+                        ctx.lineTo(this.size[0]/2 + 8, indicatorY);
+                        ctx.lineTo(this.size[0]/2, indicatorY + 8);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
                 }
             };
 
@@ -583,8 +781,25 @@ app.registerExtension({
                             return true;
                         } else if (zone.type === "delete") {
                             this.loraRows.splice(zone.index, 1);
+                            this.scrollOffset = 0;
+                            this.manual_size = false;
                             this.syncData();
-                            this.updateUI();
+                            
+                            requestAnimationFrame(() => {
+                                const startY = this.getLoraListStartY();
+                                const desiredVisible = Math.max(1, Math.min(this.loraRows.length, 10));
+                                const calculatedHeight = startY + (desiredVisible * this.rowHeight) + 10;
+                                this.isAutoResizing = true;
+                                this.setSize([this.size[0], calculatedHeight]);
+                                this.isAutoResizing = false;
+                                if (this.graph) {
+                                    this.graph.setDirtyCanvas(true, true);
+                                    setTimeout(() => this.graph.setDirtyCanvas(true, true), 50);
+                                    setTimeout(() => this.graph.setDirtyCanvas(true, true), 100);
+                                    setTimeout(() => this.graph.setDirtyCanvas(true, true), 150);
+                                }
+                            });
+                            
                             return true;
                         }
                     }
@@ -592,49 +807,50 @@ app.registerExtension({
                 return false;
             };
 
-            nodeType.prototype.showLoraTreeSelector = function() {
+            nodeType.prototype.showLoraTreeSelector = function(widget) {
                 const self = this;
                 const expandedFolders = {};
-                let buttonElement = null;
-                const widgets = this.widgets;
-                for (let w of widgets) {
-                    if (w.name === "➕ Add LoRA" && w.element) {
-                        buttonElement = w.element;
-                        break;
-                    }
-                }
-                if (!buttonElement) {
-                    const allButtons = document.querySelectorAll('button, div');
-                    for (let el of allButtons) {
-                        if (el.innerText && el.innerText.includes("Add LoRA")) {
-                            const rect = el.getBoundingClientRect();
-                            if (rect.width > 0 && rect.height > 0) {
-                                buttonElement = el;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                let menuLeft, menuTop;
+                this.currentFilter = "";
+                
                 const menuWidth = 450;
                 const menuHeight = 600;
+                let menuLeft = 100;
+                let menuTop = 100;
 
-                if (buttonElement) {
-                    const rect = buttonElement.getBoundingClientRect();
-                    menuLeft = rect.right + 10;
-                    menuTop = rect.top;
-                } else {
-                    menuLeft = (window.innerWidth / 2) - (menuWidth / 2);
-                    menuTop = (window.innerHeight / 2) - (menuHeight / 2);
+                if (widget && app && app.canvas) {
+                    const rect = app.canvas.canvas.getBoundingClientRect();
+                    const scale = app.canvas.ds.scale;
+                    const offsetX = app.canvas.ds.offset[0];
+                    const offsetY = app.canvas.ds.offset[1];
+
+                    const nodeRightX = this.pos[0] + this.size[0];
+                    const nodeLeftX = this.pos[0];
+                    const widgetTopY = this.pos[1] + widget.y;
+
+                    let calculatedLeft = rect.left + (nodeRightX * scale) + offsetX + 10;
+                    const calculatedTop = rect.top + (widgetTopY * scale) + offsetY;
+
+                    if (calculatedLeft + menuWidth > window.innerWidth) {
+                        calculatedLeft = rect.left + (nodeLeftX * scale) + offsetX - menuWidth - 10;
+                    }
+
+                    if (calculatedLeft < 10) calculatedLeft = 10;
+
+                    let finalTop = calculatedTop;
+                    if (finalTop + menuHeight > window.innerHeight) {
+                        finalTop = window.innerHeight - menuHeight - 10;
+                    }
+                    if (finalTop < 10) finalTop = 10;
+
+                    menuLeft = calculatedLeft;
+                    menuTop = finalTop;
                 }
 
-                if (menuLeft + menuWidth > window.innerWidth) menuLeft = window.innerWidth - menuWidth - 10;
-                if (menuTop + menuHeight > window.innerHeight) menuTop = window.innerHeight - menuHeight - 10;
-                if (menuLeft < 10) menuLeft = 10;
-                if (menuTop < 10) menuTop = 10;
+                const existingMenu = document.getElementById("rayko-lora-selector-menu");
+                if (existingMenu) existingMenu.remove();
 
                 const menu = document.createElement("div");
+                menu.id = "rayko-lora-selector-menu";
                 menu.style.cssText = `position: fixed; background: #1a1a1a; border: 1px solid #444; border-radius: 6px; height: ${menuHeight}px; width: ${menuWidth}px; overflow-y: auto; overflow-x: hidden; z-index: 10000; left: ${menuLeft}px; top: ${menuTop}px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); display: flex; flex-direction: column;`;
 
                 const headerContainer = document.createElement("div");
@@ -670,17 +886,29 @@ app.registerExtension({
                     return paths;
                 };
 
+                const isLoraAlreadyAdded = (loraName) => {
+                    return self.loraRows.some(row => row.name === loraName);
+                };
+
                 const renderList = (filterText = "") => {
                     listContainer.innerHTML = "";
                     const lowerFilter = filterText.trim().toLowerCase();
+                    self.currentFilter = filterText;
 
                     if (!filterText || "none".includes(lowerFilter)) {
+                        const isAdded = isLoraAlreadyAdded("None");
                         const noneItem = document.createElement("div");
-                        noneItem.textContent = " None";
-                        noneItem.style.cssText = `padding: 10px 12px; cursor: pointer; color: #aaa; border-bottom: 1px solid #333; background: #2a2a2a; font-style: italic;`;
+                        noneItem.textContent = (isAdded ? "✓ " : "") + "None";
+                        noneItem.style.cssText = `padding: 10px 12px; cursor: pointer; color: ${isAdded ? '#4CAF50' : '#aaa'}; border-bottom: 1px solid #333; background: #2a2a2a; font-style: italic;`;
                         noneItem.onmouseenter = () => noneItem.style.background = "#3a3a3a";
                         noneItem.onmouseleave = () => noneItem.style.background = "#2a2a2a";
-                        noneItem.onclick = (e) => { e.stopPropagation(); self.addLoraRow("None"); menu.remove(); };
+                        noneItem.onclick = (e) => { 
+                            e.stopPropagation(); 
+                            if (!isLoraAlreadyAdded("None")) {
+                                self.addLoraRow("None");
+                                renderList(filterText);
+                            }
+                        };
                         listContainer.appendChild(noneItem);
                     }
 
@@ -704,18 +932,25 @@ app.registerExtension({
                             listContainer.appendChild(noRes);
                         } else {
                             matches.forEach(item => {
+                                const isAdded = isLoraAlreadyAdded(item.path);
                                 const el = document.createElement("div");
-                                el.textContent = ` ${item.path}`;
-                                el.style.cssText = `padding: 8px 12px; cursor: pointer; color: #ddd; font-size: 12px; border-bottom: 1px solid #2a2a2a; background: transparent;`;
+                                el.textContent = (isAdded ? "✓ " : " ") + item.path;
+                                el.style.cssText = `padding: 8px 12px; cursor: pointer; color: ${isAdded ? '#4CAF50' : '#ddd'}; font-size: 12px; border-bottom: 1px solid #2a2a2a; background: transparent;`;
                                 el.onmouseenter = () => el.style.background = "#333";
                                 el.onmouseleave = () => el.style.background = "transparent";
-                                el.onclick = (e) => { e.stopPropagation(); self.addLoraRow(item.path); menu.remove(); };
+                                el.onclick = (e) => { 
+                                    e.stopPropagation(); 
+                                    if (!isLoraAlreadyAdded(item.path)) {
+                                        self.addLoraRow(item.path);
+                                        renderList(filterText);
+                                    }
+                                };
                                 listContainer.appendChild(el);
                             });
                         }
                     } else {
                         listContainer.innerHTML = "";
-                        createTreeItems("", self.loraTree, 0, listContainer, expandedFolders, self, null, null);
+                        createTreeItems("", self.loraTree, 0, listContainer, expandedFolders, self, null, null, renderList);
                     }
                 };
 
@@ -730,31 +965,78 @@ app.registerExtension({
                 document.body.appendChild(menu);
                 setTimeout(() => searchInput.focus(), 50);
 
-                setTimeout(() => {
-                    const closeHandler = (e) => {
-                        if (!menu.contains(e.target)) {
-                            menu.remove();
-                            document.removeEventListener("click", closeHandler);
+                let closeTimer = null;
+                const closeDelay = 300;
+
+                const closeMenu = () => {
+                    if (menu && menu.parentNode) {
+                        menu.remove();
+                    }
+                    document.removeEventListener("pointerdown", handleOutsideClick, true);
+                    document.removeEventListener("keydown", handleEsc, true);
+                    if (closeTimer) {
+                        clearTimeout(closeTimer);
+                        closeTimer = null;
+                    }
+                };
+
+                const handleEsc = (ev) => {
+                    if (ev.key === "Escape") closeMenu();
+                };
+
+                const handleOutsideClick = (ev) => {
+                    if (menu.contains(ev.target)) {
+                        if (closeTimer) {
+                            clearTimeout(closeTimer);
+                            closeTimer = null;
                         }
-                    };
-                    document.addEventListener("click", closeHandler);
-                }, 100);
+                        return;
+                    }
+                    closeMenu();
+                };
+
+                menu.addEventListener("mouseleave", () => {
+                    closeTimer = setTimeout(() => {
+                        closeMenu();
+                    }, closeDelay);
+                });
+
+                menu.addEventListener("mouseenter", () => {
+                    if (closeTimer) {
+                        clearTimeout(closeTimer);
+                        closeTimer = null;
+                    }
+                });
+
+                setTimeout(() => {
+                    document.addEventListener("pointerdown", handleOutsideClick, true);
+                    document.addEventListener("keydown", handleEsc, true);
+                }, 50);
             };
 
             nodeType.prototype.addLoraRow = function(loraName) {
+                const exists = this.loraRows.some(row => row.name === loraName);
+                if (exists) return;
+                
                 this.loraRows.push({ name: loraName, strength_model: 1.0, strength_clip: 1.0, enabled: true });
+                this.scrollOffset = 0;
+                this.manual_size = false;
                 this.syncData();
-                if (this.graph) {
-                    const addButton = this.widgets.find(w => w.name === "➕ Add LoRA");
-                    const startY = addButton ? (addButton.y + addButton.height + 15) : 40;
-                    const newHeight = startY + (this.loraRows.length * this.rowHeight) + 10;
-                    if (this.size[1] < newHeight) {
-                        this.setSize([this.targetWidth, newHeight]);
+                
+                requestAnimationFrame(() => {
+                    const startY = this.getLoraListStartY();
+                    const desiredVisible = Math.max(1, Math.min(this.loraRows.length, 10));
+                    const calculatedHeight = startY + (desiredVisible * this.rowHeight) + 10;
+                    this.isAutoResizing = true;
+                    this.setSize([this.size[0], calculatedHeight]);
+                    this.isAutoResizing = false;
+                    if (this.graph) {
+                        this.graph.setDirtyCanvas(true, true);
+                        setTimeout(() => this.graph.setDirtyCanvas(true, true), 50);
+                        setTimeout(() => this.graph.setDirtyCanvas(true, true), 100);
+                        setTimeout(() => this.graph.setDirtyCanvas(true, true), 150);
                     }
-                    this.graph.setDirtyCanvas(true, true);
-                } else {
-                    this.updateUI();
-                }
+                });
             };
 
             nodeType.prototype.updateUI = function() {
@@ -768,6 +1050,8 @@ app.registerExtension({
                 if (this.hiddenWidget) this.hiddenWidget.value = jsonData;
                 if (!this.properties) this.properties = {};
                 this.properties["lora_rows"] = jsonData;
+                this.properties["manual_size"] = this.manual_size;
+                this.properties["scrollOffset"] = this.scrollOffset;
                 this.saveToStorage();
             };
 
@@ -775,11 +1059,17 @@ app.registerExtension({
                 this.syncData();
                 if (!o.properties) o.properties = {};
                 o.properties["lora_rows"] = this.properties["lora_rows"];
+                o.properties["manual_size"] = this.manual_size;
+                o.properties["scrollOffset"] = this.scrollOffset;
                 return originalOnSerialize ? originalOnSerialize.apply(this, arguments) : undefined;
             };
 
             nodeType.prototype.onRemoved = function() {
                 if (this.storageKey) localStorage.removeItem(this.storageKey);
+                if (this.wheelHandler && this.oldWheelCanvas) {
+                    this.oldWheelCanvas.removeEventListener('wheel', this.wheelHandler, { capture: true, passive: false });
+                }
+                document.removeEventListener("visibilitychange", this.visibilityHandler);
                 return originalOnRemoved ? originalOnRemoved.apply(this, arguments) : undefined;
             };
         }
@@ -812,7 +1102,7 @@ window.addEventListener("focus", () => {
     }
 });
 
-function createTreeItems(path, tree, level, container, expandedFolders, self, header, noneItem) {
+function createTreeItems(path, tree, level, container, expandedFolders, self, header, noneItem, renderList) {
     const sortedKeys = Object.keys(tree).sort((a, b) => {
         const aIsFolder = tree[a] !== null;
         const bIsFolder = tree[b] !== null;
@@ -820,6 +1110,10 @@ function createTreeItems(path, tree, level, container, expandedFolders, self, he
         if (!aIsFolder && bIsFolder) return 1;
         return a.toLowerCase().localeCompare(b.toLowerCase());
     });
+
+    const isLoraAlreadyAdded = (loraName) => {
+        return self.loraRows.some(row => row.name === loraName);
+    };
 
     for (const name of sortedKeys) {
         const subTree = tree[name];
@@ -837,24 +1131,31 @@ function createTreeItems(path, tree, level, container, expandedFolders, self, he
                 e.stopPropagation();
                 expandedFolders[itemPath] = !expandedFolders[itemPath];
                 container.innerHTML = "";
-                createTreeItems("", self.loraTree, 0, container, expandedFolders, self, header, noneItem);
+                createTreeItems("", self.loraTree, 0, container, expandedFolders, self, header, noneItem, renderList);
             };
             folderContainer.appendChild(folderHeader);
             container.appendChild(folderContainer);
             if (expandedFolders[itemPath]) {
-                createTreeItems(itemPath, subTree, level + 1, container, expandedFolders, self, header, noneItem);
+                createTreeItems(itemPath, subTree, level + 1, container, expandedFolders, self, header, noneItem, renderList);
             }
         } else {
+            const isAdded = isLoraAlreadyAdded(itemPath);
             const fileItem = document.createElement("div");
-            fileItem.textContent = " " + name;
-            fileItem.style.cssText = `padding: 8px 12px; cursor: pointer; color: #ddd; font-size: 12px;`;
+            fileItem.textContent = (isAdded ? "✓ " : " ") + name;
+            fileItem.style.cssText = `padding: 8px 12px; cursor: pointer; color: ${isAdded ? '#4CAF50' : '#ddd'}; font-size: 12px;`;
             fileItem.style.paddingLeft = (12 + level * 16) + "px";
+            
+            fileItem.onmouseenter = () => fileItem.style.background = "#333";
+            fileItem.onmouseleave = () => fileItem.style.background = "transparent";
+            
             fileItem.onclick = (e) => {
                 e.stopPropagation();
-                self.addLoraRow(itemPath);
-                let root = fileItem;
-                while (root.parentNode && root.parentNode !== document.body) root = root.parentNode;
-                if (root && root.parentNode === document.body) root.remove();
+                if (!isLoraAlreadyAdded(itemPath)) {
+                    self.addLoraRow(itemPath);
+                    if (renderList) {
+                        renderList(self.currentFilter);
+                    }
+                }
             };
             container.appendChild(fileItem);
         }

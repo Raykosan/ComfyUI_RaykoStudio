@@ -152,8 +152,6 @@ app.registerExtension({
 
                 const initialCanvas = app.canvas.canvas;
                 initialCanvas.addEventListener('wheel', this.wheelHandler, { capture: true, passive: false });
-                this.oldWheelCanvas = initialCanvas;
-                this.oldWheelHandler = this.wheelHandler;
 
                 this.visibilityHandler = function() {
                     if (!document.hidden) {
@@ -469,8 +467,8 @@ app.registerExtension({
                     const toolbarH = self.toolbarHeight;
                     const availableWidth = self.size[0] - pad * 2;
                     
-                    const baseClearW = 70;
-                    const baseResetW = 85;
+                    const baseClearW = 80;
+                    const baseResetW = 80;
                     const baseSaveW = 75;
                     const baseLoadW = 75;
                     const gap = 6;
@@ -486,11 +484,11 @@ app.registerExtension({
                     const totalW = clearW + resetW + saveW + loadW + gap * 3;
                     const startX = pad + (availableWidth - totalW) / 2;
                     
-                    self.drawToolbarButton(ctx, "Clear", "🔴", startX, toolbarY, clearW, toolbarH, "#f44336", self.data.styles.length > 0);
+                    self.drawToolbarButton(ctx, "Clear All", "🔴", startX, toolbarY, clearW, toolbarH, "#f44336", self.data.styles.length > 0);
                     this.clickZones.push({ type: "clear_all", x: startX, y: toolbarY, w: clearW, h: toolbarH });
                     
                     const resetX = startX + clearW + gap;
-                    self.drawToolbarButton(ctx, "Reset", "🔄", resetX, toolbarY, resetW, toolbarH, "#2196F3", self.manual_size);
+                    self.drawToolbarButton(ctx, "Reset Size", "🔄", resetX, toolbarY, resetW, toolbarH, "#2196F3", self.manual_size);
                     this.clickZones.push({ type: "reset_size", x: resetX, y: toolbarY, w: resetW, h: toolbarH });
                     
                     const saveX = resetX + resetW + gap;

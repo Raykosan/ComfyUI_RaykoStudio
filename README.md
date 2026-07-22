@@ -778,6 +778,58 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 
 </details> 
 <details>
+  <summary>🦊 RS LoRA Loader</summary>
+
+# 🦊 RS LoRA Loader  
+**A powerful, highly customizable node for managing multiple LoRAs. It features a sleek custom interface, a robust preset system, drag-and-drop reordering, and seamless integration with the Civitai API for fetching metadata and trained words.**  
+
+<img width="605" height="560" alt="Screenshot_1" src="https://github.com/user-attachments/assets/81fe9316-02a3-4507-a6de-f458af353f4c" />
+
+### 🎨 Advanced Custom UI  
+- **Visual Multi-LoRA Management** - Add, remove, and reorder multiple LoRAs with drag-and-drop support.  
+- **Custom CLIP Toggle** - A dedicated, visually distinct button to enable/disable CLIP application per node. When the clip input is turned off, the node operates in the "model only" mode.  
+- **Precision Strength Control** - Adjust LoRA strength using `+` / `-` buttons or direct numeric input.  
+- **Auto-Resizing & Scrollable List** - The node automatically adjusts its height, with smooth scrolling for long lists.  
+- **Quick update** - When adding a new LoRA to the 'loras' folder, you do not need to reload ComfyUI or the browser page. Just click the ✔️ Update LoRA list button.  
+
+### 💾 Preset System  
+- **Save & Load** - Save your current LoRA configurations (including strengths and enabled states) as named presets.  
+- **Quick Access** - Instantly apply complex LoRA stacks with a single click.  
+
+###  Smart LoRA Selector  
+- **Tree View & Search** - Easily find LoRAs using a structured folder tree or a fast, real-time search bar.  
+- **Visual Indicators** - Already added LoRAs are marked with a checkmark to prevent duplicates.  
+
+### 🌐 Civitai Metadata Integration (Info Popup)  
+- **Instant Info** - Click the `ℹ️` icon on any LoRA row to open a detailed popup.  
+- **Fetch from Civitai** - Automatically fetches the model's true name, description, and tags directly from Civitai using the file's SHA256 hash.  
+- **Smart Parsing** - Cleans HTML tags from descriptions and combines `trainedWords` and `tags` for a comprehensive list.  
+- **Local Caching** - Fetched metadata is saved locally in the `rayko_lora_data` folder. Subsequent views are instant and require no internet connection.  
+
+### 📋 One-Click Tag Copying  
+- **Click to Copy** - Click on any individual green tag chip in the Info popup to instantly copy it to your clipboard and auto-close the window.  
+- **Copy All** - A dedicated button to copy all trained words/tags at once.
+
+### Adding and Managing LoRAs  
+1. Click **➕ Add LoRA** to open the selector. Search or browse the tree, and click a LoRA to add it.  
+2. Use the **⋮** handle on the left of each row to drag and drop LoRAs into your desired order.  
+
+### Using the Info Popup & Civitai Fetch  
+1. Click the **ℹ️** icon next to any added LoRA.  
+2. If metadata is already cached locally, it will appear instantly.  
+3. If no data is found, click the **🌐 Fetch from Civitai** button.  
+   - *Note: The node calculates the SHA256 hash of the `.safetensors` file and queries the Civitai API. This may take a few seconds on the first run.*  
+4. Once fetched, the data is saved to `custom_nodes/ComfyUI_RaykoStudio/rayko_lora_data/` for future instant access.  
+
+### Copying Tags  
+- **Single Tag:** Click on any green tag chip (e.g., `3d`, `concept`). It will be copied to your clipboard, and the popup will close automatically so you can paste it directly into your prompt.  
+- **All Tags:** Click **📋 Copy All** to copy the entire list of trained words.  
+
+### 🔔 Visual Feedback  
+- Custom toast notifications for successful actions, errors, and clipboard events.  
+
+</details> 
+<details>
   <summary>🦊 RS Models Loader</summary>
 
 # 🦊 RS Models Loader  
@@ -792,8 +844,9 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 - **Persistent Storage** - LoRA configurations are saved per node and persist across sessions  
 - **Folder Structure** - Browse LoRAs with folder tree navigation  
 - **Search Functionality** - Quickly find LoRAs by name  
-- **Presets of model sets** - Save model sets to presets for quick switching between models   
-- **Presets of LoRA sets** - Save LoRA sets to presets for quick switching between models
+- **Presets of model sets** - Save model sets to presets for quick switching between models  
+- **Presets of LoRA sets** - Save LoRA sets to presets for quick switching between models  
+- **Quick update** - When adding a new LoRA to the 'loras' folder, you do not need to reload ComfyUI or the browser page. Just click the ✔️ Update LoRA list button  
 - **Drag and drop** - Changing the position of LoRA in the list of active loras  
 - **Pop-up messages** - Confirmation of successful or unsuccessful processes in the node  
 

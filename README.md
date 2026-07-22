@@ -792,6 +792,10 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 - **Auto-Resizing & Scrollable List** - The node automatically adjusts its height, with smooth scrolling for long lists.  
 - **Quick update** - When adding a new LoRA to the 'loras' folder, you do not need to reload ComfyUI or the browser page. Just click the ✔️ Update LoRA list button.  
 
+### Adding and Managing LoRAs  
+1. Click **➕ Add LoRA** to open the selector. Search or browse the tree, and click a LoRA to add it.  
+2. Use the **⋮⋮** handle on the left of each row to drag and drop LoRAs into your desired order.   
+
 ### 💾 Preset System  
 - **Save & Load** - Save your current LoRA configurations (including strengths and enabled states) as named presets.  
 - **Quick Access** - Instantly apply complex LoRA stacks with a single click.  
@@ -803,27 +807,13 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 ### 🌐 Civitai Metadata Integration (Info Popup)  
 - **Instant Info** - Click the `ℹ️` icon on any LoRA row to open a detailed popup.  
 - **Fetch from Civitai** - Automatically fetches the model's true name, description, and tags directly from Civitai using the file's SHA256 hash.  
-- **Smart Parsing** - Cleans HTML tags from descriptions and combines `trainedWords` and `tags` for a comprehensive list.  
+- **Getting metadata** - If no data is found, click the **🌐 Fetch from Civitai** button.  
+   - *Note: The node calculates the SHA256 hash of the `.safetensors` file and queries the Civitai API. This may take a few seconds on the first run.*  
 - **Local Caching** - Fetched metadata is saved locally in the `rayko_lora_data` folder. Subsequent views are instant and require no internet connection.  
 
 ### 📋 One-Click Tag Copying  
 - **Click to Copy** - Click on any individual green tag chip in the Info popup to instantly copy it to your clipboard and auto-close the window.  
-- **Copy All** - A dedicated button to copy all trained words/tags at once.
-
-### Adding and Managing LoRAs  
-1. Click **➕ Add LoRA** to open the selector. Search or browse the tree, and click a LoRA to add it.  
-2. Use the **⋮** handle on the left of each row to drag and drop LoRAs into your desired order.  
-
-### Using the Info Popup & Civitai Fetch  
-1. Click the **ℹ️** icon next to any added LoRA.  
-2. If metadata is already cached locally, it will appear instantly.  
-3. If no data is found, click the **🌐 Fetch from Civitai** button.  
-   - *Note: The node calculates the SHA256 hash of the `.safetensors` file and queries the Civitai API. This may take a few seconds on the first run.*  
-4. Once fetched, the data is saved to `custom_nodes/ComfyUI_RaykoStudio/rayko_lora_data/` for future instant access.  
-
-### Copying Tags  
-- **Single Tag:** Click on any green tag chip (e.g., `3d`, `concept`). It will be copied to your clipboard, and the popup will close automatically so you can paste it directly into your prompt.  
-- **All Tags:** Click **📋 Copy All** to copy the entire list of trained words.  
+- **📋 Copy All** - A dedicated button to copy all trained words/tags at once.
 
 ### 🔔 Visual Feedback  
 - Custom toast notifications for successful actions, errors, and clipboard events.  

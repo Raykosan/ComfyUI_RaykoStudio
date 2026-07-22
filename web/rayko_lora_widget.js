@@ -1,6 +1,69 @@
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 
+window.showRaykoToast = function(message, type = "error", node = null) {
+    const existing = document.querySelector(".rayko-toast");
+    if (existing) existing.remove();
+
+    const toast = document.createElement("div");
+    toast.className = "rayko-toast";
+    const bgColor = type === "error" ? "#f44336" : "#4CAF50";
+    toast.style.cssText = `
+        position: fixed; background: ${bgColor}; color: white;
+        padding: 12px 20px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        z-index: 100000; font-size: 14px; font-family: sans-serif; opacity: 0;
+        transition: opacity 0.3s ease, transform 0.3s ease; transform: translateY(-20px);
+        pointer-events: none; white-space: nowrap;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    const toastRect = toast.getBoundingClientRect();
+    
+    let left, top;
+    
+    if (node && app && app.canvas) {
+        const canvasRect = app.canvas.canvas.getBoundingClientRect();
+        const scale = app.canvas.ds.scale;
+        const offsetX = app.canvas.ds.offset[0];
+        const offsetY = app.canvas.ds.offset[1];
+        
+        const nodeCenterGraphX = node.pos[0] + node.size[0] / 2;
+        const nodeCenterGraphY = node.pos[1] + node.size[1] / 2;
+        
+        const nodeCenterScreenX = canvasRect.left + (nodeCenterGraphX + offsetX) * scale;
+        const nodeCenterScreenY = canvasRect.top + (nodeCenterGraphY + offsetY) * scale;
+        
+        left = nodeCenterScreenX - (toastRect.width / 2);
+        top = nodeCenterScreenY - (toastRect.height / 2);
+        
+        if (left < 10) left = 10;
+        if (top < 10) top = 10;
+        if (left + toastRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - toastRect.width - 10;
+        }
+        if (top + toastRect.height > window.innerHeight - 10) {
+            top = window.innerHeight - toastRect.height - 10;
+        }
+    } else {
+        left = window.innerWidth - toastRect.width - 20;
+        top = 20;
+    }
+    
+    toast.style.left = left + "px";
+    toast.style.top = top + "px";
+    
+    void toast.offsetWidth;
+    toast.style.opacity = "1";
+    toast.style.transform = "translateY(0)";
+    
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(-20px)";
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+};
+
 app.registerExtension({
     name: "RaykoLoraWidget",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
@@ -28,6 +91,10 @@ app.registerExtension({
                 this.oldWheelCanvas = null;
                 this.oldWheelHandler = null;
                 this.currentFilter = "";
+                
+                // Drag & Drop state
+                this.draggingIndex = null;
+                this.dragCurrentY = null;
                 
                 this.hiddenWidget = this.widgets.find(w => w.name === "lora_data");
                 const nodeRef = this;
@@ -258,10 +325,10 @@ app.registerExtension({
                         if (!res.ok) {
                             return res.text().then(text => { throw new Error(text || res.statusText); });
                         }
+                        showRaykoToast("Preset saved successfully!", "success", self);
                     })
                     .catch(err => {
-                        console.error(`[Rayko] Failed to save preset:`, err);
-                        alert(`Failed to save preset:\n${err.message}`);
+                        showRaykoToast("Failed to save preset: " + err.message, "error", self);
                     });
                 };
 
@@ -307,9 +374,9 @@ app.registerExtension({
                                     const data = await res2.json();
                                     if (pendingSelectType === "model") applyPresetData(data);
                                     else applyLoraPresetData(data);
+                                    showRaykoToast("Preset loaded!", "success", self);
                                 } catch (err) {
-                                    console.error(`[Rayko] Failed to load preset:`, err);
-                                    alert(`Failed to load preset: ${err.message}`);
+                                    showRaykoToast("Failed to load preset: " + err.message, "error", self);
                                 }
                             };
                             
@@ -333,7 +400,7 @@ app.registerExtension({
                             presetListOverlay.appendChild(row);
                         });
                     } catch (e) {
-                        console.error(`[Rayko] Failed to list presets:`, e);
+                        showRaykoToast("Failed to list presets: " + e.message, "error", self);
                         presetListOverlay.textContent = "Error loading";
                     }
                 };
@@ -365,9 +432,9 @@ app.registerExtension({
                             deleteConfirmOverlay.style.display = "none";
                             presetListOverlay.style.display = "none";
                             pendingDeleteName = null;
+                            showRaykoToast("Preset deleted!", "success", self);
                         } catch (err) {
-                            console.error(`[Rayko] Failed to delete preset:`, err);
-                            alert(`Failed to delete preset: ${err.message}`);
+                            showRaykoToast("Failed to delete preset: " + err.message, "error", self);
                         }
                     }
                 });
@@ -394,7 +461,6 @@ app.registerExtension({
                 
                 this.wheelHandler = function(e) {
                     if (app.canvas.node_over !== self) return;
-
                     const graphPos = app.canvas.graph_mouse;
                     if (!graphPos) return;
 
@@ -661,6 +727,10 @@ app.registerExtension({
                 for (let i = 0; i < visibleEnd - visibleStart; i++) {
                     const dataIdx = visibleStart + i;
                     const row = this.loraRows[dataIdx];
+                    
+                    // Если эта строка перетаскивается, рисуем её позже, а сейчас пропускаем
+                    if (this.draggingIndex === dataIdx) continue;
+
                     const y = startY + (i * this.rowHeight);
                     const h = this.rowHeight - 2;
                     const toggleY = y + h/2;
@@ -668,7 +738,13 @@ app.registerExtension({
                     ctx.fillStyle = i % 2 === 0 ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.15)";
                     ctx.fillRect(padding, y, this.size[0] - (padding * 2), h);
 
-                    const toggleX = padding + 5;
+                    // Drag handle zone
+                    this.clickZones.push({ type: "drag", index: dataIdx, x: padding, y: y, w: 20, h: h });
+                    ctx.fillStyle = "#888";
+                    ctx.font = "14px sans-serif";
+                    ctx.fillText("⋮⋮", padding + 2, toggleY + 5);
+
+                    const toggleX = padding + 20;
                     ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
                     ctx.beginPath();
                     ctx.arc(toggleX + 8, toggleY, 7, 0, Math.PI * 2);
@@ -676,7 +752,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "toggle", index: dataIdx, x: toggleX, y: y, w: 24, h: h });
 
                     const nameX = toggleX + 30;
-                    const nameW = this.size[0] - (padding * 2) - 30 - rightPanelWidth - 20;
+                    const nameW = this.size[0] - (padding * 2) - 50 - rightPanelWidth - 20;
                     ctx.fillStyle = row.enabled ? "#fff" : "#777";
                     ctx.font = "12px sans-serif";
                     let displayName = row.name;
@@ -724,6 +800,43 @@ app.registerExtension({
                     this.clickZones.push({ type: "delete", index: dataIdx, x: arrowRX + 35, y: y, w: 30, h: h });
                 }
 
+                // Рисуем перетаскиваемую строку поверх остальных
+                if (this.draggingIndex !== null && this.dragCurrentY !== null) {
+                    const row = this.loraRows[this.draggingIndex];
+                    const h = this.rowHeight - 2;
+                    const y = this.dragCurrentY - (h / 2); // Центрируем по курсору
+                    const toggleY = y + h/2;
+                    const padding = 10;
+
+                    ctx.globalAlpha = 0.8;
+                    ctx.fillStyle = "#3a5a3a";
+                    ctx.fillRect(padding, y, this.size[0] - (padding * 2), h);
+                    
+                    ctx.fillStyle = "#fff";
+                    ctx.font = "14px sans-serif";
+                    ctx.fillText("⋮⋮", padding + 2, toggleY + 5);
+                    
+                    ctx.font = "12px sans-serif";
+                    ctx.fillText(row.name, padding + 25, toggleY + 4);
+                    ctx.globalAlpha = 1.0;
+
+                    // Подсветка целевой позиции
+                    const relativeY = this.dragCurrentY - startY;
+                    let targetIndex = Math.floor(relativeY / this.rowHeight) + this.scrollOffset;
+                    targetIndex = Math.max(0, Math.min(targetIndex, this.loraRows.length - 1));
+                    
+                    if (targetIndex !== this.draggingIndex) {
+                        const targetY = startY + ((targetIndex - this.scrollOffset) * this.rowHeight);
+                        ctx.strokeStyle = "#4CAF50";
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(padding, targetY);
+                        ctx.lineTo(this.size[0] - padding, targetY);
+                        ctx.stroke();
+                        ctx.lineWidth = 1;
+                    }
+                }
+
                 if (this.loraRows.length > maxVisibleStyles) {
                     if (this.scrollOffset > 0) {
                         const indicatorY = startY - 2;
@@ -753,7 +866,12 @@ app.registerExtension({
                 if (!this.clickZones || this.clickZones.length === 0) return false;
                 for (const zone of this.clickZones) {
                     if (pos[0] >= zone.x && pos[0] <= zone.x + zone.w && pos[1] >= zone.y && pos[1] <= zone.y + zone.h) {
-                        if (zone.type === "toggle") {
+                        if (zone.type === "drag") {
+                            this.draggingIndex = zone.index;
+                            this.dragCurrentY = pos[1];
+                            if (this.graph) this.graph.setDirtyCanvas(true, true);
+                            return true; // Захватываем мышь
+                        } else if (zone.type === "toggle") {
                             this.loraRows[zone.index].enabled = !this.loraRows[zone.index].enabled;
                             this.syncData();
                             if (this.graph) this.graph.setDirtyCanvas(true, true);
@@ -799,10 +917,41 @@ app.registerExtension({
                                     setTimeout(() => this.graph.setDirtyCanvas(true, true), 150);
                                 }
                             });
-                            
                             return true;
                         }
                     }
+                }
+                return false;
+            };
+
+            // --- НОВЫЕ МЕТОДЫ ДЛЯ DRAG & DROP ---
+            nodeType.prototype.onMouseMove = function(e, pos, canvas) {
+                if (this.draggingIndex !== null) {
+                    this.dragCurrentY = pos[1];
+                    if (this.graph) this.graph.setDirtyCanvas(true, true);
+                    return true;
+                }
+                return false;
+            };
+
+            nodeType.prototype.onMouseUp = function(e, pos, canvas) {
+                if (this.draggingIndex !== null) {
+                    const startY = this.getLoraListStartY();
+                    const relativeY = this.dragCurrentY - startY;
+                    let targetIndex = Math.floor(relativeY / this.rowHeight) + this.scrollOffset;
+                    targetIndex = Math.max(0, Math.min(targetIndex, this.loraRows.length - 1));
+
+                    if (targetIndex !== this.draggingIndex) {
+                        const item = this.loraRows.splice(this.draggingIndex, 1)[0];
+                        this.loraRows.splice(targetIndex, 0, item);
+                        this.syncData();
+                        this.updateUI();
+                    }
+                    
+                    this.draggingIndex = null;
+                    this.dragCurrentY = null;
+                    if (this.graph) this.graph.setDirtyCanvas(true, true);
+                    return true;
                 }
                 return false;
             };

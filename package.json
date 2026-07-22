@@ -24,6 +24,7 @@
       "Rayko_Intermediate_Spline_Mask.py"
       "Rayko_Last_Frame.py"
       "Rayko_Loop_Switch.py"
+      "Rayko_LoRA Loader.py"
       "Rayko_Models_Loader.py"
       "Rayko_MultiLatent.py"
       "Rayko_Outpaint.py"

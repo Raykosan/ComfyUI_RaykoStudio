@@ -783,7 +783,7 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 # 🦊 RS Models Loader  
 **A powerful universal model loading node that combines UNET, CLIP (with additional dual-clip support), VAE and LoRa downloads in a single interface and the function of saving model and LoRA configurations to preset presets.**  
 
-<img width="561" height="610" alt="Screenshot_1" src="https://github.com/user-attachments/assets/cdaf73bc-1c92-4b39-ab03-aaf6069964ea" />
+<img width="538" height="692" alt="Screenshot_1" src="https://github.com/user-attachments/assets/93a8ded0-6875-420d-9856-de66eb07cfea" />
 
 ### 🔥 Features  
 - **Unified Loading** - Load UNET, CLIP, VAE, and multiple LoRAs in one node  
@@ -793,7 +793,9 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 - **Folder Structure** - Browse LoRAs with folder tree navigation  
 - **Search Functionality** - Quickly find LoRAs by name  
 - **Presets of model sets** - Save model sets to presets for quick switching between models   
-- **Presets of LoRA sets** - Save LoRA sets to presets for quick switching between models   
+- **Presets of LoRA sets** - Save LoRA sets to presets for quick switching between models
+- **Drag and drop** - Changing the position of LoRA in the list of active loras  
+- **Pop-up messages** - Confirmation of successful or unsuccessful processes in the node  
 
 ### 📃 Notes  
 - When dual CLIP mode is disabled, clip_name2 is visible but disabled (grayed out)  

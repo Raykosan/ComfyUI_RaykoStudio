@@ -398,3 +398,103 @@ async def rayko_loras_delete_preset(request):
         return aiohttp.web.Response(status=404, text="Preset not found")
     except Exception as e:
         return aiohttp.web.Response(status=500, text=str(e))
+
+@PromptServer.instance.routes.post("/rayko/add_tags")
+async def rayko_add_tags(request):
+    try:
+        data = await request.json()
+        lora_name = data.get("name", "")
+        new_tags = data.get("tags", [])
+        
+        if not lora_name:
+            return aiohttp.web.Response(status=400, text="No name provided")
+        if not isinstance(new_tags, list) or not new_tags:
+            return aiohttp.web.json_response({"error": "No tags provided"})
+        
+        lora_relative_path = lora_name.replace("\\", "/")
+        lora_full_path = folder_paths.get_full_path("loras", lora_relative_path)
+        
+        if not lora_full_path or not os.path.exists(lora_full_path):
+            return aiohttp.web.json_response({"error": "File not found"})
+        
+        file_hash = compute_sha256(lora_full_path)
+        db_path = os.path.join(RAYKO_LORA_DATA_DIR, f"{file_hash}.json")
+        
+        existing_data = {}
+        if os.path.exists(db_path):
+            try:
+                with open(db_path, 'r', encoding='utf-8') as f:
+                    existing_data = json.load(f)
+            except Exception:
+                pass
+        
+        existing_tags = existing_data.get("trained_words", [])
+        if not isinstance(existing_tags, list):
+            existing_tags = []
+        
+        combined_tags = existing_tags.copy()
+        for tag in new_tags:
+            tag = str(tag).strip()
+            if tag and tag not in combined_tags:
+                combined_tags.append(tag)
+        
+        save_data = {
+            "full_name": existing_data.get("name", ""),
+            "trained_words": combined_tags,
+            "description": existing_data.get("description", "")
+        }
+        
+        save_to_rayko_db(file_hash, save_data, "manual", overwrite=True)
+        
+        return aiohttp.web.json_response({
+            "trained_words": combined_tags,
+            "added": len(combined_tags) - len(existing_tags)
+        })
+        
+    except Exception as e:
+        return aiohttp.web.Response(status=500, text=str(e))
+
+@PromptServer.instance.routes.post("/rayko/remove_tag")
+async def rayko_remove_tag(request):
+    try:
+        data = await request.json()
+        lora_name = data.get("name", "")
+        tag_to_remove = data.get("tag", "")
+        
+        if not lora_name or not tag_to_remove:
+            return aiohttp.web.Response(status=400, text="Missing parameters")
+        
+        lora_relative_path = lora_name.replace("\\", "/")
+        lora_full_path = folder_paths.get_full_path("loras", lora_relative_path)
+        
+        if not lora_full_path or not os.path.exists(lora_full_path):
+            return aiohttp.web.json_response({"error": "File not found"})
+        
+        file_hash = compute_sha256(lora_full_path)
+        db_path = os.path.join(RAYKO_LORA_DATA_DIR, f"{file_hash}.json")
+        
+        if not os.path.exists(db_path):
+            return aiohttp.web.json_response({"error": "No data found"})
+        
+        with open(db_path, 'r', encoding='utf-8') as f:
+            existing_data = json.load(f)
+        
+        existing_tags = existing_data.get("trained_words", [])
+        if tag_to_remove in existing_tags:
+            existing_tags.remove(tag_to_remove)
+        
+        save_data = {
+            "full_name": existing_data.get("name", ""),
+            "trained_words": existing_tags,
+            "description": existing_data.get("description", "")
+        }
+        
+        save_to_rayko_db(file_hash, save_data, existing_data.get("source", "manual"), overwrite=True)
+        
+        return aiohttp.web.json_response({
+            "trained_words": existing_tags,
+            "removed": tag_to_remove
+        })
+        
+    except Exception as e:
+        return aiohttp.web.Response(status=500, text=str(e))

@@ -1249,7 +1249,54 @@ app.registerExtension({
                 const handleEsc = (e) => { if (e.key === "Escape") { popup.remove(); document.removeEventListener("keydown", handleEsc); } };
                 document.addEventListener("keydown", handleEsc);
                 
-                const updateContent = (data) => {
+                let currentData = null;
+                
+                const showDeleteConfirmation = (tag, callback) => {
+                    const overlay = document.createElement("div");
+                    overlay.id = "rayko-delete-confirm-overlay";
+                    overlay.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100002; display: flex; justify-content: center; align-items: center;`;
+                    
+                    const confirmBox = document.createElement("div");
+                    confirmBox.style.cssText = `background: #1a1a1a; border: 1px solid #f44336; border-radius: 8px; padding: 20px; max-width: 350px; box-shadow: 0 4px 20px rgba(0,0,0,0.9);`;
+                    
+                    const message = document.createElement("div");
+                    message.textContent = `Remove tag "${tag}"?`;
+                    message.style.cssText = `color: #fff; font-size: 14px; margin-bottom: 20px; text-align: center;`;
+                    
+                    const btnsDiv = document.createElement("div");
+                    btnsDiv.style.cssText = `display: flex; gap: 10px;`;
+                    
+                    const yesBtn = document.createElement("button");
+                    yesBtn.textContent = "Yes";
+                    yesBtn.style.cssText = `flex: 1; background: #3a1a1a; color: #f44336; border: 1px solid #f44336; border-radius: 4px; padding: 8px; cursor: pointer; font-size: 12px;`;
+                    yesBtn.onmouseenter = () => yesBtn.style.background = "#4a2a2a";
+                    yesBtn.onmouseleave = () => yesBtn.style.background = "#3a1a1a";
+                    yesBtn.onclick = () => {
+                        overlay.remove();
+                        callback(true);
+                    };
+                    
+                    const noBtn = document.createElement("button");
+                    noBtn.textContent = "No";
+                    noBtn.style.cssText = `flex: 1; background: #2a2a2a; color: #ccc; border: 1px solid #555; border-radius: 4px; padding: 8px; cursor: pointer; font-size: 12px;`;
+                    noBtn.onmouseenter = () => noBtn.style.background = "#3a3a3a";
+                    noBtn.onmouseleave = () => noBtn.style.background = "#2a2a2a";
+                    noBtn.onclick = () => {
+                        overlay.remove();
+                        callback(false);
+                    };
+                    
+                    btnsDiv.appendChild(yesBtn);
+                    btnsDiv.appendChild(noBtn);
+                    confirmBox.appendChild(message);
+                    confirmBox.appendChild(btnsDiv);
+                    overlay.appendChild(confirmBox);
+                    document.body.appendChild(overlay);
+                    
+                    yesBtn.focus();
+                };
+                
+                const renderChips = (data) => {
                     content.innerHTML = "";
                     sourceLabel.textContent = `Source: ${data.source || 'unknown'}`;
                     
@@ -1274,16 +1321,53 @@ app.registerExtension({
                         
                         data.trained_words.forEach(word => {
                             const chip = document.createElement("div");
-                            chip.textContent = word;
-                            chip.style.cssText = `background: #2a3a2a; color: #4CAF50; padding: 4px 10px; border-radius: 12px; font-size: 11px; border: 1px solid #4CAF50; cursor: pointer; user-select: none;`;
+                            chip.style.cssText = `background: #2a3a2a; color: #4CAF50; padding: 4px 10px; border-radius: 12px; font-size: 11px; border: 1px solid #4CAF50; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; position: relative;`;
+                            
+                            const textSpan = document.createElement("span");
+                            textSpan.textContent = word;
+                            textSpan.style.cssText = `flex: 1;`;
+                            chip.appendChild(textSpan);
+                            
+                            const deleteBtn = document.createElement("span");
+                            deleteBtn.textContent = "✕";
+                            deleteBtn.style.cssText = `font-size: 10px; opacity: 0.5; cursor: pointer; padding: 0 2px; line-height: 1;`;
+                            deleteBtn.onmouseenter = () => { deleteBtn.style.opacity = "1"; deleteBtn.style.color = "#f44336"; };
+                            deleteBtn.onmouseleave = () => { deleteBtn.style.opacity = "0.5"; deleteBtn.style.color = "#4CAF50"; };
+                            deleteBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                showDeleteConfirmation(word, (confirmed) => {
+                                    if (confirmed) {
+                                        fetch("/rayko/remove_tag", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({ name: loraName, tag: word })
+                                        })
+                                        .then(res => res.json())
+                                        .then(result => {
+                                            if (result.error) {
+                                                showRaykoToast(result.error, "error", this);
+                                            } else {
+                                                showRaykoToast(`Tag "${word}" removed`, "success", this);
+                                                currentData = { ...currentData, trained_words: result.trained_words };
+                                                renderChips(currentData);
+                                            }
+                                        })
+                                        .catch(err => showRaykoToast("Failed to remove tag", "error", this));
+                                    }
+                                });
+                            };
+                            chip.appendChild(deleteBtn);
+                            
                             chip.onmouseenter = () => { chip.style.background = "#3a5a3a"; chip.style.borderColor = "#66dd66"; };
                             chip.onmouseleave = () => { chip.style.background = "#2a3a2a"; chip.style.borderColor = "#4CAF50"; };
-                            chip.onclick = () => {
-                                navigator.clipboard.writeText(word).then(() => {
-                                    showRaykoToast(`Copied: "${word}"`, "success", this);
-                                    popup.remove();
-                                    document.removeEventListener("keydown", handleEsc);
-                                }).catch(() => showRaykoToast("Failed to copy", "error", this));
+                            chip.onclick = (e) => {
+                                if (e.target !== deleteBtn && !deleteBtn.contains(e.target)) {
+                                    navigator.clipboard.writeText(word).then(() => {
+                                        showRaykoToast(`Copied: "${word}"`, "success", this);
+                                        popup.remove();
+                                        document.removeEventListener("keydown", handleEsc);
+                                    }).catch(() => showRaykoToast("Failed to copy", "error", this));
+                                }
                             };
                             twContainer.appendChild(chip);
                         });
@@ -1303,6 +1387,9 @@ app.registerExtension({
                             }).catch(() => showRaykoToast("Failed to copy", "error", this));
                         };
                         content.appendChild(copyBtn);
+                    } else {
+                        content.textContent = "No trained words found";
+                        content.style.color = "#888";
                     }
                     
                     if (data.description) {
@@ -1317,16 +1404,22 @@ app.registerExtension({
                         content.appendChild(desc);
                     }
                     
-                    if (!data.trained_words?.length && !data.description) {
-                        content.textContent = "No metadata available";
-                        content.style.color = "#888";
-                    }
-                    
                     const actionsDiv = document.createElement("div");
                     actionsDiv.style.cssText = `display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap;`;
                     
+                    const addTagsBtn = document.createElement("button");
+                    const hasTags = data.trained_words && data.trained_words.length > 0;
+                    addTagsBtn.textContent = "➕ Add Tags";
+                    addTagsBtn.style.cssText = hasTags 
+                        ? `flex: 1; background: #2a2a2a; color: #aaa; border: 1px solid #555; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 11px;`
+                        : `flex: 1; background: #3a2a1a; color: #fbbf24; border: 1px solid #fbbf24; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 11px;`;
+                    addTagsBtn.onmouseenter = () => addTagsBtn.style.background = hasTags ? "#3a3a3a" : "#4a3a2a";
+                    addTagsBtn.onmouseleave = () => addTagsBtn.style.background = hasTags ? "#2a2a2a" : "#3a2a1a";
+                    addTagsBtn.onclick = () => showTextarea();
+                    actionsDiv.appendChild(addTagsBtn);
+                    
                     const fetchBtn = document.createElement("button");
-                    fetchBtn.textContent = "🌐 Fetch from Civitai";
+                    fetchBtn.textContent = " Fetch from Civitai";
                     fetchBtn.style.cssText = `flex: 1; background: #3a2a1a; color: #fbbf24; border: 1px solid #fbbf24; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 11px;`;
                     fetchBtn.onmouseenter = () => fetchBtn.style.background = "#4a3a2a";
                     fetchBtn.onmouseleave = () => fetchBtn.style.background = "#3a2a1a";
@@ -1347,7 +1440,8 @@ app.registerExtension({
                                 content.style.color = "#f44336";
                                 sourceLabel.textContent = "";
                             } else {
-                                updateContent(result);
+                                currentData = result;
+                                renderChips(result);
                             }
                         } catch (err) {
                             content.textContent = "Network error";
@@ -1360,13 +1454,89 @@ app.registerExtension({
                     content.appendChild(actionsDiv);
                 };
                 
+                const showTextarea = () => {
+                    content.innerHTML = "";
+                    
+                    const textarea = document.createElement("textarea");
+                    textarea.style.cssText = `width: 100%; height: 120px; background: #111; color: #fff; border: 1px solid #444; border-radius: 4px; padding: 8px; font-size: 12px; font-family: monospace; resize: vertical; box-sizing: border-box;`;
+                    textarea.placeholder = "One tag per line\nEmpty lines will be ignored";
+                    content.appendChild(textarea);
+                    
+                    const btnsDiv = document.createElement("div");
+                    btnsDiv.style.cssText = `display: flex; gap: 8px; margin-top: 10px;`;
+                    
+                    const saveBtn = document.createElement("button");
+                    saveBtn.textContent = "💾 Save";
+                    saveBtn.style.cssText = `flex: 1; background: #1a3a2a; color: #4CAF50; border: 1px solid #4CAF50; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 11px;`;
+                    saveBtn.onmouseenter = () => saveBtn.style.background = "#2a4a3a";
+                    saveBtn.onmouseleave = () => saveBtn.style.background = "#1a3a2a";
+                    saveBtn.onclick = async () => {
+                        const text = textarea.value;
+                        const tags = text.split('\n').map(t => t.trim()).filter(t => t.length > 0);
+                        
+                        if (tags.length === 0) {
+                            showRaykoToast("No tags entered", "error", this);
+                            return;
+                        }
+                        
+                        saveBtn.textContent = "⏳ Saving...";
+                        saveBtn.disabled = true;
+                        saveBtn.style.opacity = "0.5";
+                        
+                        try {
+                            const res = await fetch("/rayko/add_tags", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ name: loraName, tags: tags })
+                            });
+                            const result = await res.json();
+                            
+                            if (result.error) {
+                                showRaykoToast(result.error, "error", this);
+                                saveBtn.textContent = " Save";
+                                saveBtn.disabled = false;
+                                saveBtn.style.opacity = "1";
+                                return;
+                            }
+                            
+                            showRaykoToast(`${result.added} tag(s) added`, "success", this);
+                            currentData = { ...currentData, trained_words: result.trained_words, source: "manual" };
+                            renderChips(currentData);
+                        } catch (err) {
+                            showRaykoToast("Failed to save tags", "error", this);
+                            saveBtn.textContent = "💾 Save";
+                            saveBtn.disabled = false;
+                            saveBtn.style.opacity = "1";
+                        }
+                    };
+                    btnsDiv.appendChild(saveBtn);
+                    
+                    const cancelBtn = document.createElement("button");
+                    cancelBtn.textContent = "❌ Cancel";
+                    cancelBtn.style.cssText = `flex: 1; background: #2a2a2a; color: #ccc; border: 1px solid #555; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 11px;`;
+                    cancelBtn.onmouseenter = () => cancelBtn.style.background = "#3a3a3a";
+                    cancelBtn.onmouseleave = () => cancelBtn.style.background = "#2a2a2a";
+                    cancelBtn.onclick = () => {
+                        if (currentData) {
+                            renderChips(currentData);
+                        }
+                    };
+                    btnsDiv.appendChild(cancelBtn);
+                    
+                    content.appendChild(btnsDiv);
+                    textarea.focus();
+                };
+                
                 fetch("/rayko/get_lora_info", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ name: loraName })
                 })
                 .then(res => res.json())
-                .then(updateContent)
+                .then(data => {
+                    currentData = data;
+                    renderChips(data);
+                })
                 .catch(err => {
                     content.textContent = "Error loading metadata";
                     content.style.color = "#f44336";

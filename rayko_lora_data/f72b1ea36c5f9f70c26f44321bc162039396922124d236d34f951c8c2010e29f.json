@@ -1,0 +1,10 @@
+{
+  "hash": "f72b1ea36c5f9f70c26f44321bc162039396922124d236d34f951c8c2010e29f",
+  "name": "Ghostly - CE",
+  "trained_words": [
+    "ghstlyCE_style"
+  ],
+  "description": "Please share your creations. I would love to see how you have used the LoRA. Weight around 0.7 suits most pictures, within a range of around 0.4 - 1.2 depending on desired level of effect.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:32:33.068696"
+}

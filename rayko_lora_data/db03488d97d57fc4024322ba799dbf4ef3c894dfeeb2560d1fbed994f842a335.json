@@ -1,0 +1,10 @@
+{
+  "hash": "db03488d97d57fc4024322ba799dbf4ef3c894dfeeb2560d1fbed994f842a335",
+  "name": "[FLUX] - Detailed Hands - FLUX LORA",
+  "trained_words": [
+    "character"
+  ],
+  "description": "To help with hands on flux generations.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:34:27.307603"
+}

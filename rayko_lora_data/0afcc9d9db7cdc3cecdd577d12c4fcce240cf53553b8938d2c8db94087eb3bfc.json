@@ -1,0 +1,11 @@
+{
+  "hash": "0afcc9d9db7cdc3cecdd577d12c4fcce240cf53553b8938d2c8db94087eb3bfc",
+  "name": "Watercolor Flux",
+  "trained_words": [
+    "kk_wcolor",
+    "watercolor painting"
+  ],
+  "description": "Turns you images into watercolor paintings with splotches, splatters and drippings Example prompt: a watercolor painting in kk_wcolor style of [rest of your prompt], white background with splotches, splatters and drips of paint.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:56:35.966024"
+}

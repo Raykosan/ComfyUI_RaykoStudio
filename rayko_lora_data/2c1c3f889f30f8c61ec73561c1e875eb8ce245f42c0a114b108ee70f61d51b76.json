@@ -1,0 +1,12 @@
+{
+  "hash": "2c1c3f889f30f8c61ec73561c1e875eb8ce245f42c0a114b108ee70f61d51b76",
+  "name": "DetailedEyes_XL",
+  "trained_words": [
+    "eyes",
+    "tool",
+    "detailed eyes"
+  ],
+  "description": "use 0 images for finetune XLbase，should fit any XL model(even anime) add detailed eyes、detailed face and detailed skin including neg part and fixed bad hands Less effect over 75 tokens",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:28:51.480156"
+}

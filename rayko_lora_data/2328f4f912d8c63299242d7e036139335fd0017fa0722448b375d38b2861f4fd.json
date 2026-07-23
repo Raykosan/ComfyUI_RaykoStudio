@@ -1,0 +1,14 @@
+{
+  "hash": "2328f4f912d8c63299242d7e036139335fd0017fa0722448b375d38b2861f4fd",
+  "name": "Mist Slider",
+  "trained_words": [
+    "concept",
+    "atmosphere",
+    "mist",
+    "slider",
+    "ground fog"
+  ],
+  "description": "A LoRA slider to control mist / ground-level fog. It works without any specific prompt with settings where fog is a common occurence, but if you notice the fog is missing, adding the \"mist\" keyword will help trigger the slider effects. The samples range from 0 (no ground mist) to 3.0 (a lot of ground mist).",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:31:51.490976"
+}

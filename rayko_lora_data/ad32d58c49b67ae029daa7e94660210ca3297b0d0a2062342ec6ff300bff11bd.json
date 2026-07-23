@@ -1,0 +1,12 @@
+{
+  "hash": "ad32d58c49b67ae029daa7e94660210ca3297b0d0a2062342ec6ff300bff11bd",
+  "name": "Qagatria",
+  "trained_words": [
+    "style",
+    "fantasy",
+    "realistic"
+  ],
+  "description": "NOTE : Base model category: ZImageTurbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:48:02.460467"
+}

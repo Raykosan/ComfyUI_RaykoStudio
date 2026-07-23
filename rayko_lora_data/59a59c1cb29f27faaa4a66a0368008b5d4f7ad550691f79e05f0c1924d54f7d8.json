@@ -1,0 +1,11 @@
+{
+  "hash": "59a59c1cb29f27faaa4a66a0368008b5d4f7ad550691f79e05f0c1924d54f7d8",
+  "name": "Shexyo Style - klein9b/Qwen-edit 2509",
+  "trained_words": [
+    "change photo into Shexyo style",
+    "color lineart into Shexyo style"
+  ],
+  "description": "klein9b Use change into shexyo style Lower strength keeps face shapes closer to original Works on anything including lineart qwen-edit Changes images-lineart to shexyo style change photo into Shexyo style color lineart into Shexyo style Known issues : adds steam , doesn't details certain stuff Reduce strength add other loras + promp words to controls what gets added",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:50:42.573021"
+}

@@ -1,0 +1,15 @@
+{
+  "hash": "fb80547ed79b47c1e3fea7bb9d36297e3917b2115fab6700ca1501350f9f483c",
+  "name": "Krea 2 Depth ControlNet LoRA",
+  "trained_words": [
+    "objects",
+    "controlnet",
+    "lora",
+    "krea-2",
+    "krea-2-raw",
+    "krea-2-turbo"
+  ],
+  "description": "Depth ControlNet LoRA for Krea 2 — better structure, layout, and depth-guided generation without needing a full ControlNet. Krea 2 Depth ControlNet LoRA adds depth-based structural control to Krea 2, helping guide composition, object placement, pose, and scene layout while keeping the model’s native image quality and style flexibility. It is useful for workflows where you want stronger control over generation using depth maps, especially in ComfyUI or custom inference pipelines. Trained for Krea 2 workflows and designed to be lightweight compared to a full ControlNet. Check it out here : Huggingface : https://huggingface.co/Patil/Krea-2-depth-controlnet Github : https://github.com/Tanmaypatil123/Krea-2-controlnet HF space : https://huggingface.co/spaces/hugging-apps/krea-2-depth-controlnet Comfy ui details : https://github.com/facok/comfyui-krea2-controlnet For more details on comfy ui on lower vram gpus check this : https://www.reddit.com/r/StableDiffusion/comments/1ummd2h/krea_2_depth_controlnet_lora/ For feedback, collaborations, or custom model work, reach out to me on X/Twitter: https://x.com/TanmayPatil79",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:28:43.052378"
+}

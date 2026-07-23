@@ -1,0 +1,13 @@
+{
+  "hash": "d22caae46030f6e20549ef8e41267901c2d968d6c4b72a12a61085d4010d4127",
+  "name": "Qwen-Image-Boreal (Boring Reality LoRA for Qwen)",
+  "trained_words": [
+    "photo",
+    "style",
+    "photorealism",
+    "boring reality"
+  ],
+  "description": "Boreal-Qwen-Image Overview Some attempts at a bo ring real ity style images with Qwen Image. These LoRAs were focused on training for very small detail, realistic lighting, and improvement in world knowledge results for the model (at least when involving people). They do have their drawbacks comparable to SDXL with distortion settling in really quickly when you increase the lora strengths and lower the cfg. Workflow Recommendations I recommend combining these loras together in whatever workflow you use. Have the general discrete lora set at a strength of 1.0 and the the portrait blend high rank model to something like 0.6 - 0.8. The small low rank discrete lora may help a bit, but you need to really experiment with it. You will need to experiment a lot to figure out the best results. I am still uncertain of the best way to work with Qwen yet and how I should approach newer versions for this style. ComfyUI Starting Out Example Workflow: https://huggingface.co/kudzueye/boreal-qwen-image/blob/main/boreal-qwen-workflow-v1.json",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:24:35.552007"
+}

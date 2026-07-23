@@ -1,0 +1,15 @@
+{
+  "hash": "a3d30cba6ea67a3ab3ec416f2f3ff8300eb93e10793ab000405a84a86cbe350e",
+  "name": "Undress / Naked Slider",
+  "trained_words": [
+    "slider",
+    "tool",
+    "undress",
+    "nude",
+    "naked",
+    "loraholic"
+  ],
+  "description": "Undress / Naked Slider After over 20 tries, i was about to give up on this LoRA. But then i tried to merge a whole lot of the decent results i got into one LoRA, and it turned out ok-ish. The model is Rank 19 FP32, and i think i merged 16 LoRAs in total. But there is some problems: - Strength depend a lot on the prompt - There is a good chance some clothes will melt into the skin - There is way to much background blur - Subject also gets their makeup removed, and look like they just got out of bed. (SEE FIX AT THE BOTTOM OF DESCRIPTION) But its possible to work around all these problem with a little trial and error. The Sampler/Scheduler is also something that you have to change up a bit based on the type of image. I would recommend these if euler + simple is hard to tame: - res_2s + simple at 6-10 steps for the really hard images - DPM 2M SDE + Linear_quadratic at 14++ steps is also good Recommended range is hard to say, but between 1.0 and 3.0 is the limit 90% of the time. To fix the \"just got out of bed\" -look i would stongly recommend using a face-detailer, or a good quality character LoRA, for example these: RLY Thot Shot - Marley RLY Thot Shot - Qingyi RLY Thot Shot - Jada RLY Thot Shot - Soleil RLY Thot Shot - Carolina BUT STAY FAR AWAY FROM SHIT-CHARACTER LORAS FROM RANDOM CREATORS. Find the image i have of a woman with a dragon that i use everywhere to test LoRAs, and do a test generation with the character LoRA you are planning to use, to see if the character LoRA makes everything look like plastic. All my work is 100% free. The only thing that really matters to me is people leaving a review , good or bad . I will NEVER remove or block anyone for leaving a bad review, so don't be afraid to give me criticism. I'm stating this because when a creator blocks someone for leaving a bad review, that person can no longer see any of the creator's models, essentially muting their critics. This is something I'm highly critical of, and I believe it's a fundamental quality problem on this site.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:54:33.683455"
+}

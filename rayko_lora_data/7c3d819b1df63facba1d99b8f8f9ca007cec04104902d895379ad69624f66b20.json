@@ -1,0 +1,10 @@
+{
+  "hash": "7c3d819b1df63facba1d99b8f8f9ca007cec04104902d895379ad69624f66b20",
+  "name": "RealComic",
+  "trained_words": [
+    "changed the image into realcomic style"
+  ],
+  "description": "Due to the controversial updated terms of service on Civitai, in the future, I will only release the Base version of the model. The self-used Plus version will only be shared with members on Patreon. If you are interested in this, you are welcome to join my Patreon membership, and I have also prepared a small gift for you. About LoRA Converting photos into hand-drawn illustrations with a realistic touch has good compatibility with most 3D styles and hand-drawn styles. It supports speed LoRA, all schedulers are good except \"simple\". Most of the test images you see come from \"sgm\". This LoRA has two versions: the one you obtain on CivitAI is its basic version. Meanwhile, I will optimize it based on the test results of the basic version and train a Plus version. The Plus version, as a private model, will be shared with members on my Patreon. You can check the differences between them here. Differences between the Plus version and the Base version 1. The colors of the Plus version are more vivid 2. The Plus version makes fewer changes to the image. 3、The texture of the Plus version is more delicate, and the details are more abundant Get the Plus version Tips While converting the image style, the image content can be edited. From the test results, the Plus version is also superior to the Base version in this aspect. prompt：changed the image into realcomic style, Turn the woman holding a baby into a robot 🙈🙉🙊🐵 OK! That's all If you like my work, please give it a 👍. If you like my work, you are welcome to join my Paytreo. Here, you will get more of my private models, workflows, practical tips, and photo collections. I have also prepared a small gift for you. Thank you for reading this far. English is not my native language. The above is translated by AI. If there is anything inappropriate, welcome to correct me. Finally, I hope you have fun！ 👉👉👉My CivitAI homepage👈👈👈",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:10:58.200661"
+}

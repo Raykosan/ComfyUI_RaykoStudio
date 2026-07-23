@@ -1,0 +1,13 @@
+{
+  "hash": "c1695f18b3a84ba5c4fc2805cadd4d23148bf1af41f775c566a0941d10a8fa7a",
+  "name": "Sunset Splendor - CE",
+  "trained_words": [
+    "warm",
+    "style",
+    "sunset hues",
+    "tones"
+  ],
+  "description": "Please share your creations. I would love to see how you have used the LoRA. My ComfyUI Flux workflow now incorporates the Long Clip Encoder, which is purported to improve image details. ComfyUI Long Clip The developers describe it thusly: This project implements the comfyui for long-clip, currently supporting the replacement of clip-l. For SD1.5, the SeaArtLongClip module can be used to replace the original clip in the model, expanding the token length from 77 to 248. Through testing, we found that long-clip improves the quality of the generated images. As for the SDXL model, since the clip-long model for clip-g has not been released, our processing procedure is as follows: for smaller tokens, we expand them by an integer multiple of the original max_len, and since the last added are pad_tokens, we trim the excess part. Given that clip-g features occupy a larger proportion in SDXL, you may notice more detailed images. So far I'm pleased with the results. They seem to have improved quality and sharpness. Please do not distribute this LoRA to other platforms. I will be very cranky if I discover it elsewhere. Whilst I would appreciate credit in your images, I am not insisting on it.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:53:27.542293"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "9ed2e145b5303ab7a9de79916c238832d2fbe75e3f6a91af5024ef063e21560d",
+  "name": "National Geographic High Fantasy Photo",
+  "trained_words": [
+    "National Geographic High Fantasy Photo"
+  ],
+  "description": "This LoRA is National Geographic photography fused with high fantasy . Documentary-style wildlife shots of mythical creatures in real ecosystems, sharp telephoto focus, natural lighting, photorealistic textures. It was inspired by the work of Frans Lanting, Alan Lee, and Peter Jackson.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:45:17.641026"
+}

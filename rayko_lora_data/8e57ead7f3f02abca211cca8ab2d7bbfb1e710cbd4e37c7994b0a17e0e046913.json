@@ -1,0 +1,10 @@
+{
+  "hash": "8e57ead7f3f02abca211cca8ab2d7bbfb1e710cbd4e37c7994b0a17e0e046913",
+  "name": "Velvet's Mythic Fantasy Styles | Flux + Pony + illustrious + ZiT + Anima + Krea2",
+  "trained_words": [
+    "R3alism"
+  ],
+  "description": "Update Flux Version The new version has been trained to work on Flux models. From my testing Flux is amazing with sentence like prompts, and turns booru prompts to anime pics that don't have a lot of details but this LoRA fixes that: I tested it on SD Forge using the NF4 model and it work fine, you just need to change the Diffusion in Low Bits from Automatic to Automatic (fp16 LoRA) like this: The rest of the LoRAs are designed to work with Pony Diffusion XL , or any other Pony model. How to use 1- Manga Style (Blood Moon): Made from high quality monochrome images to give you a manga feel, oh and I called it blood moon because if you have something red in your prompt you might get a cool effect xD. Trigger words: This LoRA is without Trigger Words, but having \"monochrome, greyscale\" in your prompt can greatly enhance the results. Works on: 0.6-1 weights 2- Anime Illustrations Style: Made from very colorful and high quality data to improve your images and give them a badass feel. Trigger words: MythAn1m3 Works on: 0.6-1 weights. 3- Portrait Style: This style is made to create high quality portraits of fantasy characters, and most of the training data is made with semi realistic art style. Trigger words: MythP0rt Works on: 0.6-1 weights. 4- Flux: This style is made to create high quality fantasy art, and it has training data similar to the Portrait Style Trigger words: MythP0rt Works on: 0.5-1.5 weights, feel free to experiment but I recommend you to put the weight at 1. Other styles coming soon. If you have any problem try copying generation data from my examples, or send me a DM I can't wait to see what other people make with this :)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:45:16.973792"
+}

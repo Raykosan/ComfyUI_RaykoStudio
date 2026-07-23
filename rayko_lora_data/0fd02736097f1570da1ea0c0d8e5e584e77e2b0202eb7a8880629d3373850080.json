@@ -1,0 +1,12 @@
+{
+  "hash": "0fd02736097f1570da1ea0c0d8e5e584e77e2b0202eb7a8880629d3373850080",
+  "name": "Replace Subject [Klein 4B & 9B]",
+  "trained_words": [
+    "replace the person in Image 1 with the person in Image 2",
+    "replace the man in Image 1 with the man in Image 2",
+    "replace the woman in Image 1 with the woman in Image 2"
+  ],
+  "description": "Allows you to replace a subject in the first control image with a subject in the second control image. The model will skew towards preserving existing details if the secondary control image does not include the relevant details and the prompt leaves them unspecified. For example, if you are using a head/torso image as the new subject, but the original image was zoomed out more and the person being replaced has jeans, the new person will also be wearing jeans unless you specify otherwise. For best results, try to have comparable framing, camera angle, and number of subjects in both images. replace the person in Image 1 with the person in Image 2 replace the man in Image 1 with the man in Image 2 replace the woman in Image 1 with the woman in Image 2 Model Comparisons: Copy Pose will preserve the subject and background in Control 1, while bringing the framing/pose of Control 2 Replace Subject will preserve the framing/pose and background in Control 1, while bringing the subject of Control 2 Replace Scene will preserve the subject and pose in Control 1, while bringing the background scene of Control 2 California AB 2013 Training Data Disclosure This LoRA was fine-tuned using visual data consisting entirely of synthetic still images. The training data may include copyrighted material owned by third parties. No training data was licensed or purchased. This LoRA is provided for non-commercial use only under the terms of its distribution. The dataset consists of over 100 image sets (over 300 images total). This is the total used for training after low quality sets were culled. Dataset was created in 2026. Image data was processed through standard resizing, cropping, normalization, and labeling steps. Synthetic images were included as part of the training dataset. This model is intended for non-commercial, experimental, and educational use. Generated outputs may reflect copyrighted visual styles or themes associated with the underlying training data. Users are responsible for ensuring compliance with applicable copyright law, other intellectual property laws, and all other applicable laws.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:49:40.227310"
+}

@@ -1,0 +1,11 @@
+{
+  "hash": "5c66d6023e9e6d34b98c14083526e9b7d5c76636867de9bc36ca4b7a723419b6",
+  "name": "Space Worlds 02 : Dark - ZIT",
+  "trained_words": [
+    "z1os",
+    "ultra detailed."
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) - Space Worlds 02 : Dark This is from a very old dataset of 200 pics. I reworked all the captions , then trained the lora as a style. There are lots of possibilities. I won't give all the prompts but look at all the pics for a set of 40 ;) Background and Characters lora. -- HOW TO USE : Strength : 1 tested Steps : 15 Checkpoints : Any. I used the Base BF16 model Adetailer : your choice Sampler : EULER used Sheduler : NORMAL used -- Main trigger words : z1os, ultra detailed. -- Look at pics for prompts examples :) -- Have fun :)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:51:57.544926"
+}

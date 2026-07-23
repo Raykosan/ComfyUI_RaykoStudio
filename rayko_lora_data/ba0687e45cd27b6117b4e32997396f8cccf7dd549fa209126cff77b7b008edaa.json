@@ -1,0 +1,10 @@
+{
+  "hash": "ba0687e45cd27b6117b4e32997396f8cccf7dd549fa209126cff77b7b008edaa",
+  "name": "Pose Transfer - Qwen Edit",
+  "trained_words": [
+    "transfer the pose in the image on the left to the person in the image on the right"
+  ],
+  "description": "Help support development on Patreon A tool to create input images Use the prompt: transfer the pose in the image on the left to the person in the image on the right Strength: 1 - 1.25 Tips For V2: This version should be much better at understanding your poses. Works best with front facing poses Images are submitted with the left half is the pose and the right half is the model whose pose will be adjusted At a minimum, remove the background of your poses ensuring a pure white background with your pose centered",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:47:42.590241"
+}

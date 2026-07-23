@@ -1,0 +1,11 @@
+{
+  "hash": "dad25af40d395aecfddd2d92281ffb4cd10627311b2fa59f6feba8b713f9dd16",
+  "name": "Hyperdetailed Illustration",
+  "trained_words": [
+    "ArsMJStyle",
+    "HyperDetailed Illustration"
+  ],
+  "description": "This LoRA is trained on a hyper-detailed fantasy illustration style blending anime aesthetics with Japanese woodcut influences, intricate realism, and vibrant compositions.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:35:54.972134"
+}

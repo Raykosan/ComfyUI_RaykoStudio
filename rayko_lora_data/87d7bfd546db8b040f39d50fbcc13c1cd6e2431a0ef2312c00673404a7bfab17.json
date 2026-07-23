@@ -1,0 +1,14 @@
+{
+  "hash": "87d7bfd546db8b040f39d50fbcc13c1cd6e2431a0ef2312c00673404a7bfab17",
+  "name": "Brightness Slider - Krea2",
+  "trained_words": [
+    "shadow",
+    "tool",
+    "light",
+    "slider",
+    "loraholic"
+  ],
+  "description": "Brightness Slider This is not the same as my Light Slider . This is more like changing exposure, and the whole image change, instead of bumping contrast like my light slider does. Its a bit backward, in the sense that brighter is negative, but i suspect most people going to use ut to make the image darker, so you can use pos value. It is also the same direction as the Light Slider to make it somewhat consistant accross LoRAs. I will say the same as on my light slider: light LoRAs will almost always degrade quality , at least a little. So its best to use prompting as the main light controller, and use loras to push a little extra. Or use dedicated brightness and contrast nodes instead of a LoRA. Recommended range: -5.0 to 5.0",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:24:37.410298"
+}

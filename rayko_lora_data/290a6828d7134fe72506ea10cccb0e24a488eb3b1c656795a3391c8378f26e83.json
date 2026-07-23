@@ -1,0 +1,17 @@
+{
+  "hash": "290a6828d7134fe72506ea10cccb0e24a488eb3b1c656795a3391c8378f26e83",
+  "name": "ROOMS : Spaceship Lab - ZIT",
+  "trained_words": [
+    "futuristic",
+    "spaceship",
+    "science fiction",
+    "corridor",
+    "background",
+    "indoors",
+    "ship",
+    "hall"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) - SPACESHIP LAB V1 and V2 I think the hall serie is almost over. I do have some left but for now, let's something else ^^ So here are some lab spaces. -- HOW TO USE : Strength : 1 tested Steps : 15 tested Checkpoints : Any but I used the Base BF16 model. Adetailer : your choice Sampler : Tested with EULER Scheduler : NORMAL tested. -- No main trigger word -- Have fun :)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:52:10.024774"
+}

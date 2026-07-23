@@ -1,0 +1,24 @@
+{
+  "hash": "cf3e58e40f46828959c8f6a93da0bdc5b0891a0c6a4fd17e2a63fd098fa4022b",
+  "name": "Qwen-Image-Edit-2509-Photo-to-Anime",
+  "trained_words": [
+    "anime",
+    "manga",
+    "style",
+    "lora",
+    "image-to-image",
+    "qwen",
+    "qwen-image",
+    "qwen-image-edit",
+    "qwen-image-edit-2509",
+    "autoweeb",
+    "convert-photo",
+    "image-conversion",
+    "phototoanime",
+    "photo-to-anime",
+    "photo2anime"
+  ],
+  "description": "Qwen-Image-Edit-2509 Photo-to-Anime Turns any photo into an anime image. This model was made for AutoWeeb, the AI anime creator Twitter / YouTube / TikTok Getting Started Hugging Face 🤗 app Works well with simple prompts and high-resolution photos. Try \"transform into anime\" . AutoWeeb blog post about this model Finetuned from Qwen/Qwen-Image-Edit-2509. This model seems to work best with Phr00t/Qwen-Image-Edit-Rapid-AIO",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:10:52.969751"
+}

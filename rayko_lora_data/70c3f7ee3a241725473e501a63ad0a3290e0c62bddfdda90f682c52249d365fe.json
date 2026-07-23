@@ -1,0 +1,12 @@
+{
+  "hash": "70c3f7ee3a241725473e501a63ad0a3290e0c62bddfdda90f682c52249d365fe",
+  "name": "CivChan Unofficial Qwen",
+  "trained_words": [
+    "CivChan",
+    "Pink Hair",
+    "Maid Outfit"
+  ],
+  "description": "Didn't see a CivChan Lora for Qwen yet, so I decided to make one.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:25:44.934077"
+}

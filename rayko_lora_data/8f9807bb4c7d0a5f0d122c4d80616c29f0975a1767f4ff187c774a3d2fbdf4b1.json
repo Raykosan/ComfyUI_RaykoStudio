@@ -1,0 +1,13 @@
+{
+  "hash": "8f9807bb4c7d0a5f0d122c4d80616c29f0975a1767f4ff187c774a3d2fbdf4b1",
+  "name": "Modern Fantasy Paint Art",
+  "trained_words": [
+    "art",
+    "style",
+    "illustration",
+    "fantasy"
+  ],
+  "description": "Attempt to make a fantasy-oriented style mimicking an atmosphere of TTRPG book art and video game concept and cover art. Chroma 0.1 Alpha It's an alpha version. It works not fully as intended (especially with booru tags) but seems decent enough to be published. Chroma 0.5 Beta Some improvement. Usable for characters and simple scenes. Very dependent on prompt details. Flux V1 Seems good enough but needs accurate prompting - sometimes biased to photorealism.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:44:40.105380"
+}

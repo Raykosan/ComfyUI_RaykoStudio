@@ -1,0 +1,14 @@
+{
+  "hash": "edf60f4e291e98a252500b7970f9b4afad6d4c4ef9b3b3ff5f6431e700f63a15",
+  "name": "Gender slider",
+  "trained_words": [
+    "person",
+    "concept",
+    "slider",
+    "gender",
+    "transition"
+  ],
+  "description": "This LoRA slider was trained on the concept of \"male\" and \"female\" related to a person and influes on the physical appearance. Some of the sample images prompts do not specify the gender so the transition is smooth, from weight -2.0 (womanly) to 2.0 (manly), but specifying a gender in the prompt (like woman for example) and pushing the weight towards the opposite gender yields interresting results too.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:32:25.669435"
+}

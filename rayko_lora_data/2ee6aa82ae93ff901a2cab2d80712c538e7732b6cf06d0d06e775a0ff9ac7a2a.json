@@ -1,0 +1,10 @@
+{
+  "hash": "2ee6aa82ae93ff901a2cab2d80712c538e7732b6cf06d0d06e775a0ff9ac7a2a",
+  "name": "Dreamy SemiReal Pro Ultra Fantasy FLUX LoRA",
+  "trained_words": [
+    "style"
+  ],
+  "description": "✨ Dreamy SemiReal Pro Ultra Fantasy ✨ I appreciate everyone who has tried out my LoRA, given feedback, and shared BUZZ tips with me! I hope you enjoy using it, and please share your results—I can't wait to see your creations! This LoRA is designed to enhance image generation by infusing a dreamy, semi-realistic, and fantastical aesthetic into your outputs. Trained on the Flux.1 D base model, it allows for the creation of images that blend realistic elements with imaginative fantasy themes. Key Features: Dreamy Semi-Realism: Produces images that combine realistic details with a soft, dream-like quality, ideal for fantasy art and ethereal scenes. Ultra Fantasy Elements: Incorporates high-fantasy components, enabling the generation of imaginative and otherworldly visuals. Versatility: Suitable for a range of applications, including digital illustrations, concept art, and creative projects requiring a blend of realism and fantasy. Strengths Dreamy Aesthetic: Combines realism with fantasy for magical, ethereal visuals. Versatile: Great for characters, landscapes, and mythical designs. Detailed Textures: Produces intricate details in skin, clothing, and environments. Lighting Effects: Handles glowing and ambient lighting beautifully. Beginner-Friendly: Works well with simple prompts and minimal tweaking. Weaknesses Fantasy-Focused: Struggles with ultra-realistic or modern designs. Over-Enhanced Effects: Can look overprocessed if not adjusted. Prompt Sensitivity: Requires detailed prompts for nuanced results. Blending Issues: Inconsistent when mixed with some models. Complex Structures: Limited realism for intricate architecture or mechanics.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:29:48.221214"
+}

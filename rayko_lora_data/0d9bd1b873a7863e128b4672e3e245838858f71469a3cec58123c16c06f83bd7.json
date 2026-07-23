@@ -1,0 +1,14 @@
+{
+  "hash": "0d9bd1b873a7863e128b4672e3e245838858f71469a3cec58123c16c06f83bd7",
+  "name": "Detail Tweaker XL",
+  "trained_words": [
+    "concept",
+    "detailed",
+    "detail",
+    "enhancer",
+    "undetailed"
+  ],
+  "description": "Detail tweaker for SDXL. Works with weights [-3, 3] Use positive weight to increase details and negative weight to reduce details. Good weight depends on your prompt and number of sampling steps, I recommend starting at 1.5 and then adjusting it.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:16:20.488989"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "1bea9fd4de174558d5e668d7c1f8ee454f54ee8d7f4310afe2610c5ce3e528aa",
+  "name": "Mangaka II",
+  "trained_words": [
+    "Mangaka style"
+  ],
+  "description": "NOTE : Base model : Z Image Turbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. VERY IMPORTANT NOTE : Do not like my models, do not give me buzz, do not follow me, otherwise you will be reported to Civitai for attempted corruption",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:43:24.632989"
+}

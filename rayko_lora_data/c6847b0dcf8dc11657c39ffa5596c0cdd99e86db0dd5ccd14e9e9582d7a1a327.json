@@ -1,0 +1,13 @@
+{
+  "hash": "c6847b0dcf8dc11657c39ffa5596c0cdd99e86db0dd5ccd14e9e9582d7a1a327",
+  "name": "SRPO LoRAs",
+  "trained_words": [
+    "concept",
+    "realistic",
+    "flux",
+    "srpo"
+  ],
+  "description": "These LoRAs were extracted from three sources : - Oficial = the original SRPO (Flux.1-Dev): tencent/SRPO - community checkpoint: rockerBOO/flux.1-dev-SRPO (For now, the loras have not been published here on civitai but they are on huggingface. ) - R&amp;Q = community checkpoint (quantized/refined): wikeeyang/SRPO-Refine-Quantized-v1.0 They are designed to provide modular, lightweight adaptations you can mix with other LoRAs, reducing storage and enabling fast experimentation across ranks (8, 16, 32, 64, 128). You can choose between multiple ranks: 8, 16, 32, 64, or 128 . Lower ranks are lighter and faster to use; higher ranks preserve more detail. ⚠️ Note: Depending on the quantized model you choose as a base, you may need to adjust the LoRA strength. I personally had very good results with flux1-dev-SRPO-Q&amp;R r128 . Sometimes it may be necessary to increase the strength above 1.0 — for example, 1.1 or 1.2 . Keep in mind that the required strength can vary depending on the quantized model you use. For example, my tests were done with a GGUF Q8 build, but other Flux Dev quantized versions may need different adjustments. The recommended config for evaluating differences between models is: Sampler: Euler Scheduler: Beta Steps: 50 CFG: 1.0 This setup makes it easier to notice the differences across models. If you want results that look closer between them, you can instead try: Sampler: Euler Scheduler: Beta Steps: 25 CFG: 1.0 These settings still need further testing, but so far they’ve shown promising consistency. These LoRAs are fully modular — you can mix them with other LoRAs , adjust their strength as you wish, or even merge them into other models . Other models not posted here can be found on huggingface: HERE 🙏 Credits &amp; License SRPO by Tencent → tencent/SRPO Flux.1-Dev by Black Forest Labs (licensed under the FLUX.1 [dev] Non-Commercial License) ⚠️ Important Notice These LoRAs are provided for research and personal non-commercial use only , in compliance with the licenses of SRPO and Flux.1-Dev. This project is an independent extraction and adjustment of LoRAs — it is not affiliated with or endorsed by Tencent or Black Forest Labs .",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:52:47.030242"
+}

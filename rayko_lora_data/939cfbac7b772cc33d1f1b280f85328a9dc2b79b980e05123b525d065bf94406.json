@@ -1,0 +1,10 @@
+{
+  "hash": "939cfbac7b772cc33d1f1b280f85328a9dc2b79b980e05123b525d065bf94406",
+  "name": "Comic book | Tome 1",
+  "trained_words": [
+    "Comic book style"
+  ],
+  "description": "NOTE : Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:26:35.585121"
+}

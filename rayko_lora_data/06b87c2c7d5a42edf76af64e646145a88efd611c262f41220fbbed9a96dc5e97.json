@@ -1,0 +1,11 @@
+{
+  "hash": "06b87c2c7d5a42edf76af64e646145a88efd611c262f41220fbbed9a96dc5e97",
+  "name": "Light Slider - Krea2",
+  "trained_words": [
+    "tool",
+    "loraholic"
+  ],
+  "description": "Light Slider, sort of. This is a Light Slider that prioritize the darkest parts of the scene while the focus areas stay lit to some degree. If you want a more neutral effect you should use my Brightness Slider instead. There is a sample showing the difference beteween these slider in the Brightness Slider samples. Light LoRAs will almost always degrade quality , at least a little. So its best to use prompting as the main light controller, and use loras to push a little extra. Or use dedicated brightness and contrast nodes instead of a LoRA. The sample images was made with a 2-step workflow where the LoRAs only was used on the first pass, and i would recommend the same to keep the image quality high. Check out my prompting guide to master zoom/perspective: Controlling \"Zoom\" With Words Alone Recommended range: -5.0 to 8.0",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:40:08.212743"
+}

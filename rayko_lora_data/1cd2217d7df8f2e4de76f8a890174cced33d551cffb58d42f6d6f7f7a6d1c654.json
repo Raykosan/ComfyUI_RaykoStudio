@@ -1,0 +1,10 @@
+{
+  "hash": "1cd2217d7df8f2e4de76f8a890174cced33d551cffb58d42f6d6f7f7a6d1c654",
+  "name": "Wan14B_Detailer/Enhancer_T2V",
+  "trained_words": [
+    "cinemoraX"
+  ],
+  "description": "Realism Detailer for Wav2.1 14B Text-to-Video Description : This LoRA, activated with cinemoraX , enhances realism , texture , and cinematic depth in videos made with Wav2.1 14B . It sharpens visuals, boosts lighting realism, and adds that extra polish to make your scenes pop. 🔧 Recommended strength : 1.5 (adjust to your liking) 🎯 Trigger word : cinemoraX ⚡ Note : All example videos also use the \"causVid\" LoRA to speed up rendering—great results in as few as 6 steps (instead of 20–30). 🧠 Prompting help : All prompts for the examples were crafted using my custom GPT 👉 WAN Cinematic Video Prompt Generator Best for : Cinematic flair Enhanced lighting and contrast Sharper more refined details Use this LoRA for elevated visuals—and pair it with causVid + the prompt generator GPT for a killer workflow. 🎥🚀",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:55:15.349828"
+}

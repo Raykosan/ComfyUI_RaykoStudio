@@ -1,0 +1,16 @@
+{
+  "hash": "1339408d54b7738fa70b1e735e7a68398402b0089565ba9ac225baeb7f974f67",
+  "name": "Comics Factory | Tome 2 (V2T2)",
+  "trained_words": [
+    "Gavenine art style",
+    "painting",
+    "portraiture",
+    "drawing",
+    "portrait art",
+    "portrait",
+    "style"
+  ],
+  "description": "Steps : 8 Sampler : Seed_3 Scheduler : Normal Weighting : around 0.75",
+  "source": "civitai",
+  "imported_at": "2026-07-22T23:27:07.157090"
+}

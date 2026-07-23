@@ -1,0 +1,13 @@
+{
+  "hash": "61dc5a371725e90e33e591a9babe12441c763855877045c2d5ea7aa38d0b6165",
+  "name": "Painterly - CE",
+  "trained_words": [
+    "watercolor",
+    "oil painting",
+    "style",
+    "painterly"
+  ],
+  "description": "A style with strong artistic elements, especially for watercolor.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:46:27.648324"
+}

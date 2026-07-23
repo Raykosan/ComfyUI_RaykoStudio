@@ -1,0 +1,10 @@
+{
+  "hash": "9ee67fbb02ff138f43c87998591d100804116120f888ec67f05fb61e630f35a3",
+  "name": "Extract Texture - Qwen Image Edit 2509/2511",
+  "trained_words": [
+    "Extract {texture description} texture from the {object descrption}. Extract into a texture image."
+  ],
+  "description": "https://huggingface.co/tarn59/extract_texture_qwen_image_edit_2509 https://huggingface.co/tarn59/extract_texture_qwen_image_edit_2511 Extract a texture image from a given object. Works best if the texture is a repeated pattern. Prompt: Extract {texture description} texture from the {object descrption}. Extract into a texture image. Example: Extract the fabric texture from the carpet. Extract into a texture image. Also helps to call it a fabric or wallpaper texture. Trigger words You should use Extract {texture description} texture from the {object descrption}. Extract into a texture image. to trigger the image generation. Pairs well with Apply Texture: https://civitai.com/models/2123174?modelVersionId=2401675",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:10:28.836506"
+}

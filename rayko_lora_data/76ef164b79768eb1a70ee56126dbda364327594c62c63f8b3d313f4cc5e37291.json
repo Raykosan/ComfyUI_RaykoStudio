@@ -1,0 +1,10 @@
+{
+  "hash": "76ef164b79768eb1a70ee56126dbda364327594c62c63f8b3d313f4cc5e37291",
+  "name": "InkPunk",
+  "trained_words": [
+    "InkPunk art style"
+  ],
+  "description": "NOTE : Base model : Z Image Turbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. VERY IMPORTANT NOTE : Do not like my models, do not give me buzz, do not follow me, otherwise you will be reported to Civitai for attempted corruption",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:38:00.557498"
+}

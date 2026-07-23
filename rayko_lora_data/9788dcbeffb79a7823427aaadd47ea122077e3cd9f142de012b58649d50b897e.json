@@ -1,0 +1,10 @@
+{
+  "hash": "9788dcbeffb79a7823427aaadd47ea122077e3cd9f142de012b58649d50b897e",
+  "name": "F2K_Sb-细节realistic",
+  "trained_words": [
+    "style"
+  ],
+  "description": "F2K_Sb-细节realistic # 📸 Klein9B Realistic Anime Converter (NSFW Supported) This LoRA is trained on top of the Klein9B base model. It is designed to convert anime-style characters into photorealistic humans while maintaining their original features. It supports both SFW and NSFW generation. --- ### ✨ Features - Anime to Real: effectively transforms 2D anime concepts into realistic photography styles. - Based on Klein9B: Inherits the high-quality texture and lighting capabilities of the Klein9B model. - NSFW Capable: Supports mature themes. ### ⚙️ Recommended Settings - Base Model: Klein9B (or compatible realistic model) -- Weight: 0.6 - 1.0 (Recommended: 0.8) - Steps: 25 - 35 - Sampler: DPM++ 2M Karras / Euler a ### 🚫 Important Notes - This model is intended for generating realistic human images from anime prompts. - NSFW: This resource contains mature themes. Please use responsibly and in accordance with local laws.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:48:54.284962"
+}

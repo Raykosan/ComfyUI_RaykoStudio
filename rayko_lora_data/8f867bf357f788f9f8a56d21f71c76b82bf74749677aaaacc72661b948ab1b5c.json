@@ -1,0 +1,10 @@
+{
+  "hash": "8f867bf357f788f9f8a56d21f71c76b82bf74749677aaaacc72661b948ab1b5c",
+  "name": "nistyle - manga sketch & detail",
+  "trained_words": [
+    "nistyle"
+  ],
+  "description": "Manga inspired lora. dark, creates deep shadows and add details. tends to heterochromia in portraits",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:43:21.885975"
+}

@@ -1,0 +1,13 @@
+{
+  "hash": "97bdfabe4fd03cad2805a9de5f0666cea05e0f22d391c9ff19cc5ca22797a081",
+  "name": "Breasts and Nipple Enhancer Qwen",
+  "trained_words": [
+    "tiny/small/medium/large sized areoles",
+    "tiny/small/medium/large breasts",
+    "pale/ghost/brown/dark areoles",
+    "hard/erect nipples"
+  ],
+  "description": "Edit Oct 13: After several users approached me and mentioned that 2GB is too much for a breasts LoRA (very rightfully so) I have released an additional version that's 1GB (Rank 64), the results are not as good as the full 2GB version but definitely works. I have done multiple training runs on 2xH200 on RunPod with ranks 16/32/64/128 and ended up uploading the 128 variant as it seems to be generating the best results. Dataset was trained with the following key words: tiny/small/medium/large sized areoles tiny/small/medium/large sized breasts pale/brown/dark/ghost areoles hard/erect nipples These definitely help with generating variations in results. Most of my testings were done with my Qwen character LoRAs (none of them had naked images in the dataset) I've also did some testing without my character LoRAs and the results were similar. This is not perfect but much better than base Qwen. Join my Discord server for updates on new LoRAs, tips &amp; tricks, Workflows, RunPod templates and the holy right to be close to an amazing charismatic person like myself: https://discord.gg/fyha5Pzm Enjoy!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:37:12.817497"
+}

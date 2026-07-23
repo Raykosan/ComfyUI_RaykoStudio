@@ -1,0 +1,15 @@
+{
+  "hash": "b53464581dbb35fd6984e1313cffd2c84df3363d91861b32e6063efce42f875e",
+  "name": "FLUX - Booster for Glow / Lightning / Reflection / Illumination (FLUX)",
+  "trained_words": [
+    "aidmaGlow",
+    "illumination",
+    "lightning",
+    "concept",
+    "reflection",
+    "glow"
+  ],
+  "description": "v0.1",
+  "source": "civitai",
+  "imported_at": "2026-07-23T14:50:57.462475"
+}

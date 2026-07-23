@@ -1,0 +1,10 @@
+{
+  "hash": "e5ca75e2253acb112082195609502063b4af401c6ac5bad9086ed7d7775c3c6c",
+  "name": "Sketching",
+  "trained_words": [
+    "Bradhamel art style"
+  ],
+  "description": "NOTE : Base model : Z Image Turbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:51:04.827554"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "46685cc3ce75426301dffefedb4264ac7b07929402255cb790ccd98989f6fc69",
+  "name": "Yet Another Watercolor Style",
+  "trained_words": [
+    "yawc1 watercolor"
+  ],
+  "description": "Yet another watercolor style, trained using synthetic images generated with SDXL and SDXL Niji SE. The goal of the LoRA is flexibility, so that it can be used with other LoRAs without introducing too much of its own aesthetics. Known problem with the two earlier versions: the face is always Caucasian. The problem has been fixed by mixing in images of Asians. All versions work well (no captioned version seems a bit more flexible though), and can produce nice images at 8 steps with https://civitai.com/models/686704/flux-dev-to-schnell-4-step-lora (Seems to work a bit less well with https://civitai.com/models/678829/schnell-lora-for-flux1-d , but the tests are not conclusive) The last epochs are posted here. You can find earlier epochs here: tensor. art/models/799475546439540972/YAWC-Watercolor-5CosD4A2R20NoC-2024-11-23-22:59:14-Ep-9 tensor. art/models/799093298644978244/YAWC-Watercolor-5CosD6A3R20NoC-2024-11-22-23:12:45-Ep-9 tensor. art/models/798371619585168991/YAWC-Watercolor-5CosD4A2R20E8-2024-11-21-00:29:10-Ep-8 tensor. art/models/798765094424184653/YAWC-Watercolor-5CosD4A2R20Cap-2024-11-21-02:52:27-Ep-8 Training parameters: 23 to 26 512x512 (downscaled from 1024x1024) images, captioned with Florence2 or by using \"no captioning\" training with just the trigger \"yawc1 watercolor\". FLUX.1 - dev-fp8 Trigger: yawc1 watercolor Repeat: 20 Epoch: 8 or 9 epochs. Unet LR: 0.0005 Scheduler: cosine Optimizer: AdamW/AdamW8bit Network Dim: 4 Alpha 2 or Dim 6 Alpha 3",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:57:20.666652"
+}

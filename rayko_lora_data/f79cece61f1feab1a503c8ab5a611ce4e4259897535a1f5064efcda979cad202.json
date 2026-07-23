@@ -1,0 +1,14 @@
+{
+  "hash": "f79cece61f1feab1a503c8ab5a611ce4e4259897535a1f5064efcda979cad202",
+  "name": "Gothic Slider",
+  "trained_words": [
+    "dark",
+    "concept",
+    "victorian",
+    "gothic",
+    "slider"
+  ],
+  "description": "A simple concept Gothic and Victorian LoRA slider for z-image. The weights in the image samples range from 0 (no gothic) to 3.0 (gothic). As usual with sliders, no need for keywords. It works on pretty much everything. Negative weights give brighter and cheerful scenes.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:33:39.697501"
+}

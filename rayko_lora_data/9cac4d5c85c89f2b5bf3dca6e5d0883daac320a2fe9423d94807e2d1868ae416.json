@@ -1,0 +1,10 @@
+{
+  "hash": "9cac4d5c85c89f2b5bf3dca6e5d0883daac320a2fe9423d94807e2d1868ae416",
+  "name": "Wanderer's Semi Realistic Portraits | FLUX + ZiT + Klein",
+  "trained_words": [
+    "SR3al"
+  ],
+  "description": "Weights 0.5 - 1.0 - I would lower the weight if you use other LoRAs with it Trigger SR3al Can't wait to see what you guys make :D",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:56:26.034648"
+}

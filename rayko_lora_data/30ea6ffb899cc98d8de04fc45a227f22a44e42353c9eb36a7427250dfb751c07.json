@@ -1,0 +1,10 @@
+{
+  "hash": "30ea6ffb899cc98d8de04fc45a227f22a44e42353c9eb36a7427250dfb751c07",
+  "name": "Comic Sketch - CE",
+  "trained_words": [
+    "Cartoon-style drawing."
+  ],
+  "description": "Please share your creations. I would love to see how you have used the LoRA. The Comic Sketch LoRA was trained to produce a sketched cartoon style, suitable for comics or storybooks.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:26:52.127055"
+}

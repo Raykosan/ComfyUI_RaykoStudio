@@ -1,0 +1,10 @@
+{
+  "hash": "b1cbe418b7ce952618d1838389dd1fe1143654b18635cca01a666a84d6cc569a",
+  "name": "Wanderer's Sharp Details | FLUX + ZiT + Klein + ERNIE",
+  "trained_words": [
+    "Sh4rpD3tails"
+  ],
+  "description": "Weights 0.5 - 1.0 - I would lower the weight if you use other LoRAs with it Trigger Sh4rpD3tails Can't wait to see what you guys make :D",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:56:28.097277"
+}

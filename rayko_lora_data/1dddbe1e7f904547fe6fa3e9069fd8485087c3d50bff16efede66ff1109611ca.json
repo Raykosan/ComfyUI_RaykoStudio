@@ -1,0 +1,16 @@
+{
+  "hash": "1dddbe1e7f904547fe6fa3e9069fd8485087c3d50bff16efede66ff1109611ca",
+  "name": "Stained Glass and Metal - CE",
+  "trained_words": [
+    "people",
+    "colorful",
+    "glass",
+    "scenery",
+    "metal",
+    "style",
+    "stained glass"
+  ],
+  "description": "Please share your creations. I would love to see how you have used the LoRA. The Stained Glass and Metal LoRA was trained on images with brass and stained glass to produce a particular style, characterized by colorful elements and metallic highlights. Lower weights allow other features to appear more easily, such as people, faces, creatures and so on. V04 is capable of producing brighter images with improved detail.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:52:55.497367"
+}

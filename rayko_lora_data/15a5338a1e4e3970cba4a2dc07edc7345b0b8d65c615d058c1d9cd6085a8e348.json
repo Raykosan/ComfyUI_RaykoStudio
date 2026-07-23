@@ -1,0 +1,11 @@
+{
+  "hash": "15a5338a1e4e3970cba4a2dc07edc7345b0b8d65c615d058c1d9cd6085a8e348",
+  "name": "RealComic",
+  "trained_words": [
+    "pingtu style",
+    "illustration-fen"
+  ],
+  "description": "Preface This is a model that stumped me just by naming it. It has a realistic style but the sense of lines is very prominent. It has delicate skin coloring, while other contents are rather rough, but the fine lines remain unchanged. The first time this style popped up in my mind, it made me extremely intimate and delighted. My yearning for this style made me determined to create it, but I didn't know how to define it. If there are any friends who know, please give me some advice. I will expand the training and define appropriate trigger words for it. Now, please allow me to temporarily call it realistic comics for the time being. I hope this model can convey my joy. Feel the fun of AI. Have a good time. The Characteristics of \"RealComic\" 1、First of all, its positioning is an illustration model and it is very good at drawing fashionable female illustrations. 2、Its understanding of animals seems to be between comics and meticulous brushstrokes, which are both cute and have delicate lines. 3、Its depiction of the environment tends to be flat painting, which can better highlight the main body, and the delicate lines can well unify the two. Parameter Recommendations The example images use the default parameters Weights ：0.6~0.9（default 0.9） sizes：768/1024/1536（default 1024） Guidance Conditions ：2.5~3.5（default 3.5） Steps ：20~40（Using the turbo model, so...the default step length is 8 steps） Sampler ：euler（simple） Trigger Words：pingtu style、illustration-fen To achieve the best output effect, it is recommended to be paired with the exclusive workflow OK! That's all for this time. If you like my work, please give it a like or buy me a coffee: ☕ https://ko-fi.com/vjleoliu ☕ I also accept private customization Thank you for reading up to here. English is not my native language. The above is translated by AI. If there is anything inappropriate, welcome to correct me. Finally, I hope you have fun！ 👉👉👉My model library👈👈👈",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:48:23.915803"
+}

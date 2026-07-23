@@ -1,0 +1,15 @@
+{
+  "hash": "6452dccddfeca3175e1e8f6b53fc186e250a814ed4102df0d68eb4ed665505f0",
+  "name": "Aged Art - CE",
+  "trained_words": [
+    "oil painting",
+    "rustic",
+    "aged",
+    "style",
+    "imperfections",
+    "aged art"
+  ],
+  "description": "Aged Art gives the canvas an aged appearance, depending on the weight applied. Higher = more imperfections. Overall, the art has a vintage style. Sometimes the background takes on a wrinkled or creased look. In the following examples, the image in the left uses a weight of 0.4 and on the right 0.6. SDXL: Flux.1 D",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:17:12.104743"
+}

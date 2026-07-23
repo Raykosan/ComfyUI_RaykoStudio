@@ -1,0 +1,10 @@
+{
+  "hash": "4169cd3f291c26054cf55120f4e0f2be1119c7be169aa50b82309513a4ea5c55",
+  "name": "Neurocore Anime Shadow Circuit by ChronoKnight - [FLUX, IL, ZIT, FLUX2 KLEIN 9B]",
+  "trained_words": [
+    "in the style of cksc"
+  ],
+  "description": "Please upload your images via \"+add post\" at the bottom of the page. It helps the creators. Thank you! Also consider leaving a like, a comment or donate some Buzz if you like my LoRA. Much love as always! NEUROCORE Anime Shadow Circuit Important info for prompting: Trigger is:\" in the style of cksc, \" Prompting for FLUX: All the prompts I used are included in the example images to get you going! Trained on: Flux.dev Images made with: Flux.dev fp8 Sampling method: Euler Sampling steps: 30 Distilled CFG Scale: 3.5 but you can experiment as well Clipskip: 1 I am using Hires.fix with the following settings: Upscaler: 4x-AnimeSharp Hires steps: 10 Denoise : 0.20 Upscale by: 1.2x - 4.0x ________________________________________________________________________________________ Prompting for IL: All the prompts I used are included in the example images to get you going! Images made with: WAI-NSFW-illustrious-SDXL Sampling method: Euler a Sampling steps: 30 CFG Scale: 5 but you can experiment as well Clipskip: 2 I am using Hires.fix with the following settings: Upscaler: ESRGAN 4x+ Anime6B Hires steps: 20 Denoise : 0.35 Upscale by: 1.3x Join us at: https://discord.gg/pAz4Bt3rqb Have fun with it and be creative! You can buy me a coffee ˗ˏˋ ☕ ˎˊ˗ here ❤️ Yours ChronoKnight",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:25:48.568612"
+}

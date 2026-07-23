@@ -1,0 +1,11 @@
+{
+  "hash": "7c7d3cb5a6b1a9a49b1e062342ea1cb456fa90aa3a686f8005c0d10d68fcfee1",
+  "name": "Comic Book Realism - CE",
+  "trained_words": [
+    "cmcrlsmCE_style",
+    "comic book realism"
+  ],
+  "description": "A comic book realism style.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:26:38.262315"
+}

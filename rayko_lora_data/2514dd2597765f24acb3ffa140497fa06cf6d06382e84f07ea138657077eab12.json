@@ -1,0 +1,10 @@
+{
+  "hash": "2514dd2597765f24acb3ffa140497fa06cf6d06382e84f07ea138657077eab12",
+  "name": "GRAMIA BY STX",
+  "trained_words": [
+    "grm_stx"
+  ],
+  "description": "GRAMIA BY STX biohorror model 0.8-1.2 STX",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:33:41.490798"
+}

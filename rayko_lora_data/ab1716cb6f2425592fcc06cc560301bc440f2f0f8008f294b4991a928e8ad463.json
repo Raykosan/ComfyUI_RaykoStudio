@@ -1,0 +1,10 @@
+{
+  "hash": "ab1716cb6f2425592fcc06cc560301bc440f2f0f8008f294b4991a928e8ad463",
+  "name": "Quinton Hoover",
+  "trained_words": [
+    "Quitover style."
+  ],
+  "description": "Quinton Hoover (1964–2013) was an American illustrator renowned for his work in fantasy art and collectible card games. He contributed over 70 illustrations to Magic: The Gathering , including the iconic \"Proposal\" card used by game creator Richard Garfield to propose to his wife. Hoover also illustrated for other games like the Middle-earth Collectible Card Game and Dungeons &amp; Dragons titles such as Monster Manual II and Book of Vile Darkness . He co-created the comic Morgana X and was known for his distinctive, elegant linework and storytelling flair. NOTE : The length of the prompt influences the expression of the model, the shorter the prompt, the more the model expresses itself. Latent injection gives better results than empty latent. Using controlnet limits the impact of LoRA on rendering. Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here . IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. VERY IMPORTANT NOTE : Do not like my models, do not give me buzz, do not follow me, otherwise you will be reported to Civitai for attempted corruption",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:48:04.931099"
+}

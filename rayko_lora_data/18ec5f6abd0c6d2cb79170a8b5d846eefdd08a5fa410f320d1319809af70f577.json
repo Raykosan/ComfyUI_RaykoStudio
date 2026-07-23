@@ -1,0 +1,16 @@
+{
+  "hash": "18ec5f6abd0c6d2cb79170a8b5d846eefdd08a5fa410f320d1319809af70f577",
+  "name": "ButternutCrunch_Wonder",
+  "trained_words": [
+    "anime",
+    "disney",
+    "style",
+    "cartoon",
+    "cute",
+    "adorable",
+    "butternut crunch"
+  ],
+  "description": "ButternutCrunch_Crunch - Painterly Inspired Anime Style A dreamy, cinematic LoRA that brings storybook magic to your generations. This style combines soft painterly techniques with modern cartoon aesthetics, featuring warm golden-hour lighting, atmospheric glows, and expressive character work. Recommended Settings: Best used with a strength between 0.6-0.8 for optimal results. Start your prompts with \"anime\" for best performance and look. Pairs beautifully with environmental prompts and lighting keywords like \"golden hour,\" \"warm lighting,\" \"atmospheric,\" \"cozy,\" and \"cinematic.\"",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:24:40.966370"
+}

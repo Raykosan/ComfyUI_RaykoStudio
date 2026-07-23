@@ -1,0 +1,17 @@
+{
+  "hash": "c6f6886a274ce16f31193e7e8fd54d3647aad61018aa527164b3fcf327fa0abe",
+  "name": "Glamorous Slider",
+  "trained_words": [
+    "concept",
+    "curvy",
+    "lips",
+    "flat",
+    "tan",
+    "slider",
+    "glamorous",
+    "silouhette"
+  ],
+  "description": "My first try at LoRA merges. I trained separate slider LoRAs on lips / hips / waist / breasts and merged them together. By adjusting the weights I got rid of the color shift except in the extremes where the character becomes paler / tanner. Without a character LoRA I find weights from -10.0 to 10.0 are okay-ish, but with LoRAs and to prevent too much color shift or artifacts, -8.0 to 8.0 work great. As always with sliders, no specific prompt needed. Note: It's been trained with \"woman\", but it also increases the \"glamorous\" look of men (muscle, tan).",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:32:40.785240"
+}

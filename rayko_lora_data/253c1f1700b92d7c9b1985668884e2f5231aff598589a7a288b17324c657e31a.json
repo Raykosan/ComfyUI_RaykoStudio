@@ -1,0 +1,10 @@
+{
+  "hash": "253c1f1700b92d7c9b1985668884e2f5231aff598589a7a288b17324c657e31a",
+  "name": "KreaLand",
+  "trained_words": [
+    "Bradhamel art style"
+  ],
+  "description": "NOTE : Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. If you download the workflows (.json) from my images and they don't work on your setup, please understand that I likely won't be able to help you. I'm sorry, but I simply don't have the time to respond to the many requests I receive. A few tips: - If you are new to ComfyUI, it's best to avoid using my workflows. It's not that they are overly complicated, but they do require a solid foundational understanding. - My workflows are quite resource-intensive to run (I use a 5090 / 32GB VRAM / 64GB RAM); if your config is limited, performance will be slow, even if they do run. - If you encounter unrecognized nodes, try replacing them with core nodes or deleting them if they aren't essential.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:39:30.922655"
+}

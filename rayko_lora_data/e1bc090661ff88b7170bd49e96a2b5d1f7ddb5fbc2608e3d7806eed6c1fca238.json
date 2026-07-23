@@ -1,0 +1,12 @@
+{
+  "hash": "e1bc090661ff88b7170bd49e96a2b5d1f7ddb5fbc2608e3d7806eed6c1fca238",
+  "name": "Cinematic Control [Qwen]",
+  "trained_words": [
+    "cinematic",
+    "tool",
+    "qwen"
+  ],
+  "description": "This LoRA enhances cinematic effect. Suggested weight: 0.5 - 0.8 https://tensor.art/models/908225608725624211/Cinematic-Control-Qwen-v1",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:25:26.534798"
+}

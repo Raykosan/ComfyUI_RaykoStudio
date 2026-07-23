@@ -1,0 +1,10 @@
+{
+  "hash": "73b6e1e0f9d230c4ed6749e21360f24f77446d6aed9297902162617457940689",
+  "name": "zimage-badmilk-beasts",
+  "trained_words": [
+    "badmilk"
+  ],
+  "description": "Lora for creating beasts. Use with the Zimage BF16 version, which gives much better results than the FP8 version. For generating poster images, I used Euler Simple in 6 steps. exemple workflow: https://civitai.com/articles/23414 https://huggingface.co/Comfy-Org/z_image_turbo/tree/main/split_files/diffusion_models https://huggingface.co/drbaph/Z-Image-Turbo-FP8/tree/main https://huggingface.co/jayn7/Z-Image-Turbo-GGUF/tree/main https://huggingface.co/Comfy-Org/z_image_turbo/tree/main/split_files/text_encoders https://huggingface.co/Comfy-Org/z_image_turbo/tree/main/split_files/vae exemple prompt: whimsical,grunge watercolor vintage,An anthropomorphic, doberman-style dog warrior, clad in white-washed armor, wielding a bloodied sword on a battlefield, in a hyper-detailed comics book style.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:24:12.383583"
+}

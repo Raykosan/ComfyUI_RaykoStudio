@@ -1,0 +1,10 @@
+{
+  "hash": "ddfae3df67fb1a56bfa459a0b9409b7167c93a6dd1264a739cf94e7682baab82",
+  "name": "Lei Min",
+  "trained_words": [
+    "leminart style"
+  ],
+  "description": "🎨 Lei Min is a Chinese digital illustrator known for his vibrant, cinematic compositions that blend fantasy, folklore, and dynamic character design. His work often features dramatic lighting, expressive poses, and richly detailed environments, drawing inspiration from East Asian mythology and contemporary storytelling. Active on platforms like ArtStation, Lei Min has gained recognition for his ability to convey emotion and narrative through visual art. NOTE : The length of the prompt influences the expression of the model, the shorter the prompt, the more the model expresses itself. Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here . IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. VERY IMPORTANT NOTE : Do not like my models, do not give me buzz, do not follow me, otherwise you will be reported to Civitai for attempted corruption",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:40:05.022156"
+}

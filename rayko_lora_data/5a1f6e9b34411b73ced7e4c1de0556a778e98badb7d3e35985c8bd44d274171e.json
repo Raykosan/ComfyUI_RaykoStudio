@@ -1,0 +1,12 @@
+{
+  "hash": "5a1f6e9b34411b73ced7e4c1de0556a778e98badb7d3e35985c8bd44d274171e",
+  "name": "Book Flatten and Crop - Qwen Image Edit 2511/2509",
+  "trained_words": [
+    "flatten and crop the book image",
+    "remove the middle crease",
+    "zoom in"
+  ],
+  "description": "Flattens, crops and merges images that are split between 2 pages. User will need to play around with aspect ratio and resolution to get it right (different books have different aspect ratios). Works well with https://huggingface.co/Osrivers/Qwen-Image-Edit-2509-Lightning-4steps-V1.0-bf16.safetensors/tree/main and https://huggingface.co/eigen-ai-labs/eigen-banana-qwen-image-edit for speed and color accuracy.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:10:02.562602"
+}

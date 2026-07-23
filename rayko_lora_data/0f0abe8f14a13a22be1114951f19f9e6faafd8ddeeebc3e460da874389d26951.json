@@ -1,0 +1,13 @@
+{
+  "hash": "0f0abe8f14a13a22be1114951f19f9e6faafd8ddeeebc3e460da874389d26951",
+  "name": "Artstyle Z1 - WC",
+  "trained_words": [
+    "style",
+    "illustration",
+    "digital illustration",
+    "western comic"
+  ],
+  "description": "Started off as trying to do a western comic style, became abit more expressive and versatile. If you using z-base, then 30-50 steps cfg 3-5, usual stuff. my examples say 25 steps because I used my free tensorart credits to make them and Im capped at 25. sooo.. ya also works with Z-image turbo - use 15-30 steps/CFG 1.1-1.5 and euler discrete flowmatch sampler if you using Z-Image turbo - sigmas are cool. try 0.85 base shift and 1.15 Max shift",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:23:53.139687"
+}

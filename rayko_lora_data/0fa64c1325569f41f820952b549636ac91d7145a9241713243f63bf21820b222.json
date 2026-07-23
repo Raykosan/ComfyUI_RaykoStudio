@@ -1,0 +1,10 @@
+{
+  "hash": "0fa64c1325569f41f820952b549636ac91d7145a9241713243f63bf21820b222",
+  "name": "watercolor_flux_JG",
+  "trained_words": [
+    "style"
+  ],
+  "description": "The lora model weight is based on 0.6-1.5.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:56:39.496974"
+}

@@ -1,0 +1,15 @@
+{
+  "hash": "0a267902be7a0d77656129fa3ca02ef6130c9a62af6cffd89b9c99544fb8af56",
+  "name": "Flux.1 Turbo Detailer",
+  "trained_words": [
+    "photorealistic",
+    "hyperrealism",
+    "style",
+    "lora",
+    "detailer",
+    "flux.1"
+  ],
+  "description": "Post Your First Image in the Model Gallery Directly! This is the best way to support creators. 🎨✨ LoRa for Amazing Details Elevate Your Outputs with High-Speed, Optimized LoRa Unlock stunning detail and realism in just seconds. This highly optimized LoRa transforms your outputs with intricate character, object, and environment enhancements. Key Features: ✨ Exceptional Detail: Amplify every aspect of your prompts with rich, nuanced detailing. 💡 Realistic Lighting &amp; Visuals: Achieve lifelike visuals with dynamic, true-to-life lighting. 🎯 Precision in Features: Perfectly handles fine details, ensuring accuracy in areas like eyes, hands, and facial expressions. 🎨 Versatile &amp; Powerful: Ideal for any subject or style, enhancing depth and quality across the board. Enjoy experimenting ! Tested with FLUX .1 Dev, Schnell checkpoints, and with mix of Turbo Alpha 8 steps. Recommended Settings 0.2 - 0.9 Thank you so much for using this Lora. Hope you get a lot of beautiful results ♥",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:53:59.376691"
+}

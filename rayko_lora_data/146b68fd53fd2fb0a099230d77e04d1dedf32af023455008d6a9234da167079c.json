@@ -1,0 +1,10 @@
+{
+  "hash": "146b68fd53fd2fb0a099230d77e04d1dedf32af023455008d6a9234da167079c",
+  "name": "Alejandro Burdisio",
+  "trained_words": [
+    "Art by Alejandro Burdisio"
+  ],
+  "description": "Alejandro Burdisio, also known as \"Burda,\" is an Argentine artist celebrated for his imaginative and humorous illustrations. His work often blends elements of the past and future, creating surreal environments that evoke nostalgia and curiosity. Burdisio's \"Junk Universe\" series is particularly notable, showcasing fantastical scenes where iconic buildings and vehicles are transformed into floating islands in polluted urban landscapes. His background in architecture and design heavily influences his artistic style, which combines meticulous geometric accuracy with a vibrant, cinematic atmosphere. IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. The idea is to use this model, combined with others, to create new styles of digital art expression. \"Nothing is lost, nothing is created, everything is transformed\" is an apocryphal quote from Antoine Lavoisier. We are somewhat in this vision. Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here .",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:17:28.824072"
+}

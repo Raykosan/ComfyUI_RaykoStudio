@@ -1,0 +1,10 @@
+{
+  "hash": "a7d85ac09891d59a740df9e0b90e46ab92b04ff59ba64ca035fabe7da731bef4",
+  "name": "Zhang Jing",
+  "trained_words": [
+    "Art by Zhang Jing"
+  ],
+  "description": "Zhang Jing is a Chinese concept artist working in Guangzhou's game and movie industry. Her art features intricate designs and imaginative worlds, making her a notable figure in the concept art scene. The showcase is made up of images obtained with the model alone but also examples of association with other models. I think that the purpose is precisely to discover the complementarity of the models and their good association. Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here . IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. The idea is to use this model, combined with others, to create new styles of digital art expression. \"Nothing is lost, nothing is created, everything is transformed\" is an apocryphal quote from Antoine Lavoisier. We are somewhat in this vision.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:57:36.658769"
+}

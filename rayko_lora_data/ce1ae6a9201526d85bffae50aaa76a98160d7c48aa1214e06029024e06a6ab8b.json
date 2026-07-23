@@ -1,0 +1,12 @@
+{
+  "hash": "ce1ae6a9201526d85bffae50aaa76a98160d7c48aa1214e06029024e06a6ab8b",
+  "name": "Skin Fix Qwen",
+  "trained_words": [
+    "base model",
+    "skin",
+    "qwen"
+  ],
+  "description": "V2.0 Recommended settings for GGUF checkpoints Qwen-Image-Lightning-8steps-V2.0 - Strength: 0.75 Skin_Fix_rank64 - Strength: 0.7–1.2 Steps: 8 Sampler: er_sde Scheduler: beta57 V1.0 An experimental LoRA for fixing skin when using the Lightning LoRA. It doesn’t make the skin realistic, just less plastic-looking. Strength 0.9-1.5",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:51:15.500676"
+}

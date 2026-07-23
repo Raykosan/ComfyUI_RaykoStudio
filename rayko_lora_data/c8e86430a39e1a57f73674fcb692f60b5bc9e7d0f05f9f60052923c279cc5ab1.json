@@ -1,0 +1,10 @@
+{
+  "hash": "c8e86430a39e1a57f73674fcb692f60b5bc9e7d0f05f9f60052923c279cc5ab1",
+  "name": "Miles Hyman",
+  "trained_words": [
+    "By Miles Hyman"
+  ],
+  "description": "Miles Hyman is an American-born illustrator and painter based in France. Known for his noir-inspired style and cinematic compositions, he creates evocative imagery for books, magazines, and graphic novels. His work blends American realism with European elegance, often exploring themes of mystery, nostalgia, and urban solitude. Hyman is also the grandson of acclaimed author Shirley Jackson, and he adapted her famous short story The Lottery into a graphic novel. Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here . IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. The idea is to use this model, combined with others, to create new styles of digital art expression. \"Nothing is lost, nothing is created, everything is transformed\" is an apocryphal quote from Antoine Lavoisier. We are somewhat in this vision.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:44:24.071255"
+}

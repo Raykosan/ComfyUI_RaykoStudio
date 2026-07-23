@@ -1,0 +1,10 @@
+{
+  "hash": "5595be346f47130af2825accd6659a05aae8fb204c666d09e3e9a7705ec00e21",
+  "name": "nnegret | Klein9b · ink wash painting styles | 水墨风 水彩风格",
+  "trained_words": [
+    "artwork in ink painting"
+  ],
+  "description": "交流Q群：173273201 Chinese Ink Wash Style | 黑白水墨风笔触 LoRA 简介 / Overview 使用建议 / Usage Recommendations Trigger Word (触发词): artwork in ink painting note(备注）：需要黑白纯色就加入 黑白纯色 就可以，如果有水印或印张就加入提示词 无水印 LoRA Weight (建议权重): 0.9 (可在 0.8-1.0 之间微调 / Can be adjusted between 0.8-1.0) Base Model (底模): Klein 9b 核心特点 / Key Features Authentic Brushwork: 极致模拟毛笔扫过的枯笔与湿墨效果，笔触分明。 / Faithfully simulates dry and wet brushstroke effects with distinct textures. Pure Monochrome: 专注于黑白灰阶的平衡，营造留白与写意的意境。 / Focuses on the balance of B&amp;W grayscale, creating a sense of \"Liubai\" (negative space) and artistic conception. Versatile Transformation: 完美支持动漫转水墨、真人转水墨，风格转换自然。 / Seamlessly transforms anime or realistic styles into ink wash art with high consistency. Base Model Optimization: 针对 Klein 9b 底模深度优化。 / Deeply optimized for the Klein 9b base model. 期待你的作品 / Show Your Work [CN] 欢迎在评论区分享你的水墨创作！如果这个模型对你有帮助，请在 Civitai 上给我一个好评。 [EN] I can't wait to see your ink wash creations! If you find this LoRA useful, please leave a star review on Civitai.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:38:00.236028"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "650539cfed33adc2b611968c8cd2bb35c269bb8b1acfbfd58eed2c8978d1c55e",
+  "name": "Technically Color Z",
+  "trained_words": [
+    "t3chnic4lly"
+  ],
+  "description": "Technically Color Z is meticulously crafted to capture the unmistakable essence of classic film. This LoRA was trained on approximately 100+ stills to excel at generating images imbued with the signature vibrant palettes, rich saturation, and dramatic lighting that defined an era of legendary classic film. This LoRA greatly enhances the depth and brilliance of hues, creating more realistic yet dreamlike textures, lush greens, brilliant blues, and sometimes even the distinctive glow seen in classic productions, making your outputs look truly like they've stepped right off a silver screen. Images were captioned using Joy Caption Batch, and the model was trained with ai-toolkit and tested in ComfyUI. The gallery contains examples with workflows attached. I'm running a very simple 2-pass workflow for most of these; drag and drop the first image into ComfyUI to see the workflow. Update: If you have updated ComfyUI to resolve the \"LoRA not loaded error message\" you may notice this LoRA makes skin too smooth, lower the strength of the LoRA to around 0.3-0.5 and it still retains the style and resolves a lot of the smoothing issues. If you've enjoyed using this LoRA and the other resources I share, please consider sponsoring my work on Ko-Fi . Any support covers essential costs like cloud compute, enabling me to keep creating and sharing these resources with you. Every contribution, no matter how small, makes a difference! 👍🏼 renderartist.com",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:53:38.023800"
+}

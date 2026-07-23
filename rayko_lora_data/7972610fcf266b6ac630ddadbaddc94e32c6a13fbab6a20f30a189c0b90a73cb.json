@@ -1,0 +1,11 @@
+{
+  "hash": "7972610fcf266b6ac630ddadbaddc94e32c6a13fbab6a20f30a189c0b90a73cb",
+  "name": "Hyperdetailed Colored Pencil",
+  "trained_words": [
+    "ArsMJStyle",
+    "Colored pencil hyperdetailed realism"
+  ],
+  "description": "A LoRA inspired by one of my favourite styles of hyperdetailed colored pencil illustrations. This style captures the intricate shading and fine textures, enhanced by the subtle depth and warmth of colored pencil strokes. Ideal for creating striking portraits with expressive details, this style brings out the natural beauty of facial features, elaborate clothing, and delicate embellishments. It blends artistic sophistication with a touch of classical elegance. The keywords are ArsMJStyle, Colored pencil hyperdetailed realism . V2 Update: I simply love this LoRA , so I've been steadily extending the dataset with more diverse images , while trying to maintain the Original Concept. It is more flexible than V1 , but with just a slight sacrifice for the Style Strenght. Use V1 for stronger Effects or V2 for greater flexibility . MidJourney V7 Update: A complete rework of the LoRA’s dataset using MidJourney V7 for improved versatility and future expansion. The original aesthetic has been preserved as best as I can after switching models, with a shift toward more realistic rendering.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:35:54.273359"
+}

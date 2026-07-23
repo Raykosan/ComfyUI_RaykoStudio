@@ -1,0 +1,10 @@
+{
+  "hash": "5172c6a8bd5e38b5a34af4bc477f7490a13b8cf3fad9914fa52d12f86c59485a",
+  "name": "Anime art",
+  "trained_words": [
+    "Anime CRABDM style"
+  ],
+  "description": "NOTE :Base model : Z Image Turbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:22:47.761205"
+}

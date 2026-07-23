@@ -1,0 +1,11 @@
+{
+  "hash": "c3126f5e24e81d95875985043c3ef6258ef09addd4c6fd15c1d2285b430fd831",
+  "name": "Watercolor_illustrations_zimage_v1",
+  "trained_words": [
+    "watercolor",
+    "style"
+  ],
+  "description": "A reinforcement LoRA that adds weight to the \"retro fantasy watercolor illustration style\".",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:56:38.254981"
+}

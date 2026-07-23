@@ -1,0 +1,11 @@
+{
+  "hash": "aaec2e9170b6fa5fe1a09b2e53c3575da331667e109af78a519b1cd0d0384515",
+  "name": "Futuristic Cars Flux",
+  "trained_words": [
+    "FC3",
+    "futuristic_cars"
+  ],
+  "description": "Here is my collection of futuristic cars using the same images I used to train the SDXL version. The SDXL version has a more cyberpunk and futuristic look which was what I was going for. Maybe FLUX will make a version 2 of this version to get an even more exaggerated look.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:32:12.464061"
+}

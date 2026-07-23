@@ -1,0 +1,12 @@
+{
+  "hash": "43fb1a7dc734f99df01add68c15a1bddb9bfdbca0a8773afa9b4968c03f60a9c",
+  "name": "THE age slider - (ZIT + Krea-2)",
+  "trained_words": [
+    "age",
+    "slider",
+    "concept"
+  ],
+  "description": "Krea-2: Rank1 so under 7mb file size. Can be combined with other LoRAs without any problem, even character LoRAs. Recommended range: -3 to 8 ZIT: This is THE age slider LoRA that changes age while leaving the rest of the image completely untouched. Exposure, color balance, and overall image character are preserved extremely well. It is about as close to an ideal slider LoRA as I have been able to make. There is also no Asia-bias etc. This LoRA can be combined with other LoRAs without any problem. Recommended range: -3 to 10 Please compare it against the alternatives yourself. If you end up liking it, a thumbs up is always appreciated. And if you honestly think other alternatives perform better, feel free to rate it accordingly. All my work is 100% free. The only thing that really matters to me is people leaving a review , good or bad . I will NEVER remove or block anyone for leaving a bad review, so don't be afraid to give me criticism. I'm stating this because when a creator blocks someone for leaving a bad review, that person can no longer see any of the creator's models, essentially muting their critics. This is something I'm highly critical of, and I believe it's a fundamental quality problem on this site.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:17:10.786528"
+}

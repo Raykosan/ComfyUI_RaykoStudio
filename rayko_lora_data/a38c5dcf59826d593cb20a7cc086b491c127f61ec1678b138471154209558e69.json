@@ -1,0 +1,10 @@
+{
+  "hash": "a38c5dcf59826d593cb20a7cc086b491c127f61ec1678b138471154209558e69",
+  "name": "Jakub Różalski",
+  "trained_words": [
+    "By Jakub Rozalski"
+  ],
+  "description": "Jakub Różalski, also known as \"Mr. Werewolf,\" is a Polish artist celebrated for his unique blend of historical and fantastical themes. Born in 1981 in Koszalin, Poland, he combines traditional art styles inspired by late 18th and early 19th-century painters with modern fantasy and science fiction elements. His work often features mythical creatures, robots, and dieselpunk aesthetics set against pastoral landscapes. Różalski is best known for his \"1920+\" universe, an alternative history inspired by the Polish-Soviet War, which incorporates futuristic machines and dystopian themes. His art has inspired projects like the board game Scythe and the video game Iron Harvest . He also contributed concept art for the film Kong: Skull Island and published an artbook titled Howling at the Moon. IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. The idea is to use this model, combined with others, to create new styles of digital art expression. \"Nothing is lost, nothing is created, everything is transformed\" is an apocryphal quote from Antoine Lavoisier. We are somewhat in this vision. Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here .",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:38:29.945053"
+}

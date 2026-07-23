@@ -1,0 +1,11 @@
+{
+  "hash": "f214ed59d334a5c5f19c68a2ed45c787a6b149c6c30d7d6a4778bf1c5e0ef705",
+  "name": "Bloodborne Style [FLUX]",
+  "trained_words": [
+    "bbstyle,",
+    "horror theme,"
+  ],
+  "description": "It's SPOOKY MONTH ! 🎃 Get a-head (💀) of the curve by generating images using this Bloodborne inspired style LORA for FLUX. While this will help you make images in the style, it won't be able to bring you minute-long load screens or headache-inducing chromatic aberration (unless you prompt that, but why ?) Built off ~50 images, mostly screenshots of Bloodborne and related/similar materials. Recommended Strength : 0.9 - 1.2 Higher values = more Bloodborne like, less general horror Style Prompts : bbstyle, horror theme",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:24:21.423297"
+}

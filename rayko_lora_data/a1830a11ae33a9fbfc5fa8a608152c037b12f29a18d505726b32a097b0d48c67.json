@@ -1,0 +1,10 @@
+{
+  "hash": "a1830a11ae33a9fbfc5fa8a608152c037b12f29a18d505726b32a097b0d48c67",
+  "name": "Correct perspective",
+  "trained_words": [
+    "background"
+  ],
+  "description": "Used to correct background errors in some product images Trigger word：jzts call-word：Keep the subject's original shape, inherent color, initial angle and detailed texture completely unchanged, simultaneously adjust the background perspective (matching the horizon line, vanishing point and near-large-far-small proportion of the subject's angle), and add natural light and shadow to the subject that conforms to the background's light source direction, intensity and color temperature, so as to achieve a natural integration where the subject and the background are spatially consistent and have unified light and shadow. The combined workflow ： https://www.runninghub.ai/post/1974772300581089281",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:27:21.370829"
+}

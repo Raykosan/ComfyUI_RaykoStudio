@@ -1,0 +1,14 @@
+{
+  "hash": "fb199592e4298e711d5f2f5bed3d8d3b27e701e029b60cf2531e93f6e762e556",
+  "name": "ILLUSTRATION (FLUX)",
+  "trained_words": [
+    "illustration",
+    "cartoon",
+    "anime",
+    "manga",
+    "drawing"
+  ],
+  "description": "Illustration, comic, cartoon, manga, drawing. Improving quality and detail CFG Scale: 2.0 - 5 Steps: 14 - 22 Weight: 0.3 - 1. Works well with weight: (0.4 - 0.6), experiment with weight.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:36:44.711800"
+}

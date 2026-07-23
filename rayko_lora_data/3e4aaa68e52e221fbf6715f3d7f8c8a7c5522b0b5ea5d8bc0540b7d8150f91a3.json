@@ -1,0 +1,10 @@
+{
+  "hash": "3e4aaa68e52e221fbf6715f3d7f8c8a7c5522b0b5ea5d8bc0540b7d8150f91a3",
+  "name": "Stock Photo Realistic - Z-Image",
+  "trained_words": [
+    "stock photograph"
+  ],
+  "description": "Studio Photo style, brings improved coherency, improved contrast, reduced noise and better sharpness. Styled as if it was photoshopped by a pro. Use as is or prefix with Stock photograph of In comparisons left image is with the lora, right is without the lora.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:53:08.818713"
+}

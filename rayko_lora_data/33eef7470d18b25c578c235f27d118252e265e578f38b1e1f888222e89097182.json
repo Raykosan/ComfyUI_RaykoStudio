@@ -1,0 +1,10 @@
+{
+  "hash": "33eef7470d18b25c578c235f27d118252e265e578f38b1e1f888222e89097182",
+  "name": "Comic Book | Tome 3",
+  "trained_words": [
+    "Bradhamel art style"
+  ],
+  "description": "NOTE : Base model category: ZImageTurbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:26:37.396699"
+}

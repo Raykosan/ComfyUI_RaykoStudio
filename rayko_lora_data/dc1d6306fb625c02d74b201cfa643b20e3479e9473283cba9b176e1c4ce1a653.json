@@ -1,0 +1,10 @@
+{
+  "hash": "dc1d6306fb625c02d74b201cfa643b20e3479e9473283cba9b176e1c4ce1a653",
+  "name": "[LuisaP❤️] QWEN-EDIT UPSCALER & DENOISE V3 FIXED",
+  "trained_words": [
+    "upscale this image"
+  ],
+  "description": "V3: Solve the saturation problem + has more variated dataset, ill do v4 with more sharpen for images that already are bigger Made with collaboration with @artificialguybr this actually upscale compressed and bad looking images, but dont work on blurred image and very pixelated ones. to upscale more than 1024x1024 as default of qwen, you need to change your workflow to upscale the image in latent before using the lora. Prompt: upscale this image",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:37:36.957970"
+}

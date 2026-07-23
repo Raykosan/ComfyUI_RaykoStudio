@@ -1,0 +1,10 @@
+{
+  "hash": "8592ff959736f2b3790d03cf27cff09808f2079387ecc2811f6853d27c90bf43",
+  "name": "Former Splendor",
+  "trained_words": [
+    "FS"
+  ],
+  "description": "Angular jaws that look like irons, huge square chins, Brezhnev-style eyebrows, razor-sharp cheekbones, pumped-up plump lips and bony collarbones - you won't find any of that here. Because this LoRA is dedicated to the ladies of the 16th-19th centuries and concepts of beauty of that time. (!) Just in case, I remind you - If you use FLUX in Forge - setting Diffusion in Low Bits - Automatic (fp16 LoRA) gives more noticeable results.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:31:55.574200"
+}

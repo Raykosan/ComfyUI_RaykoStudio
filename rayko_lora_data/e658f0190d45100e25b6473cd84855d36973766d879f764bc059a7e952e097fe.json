@@ -1,0 +1,12 @@
+{
+  "hash": "e658f0190d45100e25b6473cd84855d36973766d879f764bc059a7e952e097fe",
+  "name": "Hand Fine Tuning",
+  "trained_words": [
+    "tools",
+    "hand",
+    "tool,"
+  ],
+  "description": "The problem of rendering bad hands has always been a challenge for AI drawing. This LORA provides a solution approach, primarily adjusting the hands using different weights while maximizing the preservation of the overall picture structure, thereby increasing the likelihood of generating good hands. LORA demonstrates good generalization, being compatible with realistic, 2.5D, and anime base models. While LORA optimizes hands to a certain extent, it cannot guarantee generating good hands every time. If you can use graphic design software such as Photoshop (PS), these approximate images can provide more reference materials for hands, enhancing the overall image. Although it can also be used with the XL model, the performance is not satisfactory, and it can only generate minor changes. I hope you like to use it. The biggest support for me is posting more pictures, :)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:34:25.895494"
+}

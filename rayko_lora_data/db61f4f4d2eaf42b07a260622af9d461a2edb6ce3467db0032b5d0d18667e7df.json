@@ -1,0 +1,11 @@
+{
+  "hash": "db61f4f4d2eaf42b07a260622af9d461a2edb6ce3467db0032b5d0d18667e7df",
+  "name": "80s Fantasy Movie",
+  "trained_words": [
+    "ArsMovieStill",
+    "80s Fantasy Movie Still"
+  ],
+  "description": "This LoRA is designed to capture the distinct look and feel of early 80s fantasy movies. The trigger words are ArsMovieStill, 80s Fantasy Movie Still Z-IMAGE UPDATE: V2 dataset officially became my go-to test dataset when training a model for the first time. Experimental! Default ComfyUI LoRA Loader Reports Errors, but actually applys the LoRA. Recommended usage settings: Your favourite spot. Listen to Castle Rat as background. Enjoy! MJ7 UPDATE: Building each dataset is a joy, so with the release of MidJourney 7, I naturally started this one again from scratch. This version stays true to the original aesthetic but with improved fidelity and an even stronger 80s vibe. It’s trained on a fresh, carefully curated set of ~250 images, created by referencing the best results from the previous versions. V3 UPDATE: The training dataset has been further expanded to 1,000 curated images, pushing it to the limits of Civit’s on-site training capabilities. This update include broader selection of fantasy environments, mythical creatures, and epic scenes, enhancing the fidelity to the iconic 80s fantasy aesthetic. V2 UPDATE: Added to the dataset a huge amount of Fantasy Characters, beasts and scenes. Use v1 for stronger effects and v2/v3 for better versatility.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:15:53.841937"
+}

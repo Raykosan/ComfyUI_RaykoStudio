@@ -1,0 +1,24 @@
+{
+  "hash": "c25ec9db47dea7e70a7b215dfe8d4a14018fca2146f9d4d061cd74634d896545",
+  "name": "Smooth Mix Lora (Illustrious/Pony/FLUX)",
+  "trained_words": [
+    "anime",
+    "photorealistic",
+    "sexy",
+    "style",
+    "woman",
+    "game character",
+    "girls",
+    "realistic",
+    "video game",
+    "lora",
+    "semirealistic",
+    "styles",
+    "flux",
+    "flux.1",
+    "flux1.d"
+  ],
+  "description": "Illustrious v.2 UPDATE! First update for Illustrious version! This version has more vivid colors! Use Hires.fix and Adetailer for better quality! Enjoy! FLUX v.2 UPDATE!! I want to give a big shout out to all users that made some amazing work with the FLUX version of my Loras! Average_cute_girl_enjoyer, SaiWeb , coldfaith , Xan127 , Oldor , 2SC , impossiblebearcl4060 , HollEll , karlanan , and many, MANY others!! You guys are amazing! I used a lot of their creations to improve Smooth Mix to this new version! It gives a lot more details to images, has a good range between realism and semirealism, and should work really well with other Loras. Have Fun!! ====================================================== Illustrious UPDATE! Illustrious update is finally done! Try different Sampling Methods, \"Euler a\" is recommended for general use and \"DPM++ 2M Karras\" for more realistic results. Tested with NTR MIX , WAI-NSFW and Hassaku XL Checkpoints! CFG: 4~6 Use Hires and Adetailer for better quality! Enjoy! ============================================== UPDATE v.3.1!! So, apparently the file uploaded before was not working properly. After further testing I figure out what happened and I'm reuploading the fixed Lora. It should work correctly now! UPDATE v.3!! Very flexible! Kinda made it by accident to be honest... a happy accident! Work really well with other Loras. I made a few with some of my favorites on the site. Go ahead and use it together with your favorite Loras! Try it and have fun! ============================================== FLUX UPDATE!! All images were created using flux1-dev-bnb-nf4-v2.safetensors Use weights of 0.8~1.0. This has a lot of influence on the results. Enjoy! ============================================== UPDATE v.2!! Improved overall quality. General prompts for Realistic results: ultra realistic, masterpiece, high detailed skin General prompts for Anime results: anime artwork, anime style, studio anime Use Hires and Adetailer for better quality! Enjoy! ========================================================= I usually have to use several Loras to get what I want. This Lora is an attempt to mitigate that problem. It goes from a style similar to those of the \"Realistic Anime\" type to a full anime aesthetic, with just the use of very few prompts. Some Loras can do that to some extent but they don't really go for the style I want. I used these positive prompts pretty much everytime: \"score_9, score_8_up, score_7_up, beautiful aesthetic, very intricate, high quality details\" add \"vibrant, highly detailed, award-winning, professional\" positive prompts to enhance the results. I HIGHLY recommend the use of negativeXL - D since it helps A LOT! Use Highres-Fix and Adetailer for better results! Want realist style? Use \" ultra realistic, masterpiece, high detailed skin\" positive prompts. Add \"abstract, unrealistic\" negative prompts if you find necessary. Want anime style? Use \" anime artwork, anime style, studio anime\" positive prompts. Add \"Hyperrealistic, photo, realism,\" negative prompts if you find necessary. Want something in between? Go nuts! lol Its still needs some tweaks. For example, if you use prompts such as \"wet\" or \"wet hair\" the character will be covered in small water splashes and bubbles. Thanks AI... lol. So it might get some weird results sometimes. Making this is taking more time than I thought, so I decided to release this version, since it will take time to finish and real life stuff is not helping. Thanks real life.... lol. Enjoy! :)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:51:35.082826"
+}

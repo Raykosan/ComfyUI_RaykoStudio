@@ -1,0 +1,11 @@
+{
+  "hash": "6b7a3d6bf24ba01bdc4eda8988f13de91dd94a9af03e15b72e4792c5059ddb84",
+  "name": "Flux Ghibsky Illustration",
+  "trained_words": [
+    "GHIBSKY style",
+    "GHIBSKY style painting"
+  ],
+  "description": "The Flux Ghibsky Illustration model creates stunning landscapes that blend serene, surreal skies with intricate, Ghibli-inspired details. This fusion captures both Ghibli’s whimsical charm and Makoto Shinkai’s atmospheric beauty, perfect for dreamy visuals. V2 is here! The latest Flux Ghibsky LoRA model has been trained on more images, including faces and synthetic data from V1. While it appears smoother, I have mixed feelings about whether it’s truly an improvement. Training configurations and captioning on the platform that I use can be unpredictable, which may have also influenced the results. Feedback is always welcome!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:32:30.210417"
+}

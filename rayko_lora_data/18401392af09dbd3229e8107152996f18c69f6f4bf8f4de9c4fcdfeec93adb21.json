@@ -1,0 +1,13 @@
+{
+  "hash": "18401392af09dbd3229e8107152996f18c69f6f4bf8f4de9c4fcdfeec93adb21",
+  "name": "Midjourney Luneva Cinematic Lora",
+  "trained_words": [
+    "movie",
+    "midjourney",
+    "style",
+    "cinematic"
+  ],
+  "description": "This is a Midjourney Cinematic style Lora based on my aesthetics. Adds cinematic vibe and also additional detailing to a broad range of image themes without too much bias towards a single style. Version 1: Trained on R128, 40 Images, 5000 Steps FLOWMATCH NOISE FIX: ComfyUI beyond 0.3.77 changed the default UNET torch weight dType, for many users it used to default to fp32. FlowMatch is sensitive to this, and works best with fp32. To set the toggle, edit your .bat file for launching ComfyUI, and add to the end: --fp32-unet Comparison article here: https://civitai.com/articles/24424 Recommended workflow: https://civitai.com/models/2226355/luneva-infinite-details-z-image-workflow Suggestion: Pair this with Luneva Cyber (HD Enhancer) This other lora enhances ANY type of image into Ultra HD, improves composition, and also creates hyper realistic cyberpunk elements when prompted. Used in combination with Luneva Cinematic lora. &lt;Download Luneva Cyber HD Enhancer&gt; Long Prompts: If you're using very long prompts , you may need to increase the Lora strength (0.6 to 1.0) otherwise it locks onto your long prompt pretty strongly. COMFYUI V0.4.0 BUG: This version will break the EULERDISCRETE-SCHEDULER (makes your image very noisy again) However, this version is needed to run the Z Image Controlnet. So I've rolled back to v0.3.77 for now. This is my very first Lora, hope you like it! Special thx to: @ PastellPastellPastellI Lora Strength Comparisons Below:",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:44:19.560470"
+}

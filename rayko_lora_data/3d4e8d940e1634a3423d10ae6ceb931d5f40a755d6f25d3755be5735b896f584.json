@@ -1,0 +1,17 @@
+{
+  "hash": "3d4e8d940e1634a3423d10ae6ceb931d5f40a755d6f25d3755be5735b896f584",
+  "name": "Space Worlds : Planets - Z Image Turbo",
+  "trained_words": [
+    "landscapes",
+    "futuristic",
+    "abandoned",
+    "realistic",
+    "background",
+    "ruins",
+    "lost",
+    "planets"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) -- Planets 01 : The Lost Ones v2 Still with no atmosphere (if you wish to), this new version works like a style. Get nice results with a few simple words like only the trigger words. Or use longer prompts to get what you want and more details. New dataset. -- HOW TO USE : Strength : 0.8 to 1 tested Steps : 15 tested Checkpoints : any Adetailer : not used, not tested -- Trigger words : z1os, absurdres, ultra quality, ultra detailed -- See pics for prompt exemples. -- Planets 03 : Unha planet Various environments. See pics for prompts. -- Planets 01 : The Lost Ones This lora is partly a request from one of you . I was asked to create a planet surface with no atmosphere, so... It will mostly create planets without atmosphere or low atmosphere , unless you use the effects to add sea, waves, sunset, vegetation, etc... You'll be able to create : Dirt planets landscapes (you can choose the color) Sand planets landscapes (same as above) Moon-like planets landscapes (same as above) Frozen sea planets landscapes Crashed ships Abandoned stations Fire meteor rain =&gt; doesn't work well ^^ + 3 effects to add some more variations or weirdness ;) -- HOW TO USE : Strength : 1 tested Steps : 15 tested Checkpoints : Any but I used the Base Fp8 and Base BF16 models. Adetailer : not used, your choice Sampler : Tested with EULER Scheduler : NORMAL -- No trigger word -- See pics for prompts :) -- EFFECTS : T10, landscape, mountains, waves, rocks, tree, vegetation, moss, rough sea, waterfall, ruins, sunset, blue, orange, yellow, brown, fantasy, green, T8, forest, trees, mist E09, sun shades though clouds, sunlight, golden rays, atmospheric, dramatic lighting, ethereal, soft gradients, tranquil, majestic, natural light, cloudscape, warm glow -- Have fun :)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:51:50.449938"
+}

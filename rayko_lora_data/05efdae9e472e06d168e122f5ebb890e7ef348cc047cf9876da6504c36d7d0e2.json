@@ -1,0 +1,13 @@
+{
+  "hash": "05efdae9e472e06d168e122f5ebb890e7ef348cc047cf9876da6504c36d7d0e2",
+  "name": "LTX2 - IC LORA DETAILER",
+  "trained_words": [
+    "base model",
+    "lora",
+    "detailer",
+    "ltx2"
+  ],
+  "description": "✨ LTX-2 Detail Enhancement LoRA ltx-2-19b-ic-lora-detailer This LoRA is designed to enhance fine visual details and local clarity in LTX-2 generated videos, improving textures, edges, and small visual elements without altering the overall composition or motion . What it does: Increases perceived sharpness and micro-detail Enhances textures (faces, clothing, surfaces, environments) Improves visual readability in complex scenes Preserves motion and temporal consistency Best for: Close-ups and character shots High-resolution renders Cinematic scenes where detail matters Final polish before upscaling or export Creator tip: Use this LoRA with moderate weight to avoid over-sharpening. It works especially well before spatial upscaling for cleaner high-resolution results. 🧠 Usage Notes Designed for LTX-2 19B models Fully compatible with ComfyUI workflows Can be combined with camera control LoRAs Recommended to apply only one detail enhancement LoRA at a time From the original LTX Repo : https://huggingface.co/Lightricks",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:41:09.453652"
+}

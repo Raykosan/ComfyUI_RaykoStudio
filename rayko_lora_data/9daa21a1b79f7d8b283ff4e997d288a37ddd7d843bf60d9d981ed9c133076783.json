@@ -1,0 +1,10 @@
+{
+  "hash": "9daa21a1b79f7d8b283ff4e997d288a37ddd7d843bf60d9d981ed9c133076783",
+  "name": "Ultra-Realist Style (Digital/CGI Illustrations)",
+  "trained_words": [
+    "gemfx"
+  ],
+  "description": "Ultra-Realist Style This lora is an aesthetic style blending the characteristics of gpt-image-1 and Nano Banana Pro. I particularly like the realistic skin detail, but digital illustration style both can achieve with the right prompting, and wanted to bring this local. Staring this journey I am using Z-Image-Turbo. I wanted to see how trainable it was, on top of what sort of high frequency details it was capable of (a lot of early images, and vanilla generations are very compressed looking.) Trigger The dataset uses a purely style-based tagging system using mainly photographic terminology besides the trigger prefix ultra-realist style, ... You can caption for realism as you normally would with or without triggers. Realism: ultra-realist style, Anime Realism: ultra-realist style, hyper-realanime aesthetic, ultra-realist style, anime style, Environment: hyper-realist style, ultra-detailed cinematic environments, Weighting The lora works well at low, and higher weights. A good threshold from testing is 0.5 - 1.2 where higher is a stronger digital illustration effect. Dataset Info The Ultra-Realist beta lora is based on a SFW dataset. Suggestive themes/gore/blood was omitted from synthetic generations. That being said, it is just a style lora, and applies to whatever context you're prompting for. It just may not have the best results in the aforementioned.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:54:04.407188"
+}

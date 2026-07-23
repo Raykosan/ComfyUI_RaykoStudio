@@ -1,0 +1,10 @@
+{
+  "hash": "e679c46fd65eff203d8efdc0308db82334dd57d93b88c4120be937b16ba5b24b",
+  "name": "Illustration | Tome 3",
+  "trained_words": [
+    "Tuarichit art style"
+  ],
+  "description": "NOTE : Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. Note 2 : To those commenting that my workflows are bad and don't work, please take a moment to think before writing such remarks. 1. I don't share .json files of my workflows; you retrieve them from my images, so they work since they were able to at least generate that image. 2. Avoid confusing a dysfunctional workflow with your inability to control it and make it work.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:36:44.542207"
+}

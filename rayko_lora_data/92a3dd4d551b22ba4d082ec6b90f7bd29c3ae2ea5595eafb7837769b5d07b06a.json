@@ -1,0 +1,10 @@
+{
+  "hash": "92a3dd4d551b22ba4d082ec6b90f7bd29c3ae2ea5595eafb7837769b5d07b06a",
+  "name": "DC Vivid Dark Fantasy Painting",
+  "trained_words": [
+    "dcdrkfntsy."
+  ],
+  "description": "*V1 Trigger Word = dcdrkfntsy. add trigger word to the start of your prompt for example \"dcdrkfntsy. a bearded man with red headband, wearing fur and leather, lying among cannabis plants. He has blue eyes, a necklace, and bracelets, with a large belt buckle. he is smoking a joint\" a more detailed prompt will get you a better image im just lazy. Trained with AI-Toolkit [ZIT,ZBASE,KLEIN4B] for 5750 steps [Klein9B] for 7000 steps Rank 32 Tagged with very basic captions consisting of 20-30 words with JoyCaption Beta One (22 Images Total) - Probably a little overcooked (Needed to get the high steps to get the aesthetic because im an amateur at making loras lol! if your having trouble getting what you want drop weight from 1.0 to .75. All images have generation details/ Workflow for ComfyUi just click the image you want, then save, then drop into ComfyUI or Open the image with notepad on pc and you can search all the metadata there. The DC in the title are my initials not the comics If you use this lora in merges or upload to other generation sites please credit me to my civitai page, Thankyou https://civitai.com/user/dkpc69 http://Ko-fi.com/dkpc69",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:55:00.852945"
+}

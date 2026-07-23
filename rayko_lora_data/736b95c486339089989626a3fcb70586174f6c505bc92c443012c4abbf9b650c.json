@@ -1,0 +1,10 @@
+{
+  "hash": "736b95c486339089989626a3fcb70586174f6c505bc92c443012c4abbf9b650c",
+  "name": "Team Fortress 2 - Web comic style",
+  "trained_words": [
+    "tf2webcomic"
+  ],
+  "description": "LoRA model in the style of the Team Fortress 2 web comic. Please note: the model is unstable and under development, with noticeable artifacts when generating images. I highly recommend using lora weight at: 0.5-0.8. Final number of assets during training: 16 images.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:53:31.925093"
+}

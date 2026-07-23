@@ -1,0 +1,10 @@
+{
+  "hash": "fac78de694700033391c653fadfe9225d480cc14afd8d705a1b6482dcb39127c",
+  "name": "Watercolor - sliders / ntcai.xyz",
+  "trained_words": [
+    "watercolor"
+  ],
+  "description": "Create a watercolor painting. How relaxing. Examples at 4-5 strength Trained for 6000 instances with sliders https://github.com/rohitgandikota/sliders batch size 12, 500 steps, 1.5 hr on 1x a6000 Trained on https://civitai.com/models/215796/top-rated-turboxllcm-super-mario-merge Support my work on patreon and get access to over 300 unseen loras with many new ones daily. Plus, easily train your own, no hardware needed (coming soon)! https://patreon.com/NTCAI Any proceeds go to funding my computation addiction.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:56:33.435528"
+}

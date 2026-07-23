@@ -1,0 +1,19 @@
+{
+  "hash": "cb6c240b0da60332b36d1e24b79cc3496ee6ae65ebe02c4892ca1d778f973f61",
+  "name": "City Worlds 00 - ZIT",
+  "trained_words": [
+    "anime",
+    "city",
+    "planet",
+    "science fiction",
+    "cyberpunk",
+    "sunset",
+    "realistic",
+    "background",
+    "landscape",
+    "effects"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) - Test versions .... JUST FOR FUN AND TESTING. -- City Worlds 00 : I'm just testing stuff. There may be different versions that will be on this page ;) Some might look a little similar but they are not, unless stated otherwise. This is for training tests purpose and comparisons. Test all or only the one you prefer ;) -- V1 : City with spaceships or ships. Streets, cyberpunk look. I feel it needs a little more training. Trained with 1200 steps. V1 B : Trained with 1600 steps. Same parameters. Same prompt and iteration number for each pic. V1 C : Trained with 2100 steps. Same parameters. Same prompt and iteration number for each pic. -- HOW TO USE : Strength : 1 tested Steps : 15 tested Checkpoints : Any Adetailer : not used Sampler : EULER Sheduler : SIMPLE or BETA or NORMAL -- No trigger word -- Some effects are built in -- Have fun ^^",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:25:34.145683"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "899af70acfc21f62813d91efd1b2f77da881042a69c240730f8d5ee7c5681387",
+  "name": "Eldritch Comics  | for Flux.1 dev",
+  "trained_words": [
+    "illustration"
+  ],
+  "description": "Version 1.1 update: This is the best that Eldritch Comics has looked (between v.1 for Flux and multiple versions for SDXL) though it's also prone to simply giving you a photographic output. Use of the trigger word 'illustration' seems like the best way to keep it on track. Referring to 'comics' in some way changes the style, but just 'illustration' works much better. I don't caption training images for style models with style terms so we just need to nudge the photo-centric Flux model gently back toward the LoRA. The biggest improvement here is the use of black lines - they are much more purposeful in delineating forms. Previous versions of Eldritch Comics tended to have black spiderweb lines criss-crossing forms where it doesn't serve any purpose. But with this iteration, the lines are much more coherent, while the rest of the style retains that rich coloring and naturalistic (non-anime or exaggerated cartoon) drawing style. Trained on largely the same dataset used for its SDXL counterpart , this model brings strong outlines and bold coloring. With Flux, if your prompt gets too verbose, the output starts turning more photographic, especially the background. You can mitigate this with terms like \"comic book illustration\" but you tend to lose some of the richness of coloring when doing so.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:30:06.122963"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "7cf17518c74bc586712b5d36033e292e823038d5bac74b017beda29580e610ec",
+  "name": "Charcoal",
+  "trained_words": [
+    "charcoal drawing"
+  ],
+  "description": "NOTE : Base model category: ZImageTurbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:24:59.899580"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "730ebbb087861c335cc84fb0fe0d0707087981899e0f814c956958786426a94f",
+  "name": "Splatter-Ink-Art-V0.1",
+  "trained_words": [
+    "style"
+  ],
+  "description": "Splatter-Ink-Art-V0.1 Tested with Forge Neo, sampling steps:9, Euler a -Beta, Euler a CFG++ - Beta, Heun, DPM++ 2M, weighting:1.0, no trigger word. For Promting, see the sample images. I hope you find this useful, and I look forward to seeing your creative images. If you use this LoRA, it would be great if you could post the first image on this LoRA... Thank you!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:52:32.031779"
+}

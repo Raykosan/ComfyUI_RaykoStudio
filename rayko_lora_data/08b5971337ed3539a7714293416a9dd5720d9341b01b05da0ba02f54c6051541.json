@@ -1,0 +1,16 @@
+{
+  "hash": "08b5971337ed3539a7714293416a9dd5720d9341b01b05da0ba02f54c6051541",
+  "name": "PhotoBOX_ZIT",
+  "trained_words": [
+    "concept",
+    "lighting",
+    "photo",
+    "shadow",
+    "photography",
+    "control",
+    "exposure"
+  ],
+  "description": "This series aims to enhance the control capabilities of ZIT-T2I, it will be updated continuously. If you are looking for a controllable T2I method, this is definitely worth a try. Now, please like, follow, and share, so that when this series is updated, the system will automatically notify you. At the same time, it also has a Klein version, which can be obtained here. If you don't know how to use Slider-LORA, you can check this guide If you like my work, you can contact me through my X. If you are interested in how to train it, you can look here. | Angle-up &amp; down -10 &lt;&lt;&lt;&lt;&lt;&lt; LowAagle &lt;&lt;&lt;&lt;&lt;&lt; 0 &gt;&gt;&gt;&gt;&gt;&gt; HighAngle &gt;&gt;&gt;&gt;&gt;&gt; +10 Standard Sponsored | Race -5 &lt;&lt;&lt;&lt;&lt;&lt; More European &lt;&lt;&lt;&lt;&lt;&lt; 0 &gt;&gt;&gt;&gt;&gt;&gt; More Asian &gt;&gt;&gt;&gt;&gt;&gt; +5 Standard Sponsored | Body -5 &lt;&lt;&lt;&lt;&lt;&lt; Thin &lt;&lt;&lt;&lt;&lt;&lt; 0 &gt;&gt;&gt;&gt;&gt;&gt; Fat &gt;&gt;&gt;&gt;&gt;&gt; +5 Standard Sponsored | Aperture -5 &lt;&lt;&lt;&lt;&lt;&lt; small aperture &lt;&lt;&lt;&lt;&lt;&lt; 0 &gt;&gt;&gt;&gt;&gt;&gt; large aperture &gt;&gt;&gt;&gt;&gt;&gt; +5 Standard Sponsored | LOWquality &amp; HIGHquality -5 &lt;&lt;&lt;&lt;&lt;&lt; LOW quality &lt;&lt;&lt;&lt;&lt;&lt; 0 &gt;&gt;&gt;&gt;&gt;&gt; HIGH quality &gt;&gt;&gt;&gt;&gt;&gt; +5 Standard Sponsored | Age This LORA cannot be shared here; please check my private channel -5 &lt;&lt;&lt;&lt;&lt;&lt; Younger &lt;&lt;&lt;&lt;&lt;&lt; 0 &gt;&gt;&gt;&gt;&gt;&gt; Older &gt;&gt;&gt;&gt;&gt;&gt; +5 | ZoomOUT &amp; ZoomIN -5 &lt;&lt;&lt;&lt;&lt;&lt; ZoomOUT &lt;&lt;&lt;&lt;&lt;&lt; 0 &gt;&gt;&gt;&gt;&gt;&gt; ZoomIN &gt;&gt;&gt;&gt;&gt;&gt; +5 Standard Sponsored | Warm &amp; Cool -5 &lt;&lt;&lt;&lt;&lt;&lt; more cool &lt;&lt;&lt;&lt;&lt;&lt; 0 &gt;&gt;&gt;&gt;&gt;&gt; more warm &gt;&gt;&gt;&gt;&gt;&gt; +5 Standard Sponsored | Dark &amp; Light -5 &lt;&lt;&lt;&lt;&lt;&lt; more dark &lt;&lt;&lt;&lt;&lt;&lt; 0 &gt;&gt;&gt;&gt;&gt;&gt; more light &gt;&gt;&gt;&gt;&gt;&gt; +5 Standard Sponsored More LORA reserved slot … To help friends who are interested in training Slider-LORA, I have summarized some of my own training experiences. Those who need them can check here. | 🙈🙉🙊OK, that's all In addition to the Sponsored version, I will also provide exclusive private models, workflows, and usage guides. If you are also interested in this, please join my private channel. Thank you for reading this far. English is not my native language. The above content was translated by artificial intelligence. Please forgive me if there are any inaccuracies. Finally, have fun! AI never sleeps! Peace!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:48:05.258503"
+}

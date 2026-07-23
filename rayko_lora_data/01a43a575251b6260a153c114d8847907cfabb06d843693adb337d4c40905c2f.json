@@ -1,0 +1,10 @@
+{
+  "hash": "01a43a575251b6260a153c114d8847907cfabb06d843693adb337d4c40905c2f",
+  "name": "Wally",
+  "trained_words": [
+    "Nogeleschie art style"
+  ],
+  "description": "Model inspired by Egon Schiele, Edoardo Tresoldi &amp; Paul Cadmu. As a female figure, the model was trained in several images of Egon Schiele's principal muse and companion, Walburga Neuzil, nicknamed \"Wally\". Model and lover between 1911 and 1915, she profoundly influenced his work, inspiring many intense expressionist nude portraits, including the famous \"Portrait of Wally\" (1912). NOTE : Base model : Z Image Turbo Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:55:08.842242"
+}

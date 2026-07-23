@@ -1,0 +1,17 @@
+{
+  "hash": "202d76cfbf0f8e670154ef300b0f28e4a4bfdb94dd91a535f6ab73769314ae3f",
+  "name": "Qwen-Edit-2509-Light-Migration",
+  "trained_words": [
+    "lighting",
+    "style",
+    "light",
+    "i2i",
+    "qwen",
+    "migration",
+    "edit image",
+    "2509"
+  ],
+  "description": "Original Source: https://huggingface.co/dx8152/Qwen-Edit-2509-Light-Migration Thanks a lot!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:10:11.548004"
+}

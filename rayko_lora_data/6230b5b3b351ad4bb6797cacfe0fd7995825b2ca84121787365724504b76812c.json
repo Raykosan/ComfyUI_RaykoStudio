@@ -1,0 +1,10 @@
+{
+  "hash": "6230b5b3b351ad4bb6797cacfe0fd7995825b2ca84121787365724504b76812c",
+  "name": "Real Anthropomorphic Animal People",
+  "trained_words": [
+    "anthropomorphic {type of animal} {subject}"
+  ],
+  "description": "Makes super realistic anthropomorphic creatures, Strength .6-1, start around .7 or .8. Various prompts about animal people hybrids work, but for ease: anthropomorphic {type of animal} {subject} i.e. anthropomorphic goat man, anthropomorphic walrus woman, etc. Works with Dev, Krea, and the couple other finetunes I tried. Incidentally, I trained it as hybrid , not anthropomorphic , yet anthropomorphic works better.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:48:20.011328"
+}

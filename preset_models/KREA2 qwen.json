@@ -1,0 +1,10 @@
+{
+  "unet_name": "KREA2\\krea2_turbo_fp8.safetensors",
+  "weight_dtype": "default",
+  "use_clip2": false,
+  "clip_name": "KREA2\\qwen3vl_4b_uncensored_int8_convrot.safetensors",
+  "clip_name2": "ACE\\qwen_0.6b_ace15.safetensors",
+  "clip_type": "krea2",
+  "clip_device": "default",
+  "vae_name": "qwen-image-vae.safetensors"
+}

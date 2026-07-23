@@ -1,0 +1,15 @@
+{
+  "hash": "5e5bfb0c0fbddfbf5dedffdeb6972a71109a7c79e5b11944bc8d6971f99ea1e6",
+  "name": "Female - Face Portraits - Detailed Skin - Closeup Macro - Flux",
+  "trained_words": [
+    "poses",
+    "woman",
+    "face",
+    "closeup",
+    "skin",
+    "mouth"
+  ],
+  "description": "Trained on 200+ very highly detailed high resolution (min 2000px) images of amateur female face portraits , with visible skin pores, skin hairs and blemishes/moles. Multi resolution trained with crops to 1280px on tiny details. Before releasing it here I merged with 5% Female Tongue, Mouth and Teeth Lora so it also still able to produce good looking full body shots etc. as well. But the main focus is on face only portraits. Use descriptive prompts like: A closeup photograph on the little skinhairs on the chin of a young woman A photograph of a young amateur woman's face with brown eyes, long hair, and her mouth open. The focus is on her mouth, emphasizing her perfect symmetric teeth. The image is detailed, capturing the natural detailed texture and pores and blemishes and hairs of her skin and the subtle sheen on the inside of the mouth. Guidance / (distilled) CFG between 1,6 and 2,2, Important to keep it low for realism! Check the photos in the gallery, they are all by DPM++ 2M sampler (so nothing exotic) and all have prompts and generation data to inspect. ( note: some of the sample prompts mention a different lora filename (tongue-v3) I could not get rid of that after deciding to publish this lora as its own closeup model and not a version update, its the same lora as you download here)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:25:54.156521"
+}

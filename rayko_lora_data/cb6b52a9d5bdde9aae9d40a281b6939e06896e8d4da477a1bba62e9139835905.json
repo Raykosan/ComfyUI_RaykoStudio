@@ -1,0 +1,10 @@
+{
+  "hash": "cb6b52a9d5bdde9aae9d40a281b6939e06896e8d4da477a1bba62e9139835905",
+  "name": "[Style filter] Xu Er thick paint composition light texture enhancement",
+  "trained_words": [
+    "XUER guangying"
+  ],
+  "description": "This is a style lora. It mainly provides painting style and reduces AI sense. The training set uses more complex compositions, more elaborate scenes. And some of the more difficult actions to write. Case diagram with large models: https://www.shakker.ai/modelinfo/465ea8f1653a4a00bbe98609129f9c3f/LORA?from=personal_page Recommended LORA weight: : 0.8-0.9 Recommended HD redraw rate: 0.42 This lora provides different painting styles under different samplers. DPM++ 2M series thick coating texture is better. The Eulera series has a clearer style, leaning towards 2.5D and anime. DDIM CFG++ series painting style is more hand-painted. Trigger word: XUER guangying, Prompt word reference example diagram and backmap area. (Click to view the latest V3 example) It's all straight out so you can copy it. 这是个风格lora.主要提供画风，减少AI感。 训练集用了更复杂的构图，更精细的场景。 和一些比较难写出来的动作。 在不同的采样器下这个lora提供不同的画风。 DPM++ 2M系列厚涂质感更好。 Eulera系列画风更清晰会偏向2.5D和动漫风。 DDIM CFG++系列画风更偏手绘感。 触发词：XUER guangying, 提示词参考例图和返图区。都是直出图大家放心复刻。",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:57:20.336195"
+}

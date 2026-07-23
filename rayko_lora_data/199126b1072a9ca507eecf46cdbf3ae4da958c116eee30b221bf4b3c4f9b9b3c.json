@@ -1,0 +1,10 @@
+{
+  "hash": "199126b1072a9ca507eecf46cdbf3ae4da958c116eee30b221bf4b3c4f9b9b3c",
+  "name": "MIDJOURNEY_V1_Z-image_Turbo",
+  "trained_words": [
+    "style"
+  ],
+  "description": "Here is the first Lora I just created; my goal was to capture certain elements of the Midjourney style. Thanks for sharing this Lora in Images; I can't wait to see what the community can come up with After several tests, I managed to get some fairly satisfactory results. Recommended settings: 0.7 to 1 if you want to force the Lora",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:44:13.678362"
+}

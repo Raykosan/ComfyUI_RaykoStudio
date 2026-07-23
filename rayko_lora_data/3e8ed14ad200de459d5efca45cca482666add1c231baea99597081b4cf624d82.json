@@ -1,0 +1,10 @@
+{
+  "hash": "3e8ed14ad200de459d5efca45cca482666add1c231baea99597081b4cf624d82",
+  "name": "KreaComics",
+  "trained_words": [
+    "style"
+  ],
+  "description": "NOTE : Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:26:28.590916"
+}

@@ -1,0 +1,14 @@
+{
+  "hash": "4b9c22b11e79823f95abb1e4a7d90fa56ac2323e12fc848b9e52108804f85e09",
+  "name": "Splash - CE",
+  "trained_words": [
+    "splshCE_style",
+    "fluid",
+    "dissolving",
+    "fading",
+    "splash"
+  ],
+  "description": "An abstract style with tendencies to be liquid, dissolving.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:52:16.775228"
+}

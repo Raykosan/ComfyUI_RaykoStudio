@@ -1,0 +1,10 @@
+{
+  "hash": "1540efa433572351ce245200ae8be3febcdc22ab51ed44eb3c78af3dbb1c89fa",
+  "name": "Luis Royo Style - Krea 2",
+  "trained_words": [
+    "painting in the style of luis royo"
+  ],
+  "description": "This LoRA captures the iconic, sensual, and haunting dark fantasy art style of Spanish master illustrator Luis Royo . Perfect for generating powerful warriors, gothic sci-fi characters, and melancholic post-apocalyptic scenes. It excels at reproducing his signature soft-focus airbrush textures, highly detailed biomechanical or metallic armor, and hyper-realistic pale skin tones set against dark, atmospheric backgrounds. ### 🚀 What's New in V2? * Expanded Dataset: Upgraded to 118 high-quality, sharp curated images capturing his book covers and portfolios (*III Millennium*, Dead Moon , etc.). * Flawless Shading: Massively improved transitions for smooth skin tones, soft atmospheric mist, and delicate metallic surfaces. * Optimized Selection: Extracted from the perfect sweet spot of the training curve (**Step 2,596**) to prevent overfitting and ensure maximum flexibility. ### ⚙️ Training Details &amp; Dataset Info: * Dataset Size: 118 Images (fully captioned) * Training Resolution: 512 x 512 pixels (highly scalable on modern DiT architectures) * Total Training Steps Used: 2,596 Steps (extracted from backup for optimal coherence) ### 🔧 Recommended Generation Settings: * Trigger Words / Phrase: painting in the style of luis royo ### 📝 Prompting Tips: To invoke the ultimate Luis Royo atmosphere, combine the trigger phrase with his signature thematic keywords: * painting in the style of luis royo, airbrush on canvas, pale skin, soft monochrome shading, gothic leather armor, biological machinery, mechanical wings, desolate ash wasteland, melancholic fantasy artwork. If you enjoy the unique look of this V2, please drop a review and share your generations below. Let's bring back the dark elegance of classic 90s fantasy art!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:43:05.587641"
+}

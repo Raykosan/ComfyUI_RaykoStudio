@@ -1,0 +1,10 @@
+{
+  "hash": "f0846651c5c8361ded7602954a4e81385c1448aee384c1f626b18c10240df492",
+  "name": "Winterdream - Professional High Quality DSLR Photography",
+  "trained_words": [
+    "winterdreamphotography"
+  ],
+  "description": "A LoRA trained for professional camera photography with a dreamy, moody aesthetic and beautiful bokeh. Optimized for realistic and high-quality winter imagery, it captures a wide range of subjects including portraits, landscapes, and animals. Perfect for creating atmospheric, cinematic winter scenes with soft, ethereal light, delicate frost, snow-covered landscapes, and elegant details. Works well for close-ups, wide shots, and artistic compositions, maintaining a natural, immersive, and visually stunning appearance. Settings: 8-9 steps, cfg1, Euler sampler, Normal or Simple scheduler, 832x1216, 1024x1536 or 1280x1920 \"However, the resolution is up to you; this is just an example of good quality. Landscape format works just as well as portrait format.\"",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:57:08.148169"
+}

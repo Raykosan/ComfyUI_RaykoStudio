@@ -1,0 +1,10 @@
+{
+  "hash": "237d764223b43f9680b237802014d3954262f23f9b77a7a3897abbbc8d26fba7",
+  "name": "Krea 2 Detail Enhancer | Edit LoRA",
+  "trained_words": [
+    "enhance this image"
+  ],
+  "description": "Hi, recently Ostris , creator &amp; maintainer of AI Toolkit , released a new lora training method and custom ComfyUI node for editing images with Krea2 despite model's text-to-image nature. Upon that I trained several detail enhancement LoRA's and sharing the best one. Please be aware, this LoRA and the edit model is highly experimental and it's not creating great results all the time. I'm merely sharing my experiment for inspiring other developers &amp; community members. Some important notes: -Krea2 is not an edit model, so do not expect Flux.2 Klein/Qwen Image Edit precision and performance from it . It alters the image sometimes. -It might have faulty outputs with horizontal aspect ratio. -It changes the lighting and color slightly. Trigger word: enhance this image Prompt I'm using: Enhance this image to high resolution with rich fine details. Sharpen all textures and surfaces, add microdetails and natural grain. Increase clarity and definition across all elements while preserving the original composition, lighting, and atmosphere. Image can be illustration or real photo, keep the original input style. Workflow I'm using: https://huggingface.co/reverentelusarca/krea2-detail-enhancer-edit-lora/blob/main/workflow-comfyui-krea2-detail-enhancer-edit-lora.json Edit Node: https://github.com/ostris/ComfyUI-Krea2-Ostris-Edit Explanatory post from Ostris: https://x.com/ostrisai/status/2073428647273447480",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:28:50.488177"
+}

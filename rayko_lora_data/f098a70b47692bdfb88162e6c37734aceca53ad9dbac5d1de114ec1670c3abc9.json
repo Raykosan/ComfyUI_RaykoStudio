@@ -1,0 +1,10 @@
+{
+  "hash": "f098a70b47692bdfb88162e6c37734aceca53ad9dbac5d1de114ec1670c3abc9",
+  "name": "BoobSy",
+  "trained_words": [
+    "style"
+  ],
+  "description": "NOTE : Base model : Z Image Turbo Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:24:25.561972"
+}

@@ -1,0 +1,12 @@
+{
+  "hash": "c3b7d01b2ac61768781db899dfed6d9fd60f8f9f037e7e0631d9a058af27da4a",
+  "name": "Rough Sketch (SDXL)",
+  "trained_words": [
+    "mdsktch",
+    "color",
+    "sketch"
+  ],
+  "description": "Prompt with mdsktch sketch of a __subject__ or color mdsktch of __subject to get a messy rough sketch of a thing!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:50:18.743889"
+}

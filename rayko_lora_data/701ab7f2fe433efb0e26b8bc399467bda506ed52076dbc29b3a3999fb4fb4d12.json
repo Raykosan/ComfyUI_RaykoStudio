@@ -1,0 +1,14 @@
+{
+  "hash": "701ab7f2fe433efb0e26b8bc399467bda506ed52076dbc29b3a3999fb4fb4d12",
+  "name": "RandomMaxx Artistify",
+  "trained_words": [
+    "anime",
+    "niji",
+    "style",
+    "illustration",
+    "painting"
+  ],
+  "description": "I stumbled across a pretty interesting style combination of Loras and had a lot of fun with those. So I decided to create a merged lora that can be used as a styler that adds a unique style to Flux, making it way more artistic, hence the name for this lora. Many thanks to speach1sdef178 and blairesilver13 for their amazing work! Main Loras used are: Anime Niji Flux by speachsdef178 James Jean surreal illustration Flux by speachsdef178 Anime styler Flux by speachsdef178 Daubrez Painterly Style by blairesilver13 The lora works well in a range of 0.6 to 1.2. Most pictures in the gallery have been created with a strength of around 1.0. Please share your images in the model gallery! Super curious to see what you can come up with!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:50:05.422226"
+}

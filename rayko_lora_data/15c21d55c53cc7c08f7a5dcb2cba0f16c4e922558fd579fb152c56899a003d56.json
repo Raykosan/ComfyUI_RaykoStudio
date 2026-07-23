@@ -1,0 +1,10 @@
+{
+  "hash": "15c21d55c53cc7c08f7a5dcb2cba0f16c4e922558fd579fb152c56899a003d56",
+  "name": "CW Home R - Design - ZIT",
+  "trained_words": [
+    "homer01"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) - Welcome Home R ! Home R is a group of loras about architecture and design. -- What will it do ? Create interiors (Cyberpunk, Science fiction, Baroque, and more) Create outdoors (houses, design environments) Create some design objects Create some old science objects Realistic and Anime The ZIT version (also exist for Flux and Illustrious with a little different dataset) can be combined with some of my other loras for very nice results : Home of The Ancients - Background / Character Creator : Will do GREAT with interiors at strenghth 1, giving more details and some nice surprises but it won't do well with outdoor... but I didn't test much that part, so maybe reducing the strength might help. Can also be used to do Anime : https://civitai.com/models/2201479?modelVersionId=2516060 EFFECTS : There are some effects built in this lora and adding more can be fun. But at 1 strength, it will kill the composition and give ugly results... So lower it to 0.4 and relax : https://civitai.com/models/2202300?modelVersionId=2479630 -- HOW TO USE : Strength : 1 tested Steps : 15 - 20 tested Checkpoints : Any (anime and realistic in the dataset but ZIT will do realistic) Adetailer : not tested -- The main trigger word is : homer01 -- Some effects are built in. See pictures for prompts ;) Have fun ! :)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:25:35.915132"
+}

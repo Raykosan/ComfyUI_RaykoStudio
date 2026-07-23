@@ -1,0 +1,13 @@
+{
+  "hash": "a77e9496183072667882bcaaff22506253290ad4305ab2156355923aad5fee16",
+  "name": "[ZIT] Detail Slider",
+  "trained_words": [
+    "detail",
+    "tool",
+    "detailer",
+    "slider"
+  ],
+  "description": "Over 2 it may start to darken the image, and under -2 brighten by a lot. It is very good between -2 and 2. Use your prompt to help it.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:57:28.755044"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "efa4a1615c2cacff76cfbffe9d540807259f89062716204c60d1a0617549c7da",
+  "name": "Sergi Brosa",
+  "trained_words": [
+    "Serbosa style"
+  ],
+  "description": "Sergi Brosa is a Spanish concept artist and illustrator based in Barcelona. Known for his dynamic, futuristic style, he specializes in sci-fi character, vehicle, and environment design. His work includes contributions to major projects like Borderlands 3 , and he’s also the creator of original universes such as Fury Beats and Atomic Delivery , blending punk aesthetics with vibrant storytelling. NOTE : The length of the prompt influences the expression of the model, the shorter the prompt, the more the model expresses itself. Latent injection gives better results than empty latent. Using controlnet limits the impact of LoRA on rendering. Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here . IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. VERY IMPORTANT NOTE : Do not like my models, do not give me buzz, do not follow me, otherwise you will be reported to Civitai for attempted corruption",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:50:37.698461"
+}

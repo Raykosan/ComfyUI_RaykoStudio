@@ -1,0 +1,13 @@
+{
+  "hash": "bb4bdc08f37ab2581614edfa72c81649a1adaebce1c449cb4ea256d807a99c9e",
+  "name": "Reptile Skin - CE",
+  "trained_words": [
+    "style",
+    "skin",
+    "reptile",
+    "lizard"
+  ],
+  "description": "Please share your creations. I would love to see how you have used the LoRA. Weight range: 0.7 - 1.2, depending on the intensity of effect desired. Start around 1.0 and go from there.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:49:48.496062"
+}

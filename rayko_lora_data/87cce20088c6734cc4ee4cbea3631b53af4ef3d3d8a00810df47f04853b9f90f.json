@@ -1,0 +1,11 @@
+{
+  "hash": "87cce20088c6734cc4ee4cbea3631b53af4ef3d3d8a00810df47f04853b9f90f",
+  "name": "Art Nouveau",
+  "trained_words": [
+    "ArsMJStyle",
+    "art nouveau"
+  ],
+  "description": "The Lora is trained on 140 MidJourney Images that use my \"Personalised Style\" + Art Nouveau The dataset is diverse and tries to capture the true spirit of Art Nouveau seen through my lens, not just portraits in Alphonse Mucha style. Works without the trigger words ArsMJStyle, Art Nouveau, but gives stronger results with them. MJ7 VERSION: The dataset was rebuilt entirely from scratch using MidJourney V7, once again mixed with my personalized style. While the overall composition is similar to V2, this version expands the range by including everyday objects, architectural details, and jewelry. Expect improved structure and more natural colors. V2 Changes : I've completely rebuilt the dataset, to better reflect the evolution of my MidJourney style and LoRA structuring/labeling I use. This new version (v2) is based on a curated dataset of 250 images : 100 Portraits 150 Landscapes, Buildings, Animals, and Abstract Paintings The colors and composition in v2 offer a distinct experience compared to v1, so I encourage you to try both versions and see which one you like the most. Recommended settings remain the same as v1.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:23:49.130150"
+}

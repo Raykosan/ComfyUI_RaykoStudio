@@ -1,0 +1,10 @@
+{
+  "hash": "d2524e8dd646d34bfccad8473110291964206f271a43c20ce2a3494d5074de8b",
+  "name": "RebelReal (LoRA Collection)",
+  "trained_words": [
+    "style"
+  ],
+  "description": "Aesthetic Booster And Image Enhancer. Also provides a slight dynamic lighting change to each image as well. Boogu-Image LoRA works with both Base and Turbo! HIGHDREAM LORA DOES NOT WORK WITH 2604. NOTE: TURBO LoRA works with BOTH the Z-Image Base and Turbo models! Z-IMAGE BASE ONLY works on BASE ONLY! WARNING: lora strength can be intense. i suggest 0.2 - 0.8, TRUST ME, its going to be enough and this lora is a multipurpose lora. It will handle most aesthetics you want. .4 - .7 is the sweetspot in my opinion. drastically improves on seed variation. youll notice details enhance on most images as well. test it and show me some of your generations! https://youtu.be/mFjYII4-yCk?si=n6wvk6N78tNPOMRj",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:49:29.121319"
+}

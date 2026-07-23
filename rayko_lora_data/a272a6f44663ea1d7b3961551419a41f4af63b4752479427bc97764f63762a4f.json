@@ -1,0 +1,13 @@
+{
+  "hash": "a272a6f44663ea1d7b3961551419a41f4af63b4752479427bc97764f63762a4f",
+  "name": "Economic Status Slider",
+  "trained_words": [
+    "concept",
+    "money",
+    "rich",
+    "poor"
+  ],
+  "description": "positive for rich, negative for poor",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:29:56.654261"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "5123e3050cec8cfe43d082658051a932a880ee5bc427c2694d7db15b9f107c1d",
+  "name": "ToonTastic",
+  "trained_words": [
+    "Bradhamel art style"
+  ],
+  "description": "NOTE : Base model category: Z Image Turbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:53:49.239570"
+}

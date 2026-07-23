@@ -1,0 +1,13 @@
+{
+  "hash": "083ecbd1438396452285838523594c4500868f6cae3043b7c85e3fc464846cb6",
+  "name": "Klein Detail Slider",
+  "trained_words": [
+    "concept",
+    "detail",
+    "slider",
+    "detailing"
+  ],
+  "description": "A simple detail LoRA slider that increases the details in an image. Works very well in I2I to increase the details of a blurred or low resolution photo. See the sample with the woman, left is a T2I 256x256 image, right is a 1024x1024 I2I generated with this LoRA, no prompt. The samples weights range from -10 to 10 but it can easily be pushed past that. Hope you like it.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:38:59.521861"
+}

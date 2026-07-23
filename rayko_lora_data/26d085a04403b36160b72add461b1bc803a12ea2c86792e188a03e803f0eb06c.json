@@ -1,0 +1,10 @@
+{
+  "hash": "26d085a04403b36160b72add461b1bc803a12ea2c86792e188a03e803f0eb06c",
+  "name": "[LuisaP❤️] QWEN-EDIT IMAGE RECONSTRUCTION  / FIX THE AI",
+  "trained_words": [
+    "regenerate this image"
+  ],
+  "description": "instead of upscaling, like my upscale lora https://civitai.com/models/2046703/luisap-qwen-edit-upscaler-and-denoise-v3-fixed , this will actually try to recreate the image, to fix details. tested on nunchaku qwen edit.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:37:24.065909"
+}

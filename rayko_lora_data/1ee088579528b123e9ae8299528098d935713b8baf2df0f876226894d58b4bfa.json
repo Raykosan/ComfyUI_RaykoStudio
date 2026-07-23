@@ -1,0 +1,11 @@
+{
+  "hash": "1ee088579528b123e9ae8299528098d935713b8baf2df0f876226894d58b4bfa",
+  "name": "Home of The Ancients - Background / Character Creator 2 - Z Image Turbo",
+  "trained_words": [
+    "animsty1",
+    "animation style, too many details, hyper detailed, rich colors,"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) - \"Home of The Ancients\" is a new serie to thank all my followers. It's a Special Edition serie. -- Background Creator 2 : District B - We, Dark Elves This is a background / Style / Character creator. Get nice pics with only a few words ;) This lora will mostly do ANIME. You can create whatever you want. For FUN AND TESTING only :) -- V1 : Anime / Realistic Mix -- V2 : More Anime (in training phase) -- HOW TO USE : Strength : 1 tested Steps : 15 - 20 tested Checkpoints : Any but I used the Base Fp8 and Base BF16 models. Adetailer : not used, your choice Sampler : Tested with EULER Scheduler : NORMAL -- The main trigger word are : animsty1 animation style, hyper detailed, too many details, rich colors -- Only using the trigger words alone, will generate anime women. See pictures for prompt exemples :) -- Have fun ^^",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:35:02.225399"
+}

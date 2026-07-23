@@ -1,0 +1,16 @@
+{
+  "hash": "939794b235cfec624f5f44a665d182fa60757022ad7554b5e28e7ab2d713d95c",
+  "name": "Steampunk Fantasy Western !!! - ZIT",
+  "trained_words": [
+    "space",
+    "planet",
+    "science fiction",
+    "cyberpunk",
+    "realistic",
+    "background",
+    "landscape"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) -- Made with the \"engine\" used to make SW Poetic V5 : https://civitai.com/models/2252969?modelVersionId=2814914 So this might be the \"Witness\" from above in a Steampunk / Fantasy / Western world. But no previews here, you get the full stuff ^^ -- Steampunk Fantasy Western !!! Multiple loras. PART 1 and 2 : Steampunk Steampunk is light, not too present unless stated in your prompt or using the trigger word. You can use long prompts to get very detailed stuff or just any only word to get nice things ;) See pics for exemples ^^ -- HOW TO USE : Strength : 1 tested Steps : 15 tested Checkpoints : Any (I used the Base BF16 model) Adetailer : not used, your choice Sampler : Tested with EULER Scheduler : NORMAL or SIMPLE or BETA -- Optional Trigger word : Steampunk -- Have fun ^^",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:53:05.227090"
+}

@@ -1,0 +1,13 @@
+{
+  "hash": "ad12117461cb41e2ea637fec8df6392ce8e8550c47fbe2b829ed3deb98262066",
+  "name": "Qwen-Image-2512 Turbo & LightX2V LoRA",
+  "trained_words": [
+    "concept",
+    "comfyui",
+    "qwen-image 2512",
+    "qwen-image turbo"
+  ],
+  "description": "LightX2v HF | GH | \"Qwen-Image-2512-Turbo-LoRA is a 4-steps turbo LoRA for Qwen Image 2512 trained by Wuli Team. This LoRA matches the original model's ouput quality but is over 20x faster\" Wuli-art HF",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:13:26.509370"
+}

@@ -1,0 +1,11 @@
+{
+  "hash": "878a5cb048e9529f4ed8ffc10ca643ef45d7e3c00a5342a10bd00c29012b627e",
+  "name": "Steampunk - CE",
+  "trained_words": [
+    "stmpnkCE_style",
+    "steampunk"
+  ],
+  "description": "I know, there are already a hundred Steampunk LoRA on the site. So, here's number 101.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:52:56.424385"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "3c2905adc9d44f6a41787fc5fb04f31167ef59d6a386ce98f0b976bedfd25b7e",
+  "name": "Mangaka I",
+  "trained_words": [
+    "Mangaka style"
+  ],
+  "description": "All licensing conditions for the Flux Dev model apply. You can find the details here .",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:43:22.035516"
+}

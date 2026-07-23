@@ -1,0 +1,10 @@
+{
+  "hash": "af86c6c5b98930f879cac5731af64cfb907225e03b6849643b20774865c2878f",
+  "name": "Space Worlds : Transport - ZIT",
+  "trained_words": [
+    "z1os"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) -- Transport V1 Uh... not working as intended because I tried to put too many different designs here so they kind of blend themselves into some ugly things sometimes. So next, I will seperate them. This lora is here to make specific designs for : Cars Spaceships ONLY FOR FUN AND TESTING :) -- HOW TO USE : Strength : 1 tested Steps : 15 tested Checkpoints : Any Adetailer your choice ;) CFG : 1 Sampler : EULER Sheduler : SIMPLE or BETA or NORMAL -- V1 : Trigger word : z1os -- Look at pics for prompts exemples :) -- Have fun ^^",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:51:48.751891"
+}

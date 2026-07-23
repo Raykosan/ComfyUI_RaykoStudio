@@ -1,0 +1,10 @@
+{
+  "hash": "43946a5abdcaf608232a355deb00aec671d67c8fafd9eeb207effc7b98a74f6c",
+  "name": "Semi real concept art",
+  "trained_words": [
+    "Fantasy concept art"
+  ],
+  "description": "A semi realistic art style to use with Flux. Intended for high detail but simple texturing",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:50:31.600491"
+}

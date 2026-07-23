@@ -1,0 +1,10 @@
+{
+  "hash": "f04e4bb31bd167eeed4a4f0277ef54ff1a5c0a224cced6856282c0633b0f3411",
+  "name": "Z-Image Pro Art",
+  "trained_words": [
+    "MesMer1"
+  ],
+  "description": "This LoRa takes Z-Image model to next level. shaper and higher quality images. Masterpiece artworks: Z-image is weak in many styles. This lora gives you higher level styles like illustration, surreal, abstract. Weights: with 0.5, 0.8, 1, you will get different art style paintings. humans: more Caucasian look. Best Settings: steps = 10-15 CFG = 1.5 weight = 0.8 (0.5-1) sampling = (euler + ddim_uniform) or (heunpp2 + beta)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:47:48.606423"
+}

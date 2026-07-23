@@ -1,0 +1,10 @@
+{
+  "hash": "b762c855160f3b6c75c9cb6ba885e88b4d5a24dcf706c422f2caca465db60193",
+  "name": "ntrchef style [IL, Z-Image, Anima, Krea 2]",
+  "trained_words": [
+    "style"
+  ],
+  "description": "Supposed to emulate style of ntr_chef, if you know, you know Illustrious: v1.0 and v2.0 works best in conjunction with ShinyHero's LoRA at weights 0.5-0.9 v3.0 is pretty good on its own but can be mixed with other LoRAs. Suggested checkpoints: WAI v14.0, Hyphoria, Plantmilk-HempII, Anicore-v7.0 Z-Image: Weight 1.0, gives more anime style pictures with SDXL prompt style and more realistic compositions with natural language prompting (see examples).",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:46:04.765691"
+}

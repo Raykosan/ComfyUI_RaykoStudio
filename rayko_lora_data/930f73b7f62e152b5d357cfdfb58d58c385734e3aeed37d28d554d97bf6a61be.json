@@ -1,0 +1,12 @@
+{
+  "hash": "930f73b7f62e152b5d357cfdfb58d58c385734e3aeed37d28d554d97bf6a61be",
+  "name": "Z-Cyborgs",
+  "trained_words": [
+    "futuristic",
+    "concept",
+    "cyborg"
+  ],
+  "description": "Z-image cyborg lora",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:27:44.838784"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "35b580749eb814b1b190ff43df5b8c938811475cd910986ba9d956a5ec796489",
+  "name": "Jib Mix Realistic Z-image Lora",
+  "trained_words": [
+    "style"
+  ],
+  "description": "Gives Z-Image the Jib Mix treatment, it can force more realism from fantasy prompts as well as improving NSFW anatomy. Make the default faces more European and less likely Asian. If you want less soft/blurry image outputs, use the Ultra Flux 4K VAE instead of the standard VAE. I am currently mainly using it around 0.20 - 0.60 strength on model and clip, as it is a little strong and makes Z-Image look like Flux if used too strong. It was tuned to work with my ClownsharkSampler setting and it doesn't seem to play that nicely with the onsite generation that maxes out at 15 steps and a low resolution. 09/12/2025 - Fixed auto-generated file name. (was 7BKEAXV6TGEH07FD2D20FYRJPO.safetensors) 11/12/2025 - Updated Workflow to V2. Added a powerful seed variation custom node to make images much more diverse: https://github.com/ChangeTheConstants/SeedVarianceEnhancer Added Power Lora Loader now it is supported by Z-Image.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:38:39.320002"
+}

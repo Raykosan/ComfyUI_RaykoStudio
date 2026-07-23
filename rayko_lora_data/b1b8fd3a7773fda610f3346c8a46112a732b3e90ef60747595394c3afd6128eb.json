@@ -1,0 +1,13 @@
+{
+  "hash": "b1b8fd3a7773fda610f3346c8a46112a732b3e90ef60747595394c3afd6128eb",
+  "name": "Wet Ink, NSFW - CE",
+  "trained_words": [
+    "drawing",
+    "ink",
+    "style",
+    "wet ink"
+  ],
+  "description": "An artistic ink style, characterised by splashes of ink. The LoRA has a tendency to produce NSFW images. It also frequently draws a signature, despite my efforts to prevent it. Often, the subject remains monochrome surrounded by color.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:56:53.647744"
+}

@@ -1,0 +1,11 @@
+{
+  "hash": "f69368d37000235986248af51d7daadce469bf3411d5547e5d4a1aa8f955c885",
+  "name": "KreaCharles",
+  "trained_words": [
+    "Bradhamel art style",
+    "style"
+  ],
+  "description": "Steps : 8 - 10 Sampler : er_sde Scheduler : Simple Weighting : around 0.8 Recommended model: Kreamania",
+  "source": "civitai",
+  "imported_at": "2026-07-23T13:12:54.879748"
+}

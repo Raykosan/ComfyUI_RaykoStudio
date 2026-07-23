@@ -1,0 +1,12 @@
+{
+  "hash": "43c75fac76bdd2d157bc4a09f67422a88f5838e009004bff2727c717020eb0c2",
+  "name": "MS LuisRoyo Style Flux.2 klein",
+  "trained_words": [
+    "style",
+    "fantasy",
+    "luis royo"
+  ],
+  "description": "This LoRa module creates the distinctive style of Luis Royo. No trigger is required. Weight: 0.4–1.6 g. In combination with my LoRa \"MS Fantasy Style Flux.2 klein\" ( https://civitai.red/models/2584543/ms-fantasy-style-flux2-klein ), even more fantastic results are achieved. These two LoRa modules complement each other very well.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:43:09.255215"
+}

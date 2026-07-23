@@ -1,0 +1,13 @@
+{
+  "hash": "b77328546a04ad4b538fd02acf858a4570a9ac70ace8a293375ae363b6fe7c4b",
+  "name": "Made of Leather - CE",
+  "trained_words": [
+    "leather",
+    "style",
+    "style,",
+    "made of leather"
+  ],
+  "description": "Please share your creations. I would love to see how you have used the LoRA. The Made of Leather LoRA was trained to produce objects that appear to be made of leather (surprising, no!).",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:43:11.415344"
+}

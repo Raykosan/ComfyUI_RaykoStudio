@@ -1,0 +1,10 @@
+{
+  "hash": "af2483b68ea19367abd0ae8ea8ccf4538e83b5b6684c819fbf535c85050c1b45",
+  "name": "Flux Watercolor Strokes LoRA",
+  "trained_words": [
+    "WTRCLR"
+  ],
+  "description": "WTRCLR, watercolor, &lt;&lt;your prompt&gt;&gt; for best results",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:56:50.636322"
+}

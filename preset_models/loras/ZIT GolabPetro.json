@@ -1,0 +1,16 @@
+{
+  "lora_rows": [
+    {
+      "name": "ZIT/BY/AI Colab - zit.safetensors",
+      "strength_model": 0.55,
+      "strength_clip": 1,
+      "enabled": true
+    },
+    {
+      "name": "ZIT/BY/Dorota Piotrowiak II - zit.safetensors",
+      "strength_model": 0.6,
+      "strength_clip": 1,
+      "enabled": true
+    }
+  ]
+}

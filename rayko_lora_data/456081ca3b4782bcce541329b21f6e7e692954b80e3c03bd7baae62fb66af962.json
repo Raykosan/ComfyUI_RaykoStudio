@@ -1,0 +1,12 @@
+{
+  "hash": "456081ca3b4782bcce541329b21f6e7e692954b80e3c03bd7baae62fb66af962",
+  "name": "Col Price (ZIT)",
+  "trained_words": [
+    "Pricolce art style",
+    "style",
+    "sci-fi"
+  ],
+  "description": "Steps : 8 Sampler : heunpp2 Scheduler : Normal Weighting : around 0.65",
+  "source": "civitai",
+  "imported_at": "2026-07-22T23:35:21.852294"
+}

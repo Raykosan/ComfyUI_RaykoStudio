@@ -1,0 +1,10 @@
+{
+  "unet_name": "ZIT\\ZIT bf16.safetensors",
+  "weight_dtype": "default",
+  "use_clip2": false,
+  "clip_name": "ZIT\\qwen_3_4b.safetensors",
+  "clip_name2": "ACE\\qwen_0.6b_ace15.safetensors",
+  "clip_type": "lumina2",
+  "clip_device": "default",
+  "vae_name": "zit-vae.safetensors"
+}

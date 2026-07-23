@@ -1,0 +1,15 @@
+{
+  "hash": "a23c7babd0cc104a7ab68a4e966853884e318693c53f32920adb7ff5d78f7826",
+  "name": "Pencil Drawing Enhancer - CE",
+  "trained_words": [
+    "drawing",
+    "pencil",
+    "texture",
+    "style",
+    "artistic",
+    "creative"
+  ],
+  "description": "Please share your creations. I would love to see how you have used the LoRA. The Pencil Drawing Enhancer LoRA was trained on images with obvious pencil lines to produce a particular style, characterized by a colorful, hand-drawn appearance.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:46:55.509912"
+}

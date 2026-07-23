@@ -1,0 +1,14 @@
+{
+  "hash": "e766830aa3b5d537d27493ff5ad4472d19dd846136e1a1db4afc2c35ecd9e889",
+  "name": "Fluxartis",
+  "trained_words": [
+    "photo",
+    "style",
+    "realistic",
+    "realism/photorealism",
+    "photorealisic"
+  ],
+  "description": "FLUXARTIS I Showcase Images were created with Flux1.dev fp16 in PNG and include metadata &amp; workflow All licensing conditions for the Flux Dev model apply. You can find the details here .",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:31:51.316282"
+}

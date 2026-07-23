@@ -1,0 +1,10 @@
+{
+  "hash": "3e8344ce57549c3a015eeebe4d6bbfe9e063408e0fce4ab048f00f9ea5184f02",
+  "name": "Wanderer's Detailed Portraits | FLUX + ZiT + Klein",
+  "trained_words": [
+    "D3tailedP0rtraits"
+  ],
+  "description": "Please post the first picture directly here in the Model Gallery. This is the best way to support me :) _________________ Weights 0.5 - 1.0 - I would lower the weight if you use other LoRAs with it Trigger D3tailedP0rtraits Can't wait to see what you guys make :D",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:56:23.953139"
+}

@@ -1,0 +1,13 @@
+{
+  "hash": "a43af64f467b27e3025c328e64b98f0ff4fc007374bcdd0a10d3f8bd20a85729",
+  "name": "Dark Atmospheric Style - CE",
+  "trained_words": [
+    "dark",
+    "shadow",
+    "style",
+    "atmospheric"
+  ],
+  "description": "The Dark Atmospheric LoRA was trained to produce a style characterized by shadow and mist with a slightly diffuse effect.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:28:00.143794"
+}

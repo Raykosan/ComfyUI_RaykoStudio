@@ -1,0 +1,12 @@
+{
+  "hash": "7249d66e82eb36dd8a1d039006df94b27dfe965a91a2759c92a8b9b4c1eb0dd0",
+  "name": "Candid Photography [Wan 2.2]",
+  "trained_words": [
+    "realism",
+    "style",
+    "photography"
+  ],
+  "description": "V1: Civitai is not showing metadata. Please download any image and drag and drop it in Comfyui to get the full workflow Before I dive in—Wan 2.2 is insane. Training this LoRA was such a blast. Unlike the usual amateur LoRAs I’ve made for Flux Dev, this one was trained on high-quality photos. No point in hiding imperfections when Wan 2.2 handles training so well—it spits out pure gold and works beautifully with character LoRAs. For best results, use both the high model and the low model together. On my RTX 4060 Ti with 16GB VRAM, generation takes about 4 minutes. Stick to 1888x1248 resolution. If you flip it to 1248x1888 , expect body horror nightmares. This is just the first version, and there’s definitely room for improvement. A few issues I noticed during testing: The text generation may be pretty rough (I might’ve butchered it). Hands can get weird, especially with complex poses. Prompt adherence can be a little shaky, but if you phrase things the way it “likes,” it works surprisingly well. Feel free to drop comments if you notice other issues—I’ll try to address them in the next update. All the images that I am showcasing have workflow included. I’m not using the Civitai LoRA trainer anymore, so please don’t send buzz. Use it for yourself. :) If you’d like to support my work and help fund future releases, feel free to contact me directly. Enjoy generating!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:56:11.015880"
+}

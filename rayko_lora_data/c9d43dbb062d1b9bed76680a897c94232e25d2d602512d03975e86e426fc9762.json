@@ -1,0 +1,15 @@
+{
+  "hash": "c9d43dbb062d1b9bed76680a897c94232e25d2d602512d03975e86e426fc9762",
+  "name": "FANCHA style",
+  "trained_words": [
+    "realism",
+    "style",
+    "woman",
+    "fantasy",
+    "characters",
+    "digital"
+  ],
+  "description": "This LoRA blends elements of high-fidelity digital realism with rich fantasy aesthetics. It emphasizes intricate detailing, bold character designs, and dramatic lighting. The characters exhibit heroic and mysterious qualities, with sharp contrasts and refined textures.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:30:52.639748"
+}

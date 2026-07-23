@@ -1,0 +1,14 @@
+{
+  "hash": "b962b8547f7c2655f54147a77e5799951fd6ba4ee23b1845454e4b75be5b640b",
+  "name": "Lost in color",
+  "trained_words": [
+    "whimsical",
+    "Soft",
+    "Pastel",
+    "Dreamy",
+    "Delicate"
+  ],
+  "description": "FOR WHIMSICAL: Strength: 1.4-1.9 (what I used for generation with this LoRA) Generation Settings: Steps: 20 KSampler: heunpp2 Schedule: exponential CFG scale: 4.5 Guidance: 3.5 VAE: Automatic Clip skip: 1 TRIGGERWORD: Whimsical KEYWORDS : Soft, Pastel, Ethereal, Dreamy, Delicate, Gentle, Textured, Impressionistic, Semi-realistic, Watercolor-like, Hand-drawn, Surreal, Abstract, Mixed-media, Sketch-like, Hyper-realistic, Digital painting, Colored pencil drawing, Crayon drawing, Digital illustration. FOR WATERCOLOR: Triggerword: \"NixWC\" This is a watercolor LoRA. It produces soft, atmospheric images with flowing washes, loose edges, and architectural or minimal scenes. The style focuses on pale backgrounds, strong use of light, and delicate color transitions, ideal for dreamy, elegant watercolor artworks.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:40:43.021654"
+}

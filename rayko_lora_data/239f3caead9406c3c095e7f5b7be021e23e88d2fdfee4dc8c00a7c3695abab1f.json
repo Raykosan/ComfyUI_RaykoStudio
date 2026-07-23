@@ -1,0 +1,18 @@
+{
+  "hash": "239f3caead9406c3c095e7f5b7be021e23e88d2fdfee4dc8c00a7c3695abab1f",
+  "name": "Anime art",
+  "trained_words": [
+    "comic book",
+    "anime",
+    "drawing",
+    "art",
+    "cyberpunk",
+    "niji",
+    "style",
+    "illustration",
+    "painting"
+  ],
+  "description": "NOTE :Base model : Z Image Turbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:22:47.934077"
+}

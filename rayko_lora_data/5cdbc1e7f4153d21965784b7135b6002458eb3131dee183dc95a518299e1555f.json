@@ -1,0 +1,10 @@
+{
+  "hash": "5cdbc1e7f4153d21965784b7135b6002458eb3131dee183dc95a518299e1555f",
+  "name": "ToonTastic",
+  "trained_words": [
+    "Nekko style"
+  ],
+  "description": "NOTE : Base model category: Z Image Turbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:53:47.584345"
+}

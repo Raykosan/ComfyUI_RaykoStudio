@@ -1,0 +1,19 @@
+{
+  "hash": "b42e3fcdc5355013522c3e3e23b4278ff9d1c4d5acc04e1d4edd21ddb374e477",
+  "name": "Hands holding Object / Hands POV (FLUX)",
+  "trained_words": [
+    "aidmaHandsPOV",
+    "hands pov",
+    "hands holding",
+    "hand",
+    "hands",
+    "concept",
+    "hands holding object",
+    "realistic",
+    "realism",
+    "pov"
+  ],
+  "description": "v0.1 experimental - you will get weird results too",
+  "source": "civitai",
+  "imported_at": "2026-07-23T14:51:25.020779"
+}

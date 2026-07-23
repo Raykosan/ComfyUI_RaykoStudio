@@ -1,0 +1,12 @@
+{
+  "hash": "c47feb7109f8f1e25a73a3edd4ca9f543eababf46ca821bbd84221cdb77249bd",
+  "name": "zyd232's Ink Style",
+  "trained_words": [
+    "水墨风",
+    "ink style",
+    "zydink"
+  ],
+  "description": "Buy me a coffee ☕ I suggest you set the LoRA weight from 0.6 to 1.2. It depends on the model you use. You are welcome to share your pics generated with this LoRA. - 推荐的 LoRA 权重为0.6到1.2，具体数值取决于你的底模。 欢迎在评论区分享你用这个LORA生成的图片。",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:37:50.868107"
+}

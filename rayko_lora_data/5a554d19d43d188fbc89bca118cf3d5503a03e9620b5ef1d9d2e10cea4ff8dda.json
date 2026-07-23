@@ -1,0 +1,12 @@
+{
+  "hash": "5a554d19d43d188fbc89bca118cf3d5503a03e9620b5ef1d9d2e10cea4ff8dda",
+  "name": "Anime Factory",
+  "trained_words": [
+    "niji",
+    "anime",
+    "style"
+  ],
+  "description": "NOTE : Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:22:50.135368"
+}

@@ -1,0 +1,11 @@
+{
+  "hash": "fc720eda2d2b31698fcfbe0fb2f25ca148ef755e4c5d0787762a981a8cd801eb",
+  "name": "Illustration | Tome 1",
+  "trained_words": [
+    "style",
+    "illustration"
+  ],
+  "description": "NOTE : Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:36:26.714783"
+}

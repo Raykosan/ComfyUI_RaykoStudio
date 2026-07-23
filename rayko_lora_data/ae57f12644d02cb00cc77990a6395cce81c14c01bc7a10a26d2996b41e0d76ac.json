@@ -1,0 +1,11 @@
+{
+  "hash": "ae57f12644d02cb00cc77990a6395cce81c14c01bc7a10a26d2996b41e0d76ac",
+  "name": "Melancholia",
+  "trained_words": [
+    "painting",
+    "minimalist painting"
+  ],
+  "description": "This is the first LoRA from RassvetAI, which is based on the works of the real author. I present you the works of the artist Kirill Stryukov . ( Instagram ). It is difficult for me to describe this style, as I do not understand the directions of modern art, rather evaluate emotionally, what is closer to my heart. These works are like therapy for me. If you like the post-Soviet aesthetics of paneled districts, open spaces of industrial suburbs, night lights on remote city highways, melancholic night yards surrounded by paneled high-rises, long walks among city alleys - all this is now possible thanks to LoRA's 'Melancholia'. I have no commercial gain from this LoRA, and all copyright issues, if any, will be resolved with the author of the original paintings.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:43:50.434568"
+}

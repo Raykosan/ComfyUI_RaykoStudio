@@ -1,0 +1,20 @@
+{
+  "hash": "a6e3441be6196cbb39d888891d81f0c1831bf8841a8e969d640265eb85feeb74",
+  "name": "Realistic People Photograph [FLUX] (FLUX v0.2)",
+  "trained_words": [
+    "aidmaRealisticPeoplePhotograph",
+    "photo",
+    "woman",
+    "man",
+    "studio",
+    "realism",
+    "hyperrealism",
+    "style",
+    "people",
+    "realstic",
+    "professional"
+  ],
+  "description": "v0.2 added more faces, poses, surroundings",
+  "source": "civitai",
+  "imported_at": "2026-07-23T14:53:57.234611"
+}

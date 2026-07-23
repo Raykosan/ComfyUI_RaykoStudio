@@ -1,0 +1,20 @@
+{
+  "hash": "9965fc14233eba94257cba7b891507c445300db619b12944fb42c019331cd6f2",
+  "name": "The One 2 - ZIT",
+  "trained_words": [
+    "city",
+    "futuristic",
+    "minimalist",
+    "spacecraft",
+    "cyberpunk",
+    "house",
+    "cars",
+    "realistic",
+    "background",
+    "landscape",
+    "transport"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) - The One 2 I'm just testing things here. But it might be usefull to you. JUST FOR FUN AND TESTING ;) Some things might not work well or might be weird or very ugly :P -- In the dataset I put some pics of the dataset of the XL and Flux versions of https://civitai.com/models/1952198/city-worlds-01 that were never released, so some building may share the same design a little. -- HOW TO USE : Strength : 1 tested Steps : 15 tested Checkpoints : Any Adetailer : your choice CFG : 1 Sampler : EULER Sheduler : SIMPLE or BETA or NORMAL -- No trigger word. -- See pictures for prompts ;) -- Have fun ! :)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:53:41.138054"
+}

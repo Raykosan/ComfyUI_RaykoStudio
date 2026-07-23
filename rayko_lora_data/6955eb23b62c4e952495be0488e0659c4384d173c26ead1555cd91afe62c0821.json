@@ -1,0 +1,10 @@
+{
+  "hash": "6955eb23b62c4e952495be0488e0659c4384d173c26ead1555cd91afe62c0821",
+  "name": "Krzysztof Nowak",
+  "trained_words": [
+    "Krystowak style"
+  ],
+  "description": "Krzysztof Nowak is a Polish illustrator and graphic designer known for his bold, retro-inspired compositions and anarchic humor. Based in Ruda Śląska, Poland, Nowak has built a distinctive visual style that blends dynamic layouts with surreal, often satirical imagery. He is the founder of the creative label MSZZ™ and is represented by Good Illustration Agency. His client list includes major names such as The New York Times, The Economist, McDonald’s, Bloomberg Businessweek, and Jägermeister. Nowak’s work often features vibrant colors, layered textures, and a playful yet critical take on contemporary culture. He is active on platforms like Behance and ArtStation, where he showcases editorial illustrations, branding projects, and experimental visuals. NOTE : Tips for better LoRA expression: Use latent injection instead of empty latent Favor short prompts Avoid using CN or limit its weighting Favor a checkpoint with fp16 precision Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here . IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. VERY IMPORTANT NOTE : Do not like my models, do not give me buzz, do not follow me, otherwise you will be reported to Civitai for attempted corruption",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:40:03.257171"
+}

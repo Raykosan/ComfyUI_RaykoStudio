@@ -1,0 +1,10 @@
+{
+  "hash": "09b1b45ceed0202929bca528e51b50208d0160f4e9d2ba0f42cb7e739a43577f",
+  "name": "Pixel Art Style Lora",
+  "trained_words": [
+    "Pixel Art style."
+  ],
+  "description": "Pixel art style lora. Works well with strength between .6-1. Useful prompts: Scene, portrait, sprite. If you lower the strength of the lora then it generally increases the resolution of the pixel art (especially if you are using other lora's in combination with this one)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:47:36.710709"
+}

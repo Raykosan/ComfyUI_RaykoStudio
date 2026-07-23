@@ -1,0 +1,10 @@
+{
+  "hash": "def622bf7a04f17ed256ca0e955219c1765b704122c0e800315796ea67506825",
+  "name": "J_Anime",
+  "trained_words": [
+    "j_art"
+  ],
+  "description": "This LoRA is a summary of the style of anime I am aiming for. The recommended strength is 0.85-1.15. If you think, this LoRA is not bad, consider leaving a like, comment or other reaction! Donations are welcome! IN NO EVENT SHALL julek_ BE LIABLE FOR ANY CLAIMS, DAMAGES OR OTHER LIABILITIES, WHETHER IN CONTRACT, TORT OR OTHERWISE, ARISING OUT OF OR IN CONNECTION WITH THE USE OF THIS MODEL.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:38:29.493634"
+}

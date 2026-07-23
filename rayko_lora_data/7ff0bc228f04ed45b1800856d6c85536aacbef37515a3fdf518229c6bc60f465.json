@@ -1,0 +1,20 @@
+{
+  "hash": "7ff0bc228f04ed45b1800856d6c85536aacbef37515a3fdf518229c6bc60f465",
+  "name": "ButternutCrunch_Storybook",
+  "trained_words": [
+    "concept art",
+    "fantasy art",
+    "style",
+    "painterly",
+    "anthropomorphic",
+    "illustrative",
+    "medieval fantasy",
+    "furry art",
+    "world building",
+    "3ul4lia",
+    "storybook style"
+  ],
+  "description": "⚠️ EARLY TEST VERSION - This LoRA is still in active development and refinement. Expect inconsistencies and experimentation as the model is improved. Feedback welcome! A versatile LoRA trained on high-quality fantasy illustration style featuring anthropomorphic characters and detailed environmental storytelling. Excels at producing painterly, storybook-quality artwork with rich textures, dynamic compositions, and professional-grade character design. Perfect for creating: - Fantasy character portraits with intricate costume details - Anthropomorphic/furry characters in narrative scenes - Medieval and fantasy settings with atmospheric backgrounds - Action scenes with dramatic lighting - Market/tavern/castle environments - Characters with personality and emotional depth Works well with prompts emphasizing: detailed clothing, weathered materials, soft painted lighting, adventure themes, and character-driven narratives. Recommended weight: 1-1.5 depending on desired style intensity. Current Status: Test build - training dataset and parameters are being refined for future iterations. This version serves as a foundation to build upon. Trigger tag: 3ul4lia Trained with AI Toolkit by Ostris",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:53:12.058779"
+}

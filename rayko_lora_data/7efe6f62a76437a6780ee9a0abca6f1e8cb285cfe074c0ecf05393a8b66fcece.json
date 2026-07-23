@@ -1,0 +1,10 @@
+{
+  "hash": "7efe6f62a76437a6780ee9a0abca6f1e8cb285cfe074c0ecf05393a8b66fcece",
+  "name": "Gen Ani - Art style Qwen LORA",
+  "trained_words": [
+    "a1art3"
+  ],
+  "description": "V1 will be released Soon - this LORA is good at producing cloudy aniem artistic styled images. use trigger word \" a1art3 \"",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:32:25.610195"
+}

@@ -1,0 +1,10 @@
+{
+  "unet_name": "KLEIN\\F2 Klein 9b fp8.safetensors",
+  "weight_dtype": "default",
+  "use_clip2": false,
+  "clip_name": "KLEIN\\qwen_3_8b_fp8mixed.safetensors",
+  "clip_name2": "ACE\\qwen_0.6b_ace15.safetensors",
+  "clip_type": "flux2",
+  "clip_device": "default",
+  "vae_name": "flux2-vae.safetensors"
+}

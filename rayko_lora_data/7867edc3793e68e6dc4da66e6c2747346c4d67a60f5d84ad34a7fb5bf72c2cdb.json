@@ -1,0 +1,12 @@
+{
+  "hash": "7867edc3793e68e6dc4da66e6c2747346c4d67a60f5d84ad34a7fb5bf72c2cdb",
+  "name": "Illustration | Tome 2",
+  "trained_words": [
+    "comic book",
+    "style",
+    "illustration"
+  ],
+  "description": "NOTE : Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:36:31.288558"
+}

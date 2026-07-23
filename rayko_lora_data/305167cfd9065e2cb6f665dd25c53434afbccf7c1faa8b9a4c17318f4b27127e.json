@@ -1,0 +1,10 @@
+{
+  "hash": "305167cfd9065e2cb6f665dd25c53434afbccf7c1faa8b9a4c17318f4b27127e",
+  "name": "Ronan Le Fur",
+  "trained_words": [
+    "Art by Ronan Le Fur"
+  ],
+  "description": "Ronan Le Fur, also known as Dofresh, is a French freelance concept artist and illustrator based in Rennes. He began his career as a lighting and rendering artist and has since worked on a variety of projects, including book covers, video games, and big-budget films. His art is known for its rich storytelling elements, and he often explores science-fiction themes in his personal work IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. The idea is to use this model, combined with others, to create new styles of digital art expression. Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here .",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:50:16.478907"
+}

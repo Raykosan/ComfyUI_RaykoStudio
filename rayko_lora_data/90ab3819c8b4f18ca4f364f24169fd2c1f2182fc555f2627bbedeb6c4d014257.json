@@ -1,0 +1,10 @@
+{
+  "hash": "90ab3819c8b4f18ca4f364f24169fd2c1f2182fc555f2627bbedeb6c4d014257",
+  "name": "80s movie poster",
+  "trained_words": [
+    "80smovieposter"
+  ],
+  "description": "\"80s MOVIE POSTER\" Recreate your imaginary movie posters with a touch of nostalgia! 🧠 Model Description LoRA Name: 80s Movie poster Base Model: FLUX Type: Style LoRA / Temporal aesthetic replication Focus: 80s movie poster illustration ⚙️ Recommended Parameters (ComfyUI) For best results, use the following setup: Steps: 30 Sampler: Euler Prompt Format: simple (Avoid overly detailed prompt logic; keep it clean and direct) Recommended settings: LoRA weight: 0.8 to 1.0 Aspect Ratio: 4:3 or 2:3 preferred Suggested terms for prompt: 80smovieposter the subject and setting you want to recreate and a description of the font. The fonts are generated quite well, so let your imagination run wild! Please only post images related to LORA on this page and not irrelevant subjects. This will also help other users appreciate the template. Let me know what you think in a comment!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:15:56.398652"
+}

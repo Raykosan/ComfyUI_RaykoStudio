@@ -1,0 +1,15 @@
+{
+  "hash": "4c219643b28d8082df594dc0b822c3ef5d7b68f3e4f8cfaeb0387f44b266a198",
+  "name": "Niji",
+  "trained_words": [
+    "anime",
+    "niji",
+    "style",
+    "fantasy",
+    "semirealistic",
+    "realistic anime art style"
+  ],
+  "description": "NOTE : Base model : Z Image Turbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:45:46.854502"
+}

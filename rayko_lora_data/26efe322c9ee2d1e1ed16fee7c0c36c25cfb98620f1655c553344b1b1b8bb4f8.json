@@ -1,0 +1,13 @@
+{
+  "hash": "26efe322c9ee2d1e1ed16fee7c0c36c25cfb98620f1655c553344b1b1b8bb4f8",
+  "name": "Alessandro Barbucci (ZIT)",
+  "trained_words": [
+    "Barlebusan art style",
+    "cartoon",
+    "illustration",
+    "style"
+  ],
+  "description": "Steps : 8 Sampler/Scheduler : Seed_3 / Normal --- ipndm / Normal ---- heunpp2 / linear_quadratic or beta Weighting : around 0.75",
+  "source": "civitai",
+  "imported_at": "2026-07-22T23:29:11.738808"
+}

@@ -1,0 +1,11 @@
+{
+  "hash": "0d181d2d09a4e5f6da959acafa14dd138a2b0c3d0347ec6567caa4b850ff6c2b",
+  "name": "Apply Color Palette [Qwen & Klein]",
+  "trained_words": [
+    "Apply this palette to <object>",
+    "Apply this palette to the entire image"
+  ],
+  "description": "Modifies the first image to apply the color palette supplied in the second image. Prompting is capable of targeting specific elements of the image. To generally impose the color palette, use this prompt: Apply this palette to the entire image To only apply the palette to specific elements, use this prompt: Apply this palette to &lt;object&gt; Apply this palette to the their outfits and the trees. Apply this palette to the women's dresses The model is trained to generally avoid affecting the ambient light and skin tones, but if you wish to add a baseline color cast, changes the ambient light, use: Add a &lt;color&gt; hue Add a blue hue To remove a color cast from an image that already has one: Remove the &lt;color&gt; hue Remove the tan hue",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:10:07.980448"
+}

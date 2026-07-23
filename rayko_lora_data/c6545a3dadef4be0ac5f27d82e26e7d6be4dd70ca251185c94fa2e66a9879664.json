@@ -1,0 +1,10 @@
+{
+  "hash": "c6545a3dadef4be0ac5f27d82e26e7d6be4dd70ca251185c94fa2e66a9879664",
+  "name": "Craig Mullins",
+  "trained_words": [
+    "CraiMuli style"
+  ],
+  "description": "Craig Mullins is an American digital painter and concept artist, widely regarded as a pioneer in digital illustration. Born in 1964, he studied product design and illustration at the Art Center College of Design in California. After a brief stint in automotive design, he shifted to illustration and became known for his work across films, video games, and book covers. His credits include concept art for The Matrix Revolutions , Halo , BioShock , and Age of Empires , among many others. Mullins is celebrated for blending classical influences with cutting-edge digital techniques, and his work has inspired artists worldwide. NOTE : The length of the prompt influences the expression of the model, the shorter the prompt, the more the model expresses itself. Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here . IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. VERY IMPORTANT NOTE : Do not like my models, do not give me buzz, do not follow me, otherwise you will be reported to Civitai for attempted corruption",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:27:25.006880"
+}

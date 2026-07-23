@@ -1,0 +1,10 @@
+{
+  "hash": "63fd6b22bdf779b8fe860697a8e2c1b3e4e8c2e0e1eaf4c548b1baf579c998ba",
+  "name": "Home of The Ancients - Emotions and Relations + Background Creator - ZIT",
+  "trained_words": [
+    "z1os"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) - \"Home of The Ancients\" is a new serie to thank all my followers. It's a Special Edition serie. -- Emotions and Relations + Background creator This is a background / Style / Character creator. Get nice pics with only a few words ;) This lora will mostly do STYLIZED REALISM ... somewhere between real and anime . You can create whatever you want. But this lora will work best with Steampunk, Medieval, Cyberpunk and Ecology themed stuff. For FUN AND TESTING only :) Some emotions may not work well... -- HOW TO USE : Strength : 1 to 1.4 tested (1.3 when hard to render emotions) Steps : 15 tested Checkpoints : Any but I used the Base BF16 model. Adetailer : not used, your choice Sampler : Tested with EULER Scheduler : NORMAL -- The main trigger word is (optional) : z1os -- see pictures for prompt exemples :) -- Have fun ^^",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:35:27.394111"
+}

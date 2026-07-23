@@ -1,0 +1,17 @@
+{
+  "hash": "12ee4189591aadf6a41a3f74bb80daff0e62c3cbdb4e7707d501cccca5508c21",
+  "name": "Dark Fantasy Style [FLUX] - Training Comparison (rapid & normal) (FLUX)",
+  "trained_words": [
+    "aidmaDarkfantasy",
+    "scene",
+    "fantasy",
+    "characters",
+    "dark fantasy style",
+    "dark fantasy",
+    "style",
+    "dark"
+  ],
+  "description": "v0.1 trained with my basic Lora training settings its the same Dataset its the way better Version in my eyes. Try combine both!",
+  "source": "civitai",
+  "imported_at": "2026-07-23T14:50:23.147942"
+}

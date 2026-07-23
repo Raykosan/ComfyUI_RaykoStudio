@@ -1,0 +1,11 @@
+{
+  "hash": "386c7963185ea2b6079f23af33978aafc0a10dccc80bbe1b83c3e2aca3a5a237",
+  "name": "City Worlds : Minis - Steampunk V2 - ZIT",
+  "trained_words": [
+    "cwmst",
+    "cwmst, masterpiece, absurdres, 8k, insanely detailed, sharp focus, steampunk,"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) - City Worlds Minis : STEAMPUNK V2 : V2 main content : All from V1 that was only for SD 1.5 ( https://civitai.com/models/1535077?modelVersionId=2114335 ) A part of the dataset from : https://civitai.com/models/2225989/city-worlds-cyberpunk-temples-z-image-turbo but using this lora trigger (cwmst) Woman model with outfits Man model with leather jacket Samurai with katana Deer steampunk robot and other robots Steampunk drone E9 + T8 + T10 effects 2 new effects to test - HOW TO USE : Strength : 1 tested Steps : 15 tested Checkpoints : Any Adetailer : I used it some times but not always. Watch out for generation times with crowds ;) CFG : 1 Sampler : EULER Sheduler : SIMPLE or BETA or NORMAL -- The main trigger words are (not all are needed) : cwmst masterpiece, absurdres, 8k, insanely detailed, sharp focus, steampunk -- EFFECTS T10, landscape, mountains, waves, rocks, tree, vegetation, moss, rough sea, waterfall, ruins, sunset, blue, orange, yellow, brown, fantasy, green, T8, forest, trees, mist E09, sun rays though clouds, sunlight, golden rays, atmospheric, dramatic lighting, ethereal, soft gradients, tranquil, majestic, natural light, cloudscape, warm glow -- The new \"effects\" are : R15, rusty iron texture, A15, Kolors, fluidicity, mod, -- See pictures for prompts ;) Some prompts are long in natural langage, others are small using tags and come from the SD 1.5 version. -- Have fun ! :)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:53:06.703257"
+}

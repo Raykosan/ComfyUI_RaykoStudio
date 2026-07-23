@@ -1,0 +1,10 @@
+{
+  "hash": "9598e4d37f381a0557dced7abd248d9807cabeaf711178bfd9477476babd247e",
+  "name": "Vibrant Watercolor Painting/Sketch",
+  "trained_words": [
+    "InkWatercolor style."
+  ],
+  "description": "This LoRA tends to make a vibrant, digital version of watercolor painting or sketch.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:37:50.546077"
+}

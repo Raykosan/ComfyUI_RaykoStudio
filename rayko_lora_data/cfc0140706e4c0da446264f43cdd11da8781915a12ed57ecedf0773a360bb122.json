@@ -1,0 +1,13 @@
+{
+  "hash": "cfc0140706e4c0da446264f43cdd11da8781915a12ed57ecedf0773a360bb122",
+  "name": "Klein Bust Slider",
+  "trained_words": [
+    "concept",
+    "bust",
+    "chest",
+    "slider"
+  ],
+  "description": "A bust slider LoRA for Klein. It changes the bust's size. It also works on non-mannequin busts. For mannequin busts, the LoRA weights range from -8.0 to 8.0 for coherent results. While there should not be much of undesired effects, Klein still has its own flaws. With some seeds the model can be reluctant to apply the effect of the LoRA, with some other seeds it'll have no issues. Hope you like it!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:38:58.789036"
+}

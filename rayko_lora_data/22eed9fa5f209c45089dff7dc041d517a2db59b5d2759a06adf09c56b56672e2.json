@@ -1,0 +1,10 @@
+{
+  "hash": "22eed9fa5f209c45089dff7dc041d517a2db59b5d2759a06adf09c56b56672e2",
+  "name": "V67 Female Faces (V1 FLUX-2)",
+  "trained_words": [
+    "(Female Faces:1.1), young adult, 18-24 years old, early twenties, college age, youthful, portrait, close-up, face, headshot, shoulder-up"
+  ],
+  "description": "Flux.2 Klein 9B",
+  "source": "civitai",
+  "imported_at": "2026-07-22T22:45:23.794958"
+}

@@ -1,0 +1,11 @@
+{
+  "hash": "33e292e7d728ea2f2ca4c33b2eb9b14f77bfbcae98630e97e18fdc119613594e",
+  "name": "Dry Brush Paint [FLUX]",
+  "trained_words": [
+    "novuschroma",
+    "dry brush painting"
+  ],
+  "description": "SDXL Version • Pony Version This is a dry brush painting style. This means the paint doesn't entirely cover underlying layers, which results in soft edges and more canvas texture showing through the paint. This style has a bias toward pink and soft pastel colors, but it isn't limited to them. Using \"novuschroma dry brush painting\" can strengthen the effect.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:29:48.386341"
+}

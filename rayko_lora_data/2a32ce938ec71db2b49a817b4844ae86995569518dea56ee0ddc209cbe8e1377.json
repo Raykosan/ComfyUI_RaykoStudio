@@ -1,0 +1,10 @@
+{
+  "hash": "2a32ce938ec71db2b49a817b4844ae86995569518dea56ee0ddc209cbe8e1377",
+  "name": "Qwen Image Edit Lightning",
+  "trained_words": [
+    "base model"
+  ],
+  "description": "License Agreement The model is licensed under Apache 2.0. Original Text and Models: https://huggingface.co/lightx2v/Qwen-Image-Lightning https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:09:29.620923"
+}

@@ -1,0 +1,12 @@
+{
+  "hash": "2976f9c8fefa98d8f29d242d69fa99959a45683e0d485e106e98e6158776b84e",
+  "name": "Sniffies Penis",
+  "trained_words": [
+    "penis",
+    "erect penis",
+    "butt"
+  ],
+  "description": "This model is themed on sniffies profile pictures. It was only trained on material without faces and low resolution so it does a good job at 512x512 but you can scale up. It had a base of xpenis epoch 98 but is more focused on close-ups. I produces the best quality at 1536 x 1024",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:47:21.266156"
+}

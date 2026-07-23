@@ -1,0 +1,10 @@
+{
+  "hash": "713010c5d5239631273d4c81fedbf44a7d3c3a48e964e17d060c80c236c545ca",
+  "name": "Watercolor painting",
+  "trained_words": [
+    "watercolor painting"
+  ],
+  "description": "NOTE : Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:17:28.520789"
+}

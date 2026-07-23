@@ -1,0 +1,10 @@
+{
+  "hash": "3691104529efd992ef6745d556a3cb30f9f943d096e9f37fc9e658449571fafe",
+  "name": "HyperCarConcept",
+  "trained_words": [
+    "HyperCarConcept"
+  ],
+  "description": "During the creation of my OverDrive workflow, I recognized that Flux.1 D is missing some cars as a concept to evolve from there. Hence, I trained this LoRA to give some guidance on the cars. Therefore, this LoRA is not meant to give you perfect details for the cars included but an \"understanding\" of their key elements. Included car concepts: Mazda Furai BMW Gina Porsche Mission X Mercedes-Benz Biome DS XE-Tense Lamborghini Terzo Millennio Chrysler Halcyon Genesis Gran Tourismo Concept Polestar Synergy Alpine Alpenglow Aston Martin Valkyrie MG Cyberster Maserati Genesis Mercedes Benz AMG GT R Ferrari F8 Tributo Maserati MC20 McLaren 720S Aston Martin DBS Superleggera Rimac C_Two Ferrari FXX Honda NSX GT3 Pagani Huayra Aston Martin Valhalla Lotus Evija",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:35:35.921953"
+}

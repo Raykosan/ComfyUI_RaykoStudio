@@ -1,0 +1,10 @@
+{
+  "hash": "f24b4bb2dad6638a09c00f151cde84991baf374409385bcbab53c1871a30cb7b",
+  "name": "ip-adapter-faceid-plusv2",
+  "trained_words": [
+    "base model"
+  ],
+  "description": "we use LoRA to improve ID consistency. IP-Adapter-FaceID can generate various style images conditioned on a face with only text prompts. https://huggingface.co/h94/IP-Adapter-FaceID",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:38:19.707576"
+}

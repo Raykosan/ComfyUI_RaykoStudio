@@ -1,0 +1,10 @@
+{
+  "hash": "3e71397c88474d6ea4b18f3832e1a26c4f01b7d902ff930ee34344f71adc0350",
+  "name": "Mike Koubou",
+  "trained_words": [
+    "MikeKobo style"
+  ],
+  "description": "Mike Koubou is a freelance illustrator from Athens, Greece, known for his vintage-inspired artwork and creative storytelling. After graduating from architecture school, Mike Koubou spent several years illustrating educational children's books for a publishing house. He later transitioned to independent freelance work, focusing on his own artistic projects. His style blends retro aesthetics with whimsical and surreal elements, often featuring imaginative characters and nostalgic textures. Today, he shares his creations through prints, apparel, and digital platforms, cultivating a distinct visual identity that resonates with fans of vintage and conceptual illustration. NOTE : Tips for better LoRA expression: Use latent injection instead of empty latent Favor short prompts Avoid using ControlNet or limit its weighting Prefer a checkpoint with fp16/fp8 precision (avoid Nunchaku) Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here . IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. VERY IMPORTANT NOTE : Do not like my models, do not give me buzz, do not follow me, otherwise you will be reported to Civitai for attempted corruption",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:44:23.921657"
+}

@@ -1,0 +1,15 @@
+{
+  "hash": "29d2daa7e8cee3baddfaa2e915329ffbedb3f96c49c8c1138350729686200651",
+  "name": "Flux Facial Features Softener",
+  "trained_words": [
+    "portrait",
+    "style",
+    "woman",
+    "face",
+    "enhancer",
+    "flux1.d"
+  ],
+  "description": "This LoRA can help with Flux faces, which in some cases may not look good (exaggerated lips, blushing, cleft chin, high cheekbones, massive jaw, etc). Try it with your SDXL portrait prompts 😉",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:30:51.662360"
+}

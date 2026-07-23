@@ -1,0 +1,10 @@
+{
+  "hash": "5f0ebfe1de69aaaa15fca3d3178f0dc329fb57faa71cd5557994a2f531522461",
+  "name": "Demonic Fury Slider - Z Image Turbo",
+  "trained_words": [
+    "see main page for optional trigger words"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) -- My second attempt to make a slider. This is an Fury Demon Slider. It was trained with realistic pics. It is far from perfect, so... FOR FUN AND TESTING :) -- V1 : HOW TO USE : Strength : -5 calm to +5 furious demonic - but read below Steps : 9 to 15 tested Checkpoints : Any. I used mostly the Base FP8 and Base BF16 models. Adetailer : not used Other : I used the Lumina style CFG : 1 tested Sampler : EULER used, Sheduler : NORMAL used -- About the strength : Negative value will make the subject nice and calm. Optional triggers for negative : is nice, is calm, Positive value will make the subject furious, demonic... however if you go too far (was trained on -7 to +7), the generation will go dark and messy Optional triggers for positive : is demonic, is furious, -- Other : Works with many kinds of subjects... people, cats... -- Have fun ^^",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:28:36.254692"
+}

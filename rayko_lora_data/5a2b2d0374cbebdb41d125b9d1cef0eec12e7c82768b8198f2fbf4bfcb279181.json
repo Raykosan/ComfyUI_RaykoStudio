@@ -1,0 +1,14 @@
+{
+  "hash": "5a2b2d0374cbebdb41d125b9d1cef0eec12e7c82768b8198f2fbf4bfcb279181",
+  "name": "Skindentation Slider",
+  "trained_words": [
+    "concept",
+    "realistic",
+    "skindentation",
+    "slider",
+    "digging skin"
+  ],
+  "description": "Skindentation LoRA for z-image. z-image doesn't have the concept of skin indentation by clothing except on sagging bodies, so I made a slider for that. As usual for sliders, no keyword. You can counteract the body weight effect with my body weight slider. They tend to collide a bit but not entirely so the indentation effect will still be present to an extent. v2.0: I recommend weights between -2.0 and 3.0 v1.0: I recommend weights between -2.0 and 8.0, can go up to 10.0 with some character LoRAs.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:51:33.591836"
+}

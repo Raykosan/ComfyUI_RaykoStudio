@@ -1,0 +1,26 @@
+{
+  "hash": "f1ff263f7e6af14364ecf69a9fabd6931d8414b2ddf0752b0efe989c1ecdba79",
+  "name": "1950s Soviet Architecture Style (Stalinist Era) [FLUX]",
+  "trained_words": [
+    "vintage",
+    "retro",
+    "streets",
+    "architecture",
+    "soviet",
+    "historical",
+    "style",
+    "building",
+    "cityscapes",
+    "nostalgic",
+    "50s",
+    "era",
+    "60s",
+    "facade",
+    "stalinist",
+    "facades",
+    "monumental"
+  ],
+  "description": "This LORA specializes in generating images in the style of 1950s Soviet cityscapes, focusing on the iconic architecture of the Stalinist era. Expect to see grand Stalinist buildings, also known as \"Stalinki,\" with their characteristic features: symmetrical facades, ornate details, columns, arches, spires, and a sense of monumental scale. Ideal for creating images of wide avenues, imposing government buildings, residential Stalinki, and the unique urban planning of the Soviet 1950s. Bring to life the atmosphere and grandeur of this historical architectural style. Recommended samplers: dpmpp_2m/sgm_uniform/beta, deis/beta Generation with 12-16 steps (8 steps Lora). Please Support if you like this model: Buzz / Likes / Add post or Review / Follow - Thanks!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:51:44.604041"
+}

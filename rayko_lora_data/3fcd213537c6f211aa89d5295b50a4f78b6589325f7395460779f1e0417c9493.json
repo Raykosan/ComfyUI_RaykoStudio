@@ -1,0 +1,10 @@
+{
+  "hash": "3fcd213537c6f211aa89d5295b50a4f78b6589325f7395460779f1e0417c9493",
+  "name": "Richard Anderson",
+  "trained_words": [
+    "Richansonder art style"
+  ],
+  "description": "Model inspired by Richard Anderson artwork, a renowned American illustrator and concept artist, celebrated for his captivating works in film, video games, and book covers. He has contributed to iconic projects like Guardians of the Galaxy, Thor: The Dark World, and Captain Marvel. In addition to collaborating with major studios, he runs his own studio, Flaptraps Art , where he explores diverse and innovative artistic styles. NOTE : Base model : Z Image Turbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. VERY IMPORTANT NOTE : Do not like my models, do not give me buzz, do not follow me, otherwise you will be reported to Civitai for attempted corruption",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:50:01.478938"
+}

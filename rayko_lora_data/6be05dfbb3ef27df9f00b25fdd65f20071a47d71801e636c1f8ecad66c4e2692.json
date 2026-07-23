@@ -1,0 +1,15 @@
+{
+  "hash": "6be05dfbb3ef27df9f00b25fdd65f20071a47d71801e636c1f8ecad66c4e2692",
+  "name": "Medieval Worlds : Romantic Part 2 -Z Image Turbo",
+  "trained_words": [
+    "medieval",
+    "moon",
+    "realistic",
+    "background",
+    "landscape",
+    "outdoors"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) -- Like for illustrious, Flux... there will be at least 2 versions of this lora. I had a hard time training this one that has many scenes and a large dataset. And I'm not totaly pleased with this version ^^ So... FOR FUN AND TESTING ;) -- Medieval Worlds : Romantic Part 2 A HOW TO USE : Strength : 1 tested Steps : 20 tested Checkpoints : Any. I used the Base FP8 and Base BF16 models. Adetailer : not used Other : I used the Lumina style CFG : 1 tested Sampler : EULER used, Sheduler : NORMAL used -- No trigger words but... For those who want to go beyond simple things (FOR FUN AND TESTING, not garanteed to work in this version ) : I have almost named all situation (many pics in the dataset for each situation) Situations (optional use) : R01 to R12 with variants for each situation. Oh the little white rabbits ! SP01 to SP05 : This was a Thank You Special gift for the 1K subscribers. others don't have triggers Some situation are there to be easy mixed with others (R12 &amp; SP05) I have tried to put pictures for most of situations -- EFFECTS : T10, landscape, mountains, waves, rocks, tree, vegetation, moss, rough sea, waterfall, ruins, sunset, blue, orange, yellow, brown, fantasy, green, T8, forest, trees, mist E09, sun shades though clouds, sunlight, golden rays, atmospheric, dramatic lighting, ethereal, soft gradients, tranquil, majestic, natural light, cloudscape, warm glow See sample pics for prompts and for some exemples. -- Have fun :)",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:43:45.516193"
+}

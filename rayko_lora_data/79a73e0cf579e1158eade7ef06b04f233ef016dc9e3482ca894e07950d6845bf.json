@@ -1,0 +1,16 @@
+{
+  "hash": "79a73e0cf579e1158eade7ef06b04f233ef016dc9e3482ca894e07950d6845bf",
+  "name": "Space Worlds 01 : Poetic 4 - Z Image Turbo",
+  "trained_words": [
+    "space",
+    "planet",
+    "science fiction",
+    "cyberpunk",
+    "realistic",
+    "background",
+    "landscape"
+  ],
+  "description": "Finding all my models or profile elsewhere than Civitai is without my consent ! Please don't repost my files. Send people to my Civitai profile, thanks :) -- This version was made with dataset pictures from the all the Flux Beta versions and also some new ones. Just to let you know, the speeding spacecrafts with blurred background... the designs are made by myself, hand-drawed, colored in Photoshop and then trained by Ai. -- HOW TO USE : Strength : 1 tested Steps : 15 tested Checkpoints : Any but I mostly used the Base Fp8 and Base BF16 models. Adetailer : not used, your choice Sampler : Tested with EULER Scheduler : NORMAL -- V4 : No main trigger word -- V4 : EFFECTS : T10, landscape, mountains, waves, rocks, tree, vegetation, moss, rough sea, waterfall, ruins, sunset, blue, orange, yellow, brown, fantasy, green, T8, forest, trees, mist E09, sun shades though clouds, sunlight, golden rays, atmospheric, dramatic lighting, ethereal, soft gradients, tranquil, majestic, natural light, cloudscape, warm glow -- Have fun ^^",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:51:53.980939"
+}

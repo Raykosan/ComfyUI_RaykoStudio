@@ -1,0 +1,10 @@
+{
+  "unet_name": "QWEN\\QWEN Image fp8 e4m3fn.safetensors",
+  "weight_dtype": "default",
+  "use_clip2": false,
+  "clip_name": "QWEN\\qwen_2.5_vl_7b.safetensors",
+  "clip_name2": "ACE\\qwen_0.6b_ace15.safetensors",
+  "clip_type": "qwen_image",
+  "clip_device": "default",
+  "vae_name": "qwen-image-vae.safetensors"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "6c930134d4c5ff39d9be8002131bb353de24c6a99c3d8931d94bed272b8bb957",
+  "name": "FLUX Image Upgrader / Detail Maximizer / Contrast Fix for low CFG [+ILLUSTRIOUS / SDXL / SD 1.5]",
+  "trained_words": [
+    "aidmaImageUpgrader"
+  ],
+  "description": "Please post the first picture directly here in the Model Gallery. This is the best way to support creators :) Hello ♥ for whatever reason you want to show me appreciation, you can: ❤️ Ko-Fi ❤️ _________________ The Lora is suitable for a variety of purposes: - more details - more creativity - more contrast at low CFG tested the XL Version with ForRealXL and ForArtisticXL and some other Lightning checkpoints, tested the SD1.5 Version with Cyberrealistic and EpicPhotogasm tested the FLUX Versions with Flux dev . Settings 0.15 - 1.0 V0.1 Lora Strength Compare 1 &amp; 2 V0.2 Lora Strength Compare 1 &amp; 2 You CAN use some triggers i have trained with max details Photo, realistic, product photo Thank you so much for using this Lora. Hope you get a lot of beautiful results ♥",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:37:46.253983"
+}

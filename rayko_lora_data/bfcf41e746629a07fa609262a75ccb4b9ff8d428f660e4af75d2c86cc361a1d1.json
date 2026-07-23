@@ -1,0 +1,11 @@
+{
+  "hash": "bfcf41e746629a07fa609262a75ccb4b9ff8d428f660e4af75d2c86cc361a1d1",
+  "name": "Evgeny Yurichev",
+  "trained_words": [
+    "style",
+    "illustration"
+  ],
+  "description": "Evgeny Yurichev is a Russian character artist and illustrator known for his work in comics and digital art. He has contributed to projects such as Naosis and Crimson Payne, showcasing a style that blends dynamic character design with a strong sense of atmosphere. Yurichev shares much of his portfolio on platforms like ArtStation, where his work reflects a deep engagement with fantasy and science fiction themes. NOTE : Tips for better LoRA expression: Use latent injection instead of empty latent Favor short prompts Avoid using ControlNet or limit its weighting Prefer a checkpoint with fp16/fp8 precision (avoid Nunchaku) Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here . IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. VERY IMPORTANT NOTE : Do not like my models, do not give me buzz, do not follow me, otherwise you will be reported to Civitai for attempted corruption",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:30:42.492380"
+}

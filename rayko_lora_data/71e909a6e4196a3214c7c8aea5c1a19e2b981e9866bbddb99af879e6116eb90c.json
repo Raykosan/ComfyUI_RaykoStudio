@@ -1,0 +1,18 @@
+{
+  "hash": "71e909a6e4196a3214c7c8aea5c1a19e2b981e9866bbddb99af879e6116eb90c",
+  "name": "Flux [pro] ULTRA Style Lora - Extreme Detailer for [FLUX.1-dev] (v0.1)",
+  "trained_words": [
+    "aidmafluxproultra",
+    "details",
+    "realistic",
+    "detail",
+    "concept",
+    "photo",
+    "enhancer",
+    "woman",
+    "detailer"
+  ],
+  "description": "v0.1 stregnth comparison",
+  "source": "civitai",
+  "imported_at": "2026-07-23T14:53:46.633268"
+}

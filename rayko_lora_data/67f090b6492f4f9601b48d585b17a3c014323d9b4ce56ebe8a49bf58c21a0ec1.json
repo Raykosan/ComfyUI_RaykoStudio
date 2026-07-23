@@ -1,0 +1,10 @@
+{
+  "hash": "67f090b6492f4f9601b48d585b17a3c014323d9b4ce56ebe8a49bf58c21a0ec1",
+  "name": "François Bourdin",
+  "trained_words": [
+    "FranBour style"
+  ],
+  "description": "François Bourdin is a French concept artist and illustrator known for his emotionally rich pencil drawings inspired by music, cinema, and literature. Based in Nantes, France, Bourdin works as a freelance concept artist and character designer for video games and animated films. His artistic style blends graphical finesse with poetic charm , often evoking a sense of nostalgia and dreamlike emotion. His portfolio features over 170 artworks, showcasing a wide range of characters and scenes that reflect his cinematic and musical influences. Bourdin’s illustrations are available on platforms like ArtStation and Troublanc, where his work is celebrated for its expressive detail and imaginative storytelling . Whether sketching a sleeping city or a vibrant character, his creations invite viewers into a world shaped by rhythm, mood, and visual poetry. NOTE : Tips for better LoRA expression: Use latent injection instead of empty latent Favor short prompts Avoid using ControlNet or limit its weighting Prefer a checkpoint with fp16/fp8 precision (avoid Nunchaku) Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here . IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. VERY IMPORTANT NOTE : Do not like my models, do not give me buzz, do not follow me, otherwise you will be reported to Civitai for attempted corruption",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:32:01.049261"
+}

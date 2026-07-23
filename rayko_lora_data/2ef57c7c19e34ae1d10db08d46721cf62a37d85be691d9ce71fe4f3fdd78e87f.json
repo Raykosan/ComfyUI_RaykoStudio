@@ -1,0 +1,15 @@
+{
+  "hash": "2ef57c7c19e34ae1d10db08d46721cf62a37d85be691d9ce71fe4f3fdd78e87f",
+  "name": "Body Weight Slider",
+  "trained_words": [
+    "concept",
+    "realistic",
+    "overweight",
+    "slender",
+    "slider",
+    "body weight"
+  ],
+  "description": "This is a slider LoRA that can be used to modify the body weight of a character. This also works well when used along character LoRAs. There is a slight color shift with v1.0 where slender characters tend to be pale and overweight characters tend to be tanned, I'll fix this for the next version. There is no particular prompting needed. woman walking in the streets would work for example. The trained weights are -2.0 to 2.0, but -1.5 to 1.5 provides more realism (but I don't judge). Please let me know if you have slider LoRAs requests, I love making them.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:24:23.822833"
+}

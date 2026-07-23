@@ -1,0 +1,15 @@
+{
+  "hash": "69c1da35f8afc3d642771af6c6671aafcb0048b4448337ba0be20f6c7a373671",
+  "name": "NKD Focal Length Slider",
+  "trained_words": [
+    "concept",
+    "photography",
+    "slider",
+    "wide angle",
+    "camera control",
+    "telephoto"
+  ],
+  "description": "Technical Camera Control: Focal Length Slider This LoRA is designed specifically for Flux Klein 9B to provide granular control over the virtual lens focal length, allowing you to shift from ultra-wide vistas to compressed telephoto shots. The Standout Feature: Composition Preservation Unlike standard prompting, this slider is highly composition-aware. When used—especially in img2img / edit mode —it maintains the original shapes and global contrast positions. Instead of generating a completely new image, it strictly alters the perspective distortion. It effectively mimics a physical \"Dolly Zoom\" (Vertigo effect), virtually moving the camera closer or further away to compensate for the focal length shift while keeping your subject anchored in the frame. Negative Values (Towards -5.0): Mimics Wide Angle lenses. Expands the field of view, increases peripheral perspective distortion, and pushes the background away. Positive Values (Towards +5.0): Mimics Telephoto/Long lenses. Flattens the perspective, isolates the subject, and compresses the background tightly. Extreme Values: You can push the weights beyond the ±5.0 limits for extreme or experimental distortions, though you may need to balance the prompt. Known Behaviors &amp; Pro-Tips (V2 in Progress) Because this LoRA pushes the model's spatial understanding, there are two minor biases at higher strengths: Wide Angle Bias (-): Introduces a slight oversharpening effect. Telephoto Bias (+): Can result in a slight loss of global contrast.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:45:57.241093"
+}

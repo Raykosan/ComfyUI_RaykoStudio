@@ -1,0 +1,13 @@
+{
+  "hash": "d627631d39a6a7c7b2951b029a1a0c72b40809b27d4049b708129e1832c9bb8d",
+  "name": "RefControl FLUX.2 Klein 9B – Reference Depth LoRA",
+  "trained_words": [
+    "concept",
+    "depth",
+    "klein",
+    "flux"
+  ],
+  "description": "RefControl FLUX.2 Klein 9B – Reference Depth LoRA 📝 Short description A LoRA for FLUX.2 Klein 9B Base that fuses a reference image (left) with a depth map (right). It preserves identity and style from the reference while following the pose and structure from the depth map. Trigger word: refcontrol Workflow: https://civitai.com/models/2655452/workflow-refcontrol-flux2-klein-9b-reference-depth-lora 📊 Examples 📖 Extended description This LoRA was primarily trained on humans , but it also works with objects and stylized characters. Its main purpose is to preserve identity — facial features, clothing, style, or object characteristics — from the reference image, while adapting the subject to the pose and composition defined by the depth map. Part of the RefControl family: reference + control fusion for consistent, controllable generation on FLUX.2 Klein 9B Base . ⚙️ How to use Use first image as depth reference, second image input Add the trigger word refcontrol in your prompt. Adjust LoRA weight (recommended 0.8–1.0 ) depending on how strongly you want to preserve identity. ComfyUI requirenments For extracting depth you need to install nodes with depth estimation in workflow used: https://github.com/Fannovel16/comfyui_controlnet_aux Base model Use with black-forest-labs/FLUX.2-klein-base-9B . The undistilled Base variant is intended for LoRA training and custom pipelines (~50 inference steps, guidance_scale ~4.0). ✅ Example prompt refcontrol 🎯 What it does Preserves character or object identity across generations. Embeds the subject into a new pose or scene defined by the depth map. Works best when the depth map has similar proportions and scale to the reference. ⚡ Tips Best results when the depth map is not drastically different in object scale from the reference. Combine with text prompts to refine background, lighting, or mood. Can be combined with other RefControl LoRAs (pose, lineart, canny) on compatible pipelines for multi-constraint generation. 📌 Use cases Human portraits in different poses. Consistent character design across multiple scenes. Object transformations (cars, furniture, props) with depth-guided placement. Storyboarding, comics, or animation frame generation. 📦 Files Weights: flux2_klein_9b_refcontrol_depth.safetensors ComfyUI workflow: image_flux2_klein_image_edit_9b_refcontrol_depth.json Repo: thedeoxen/refcontrol-FLUX.2-klein-9B-reference-depth-lora",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:49:32.808736"
+}

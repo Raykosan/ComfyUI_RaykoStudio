@@ -1,0 +1,10 @@
+{
+  "hash": "600f7d3ac1e649eea97fd1b52a99c8e4ecb753fc7a348c48ecd2c8d066df69b0",
+  "name": "Create Concept - Concept (Illustrious | Pony | Flux.1 Dev)",
+  "trained_words": [
+    "createconcept"
+  ],
+  "description": "So, what is this, and how does it work? 😅😅😅 Honestly, I have no idea what I just created. I just put together some images to see what would happen—I didn’t expect to get such a good result! If anyone figures out exactly what this is supposed to be, let me know! Anyway How to use - use one of the base image as starting point, Use it with Add Micro Details - Concept (Illustrious) for better result Keywords - artwork, digital painting, character focus, animal focus, scenery, building, traditional media, object focus, no humans, poster, etc (There are still many more keywords I need to try) Strength – Varies (Sometimes it's hard to tell which one looks best). Checkpoints – Different checkpoints give very different results (Some prompts may not work with certain checkpoints). eg - prompt - masterpiece,best quality,amazing quality,very aesthetic,absurdres,&lt;lora:CreateConcept_Illustrious:1&gt;, createconcept, solo, simple background, character focus, 1girl, digital painting \\(artwork\\), glitch art, artwork Checkpoint - Unholy Desire Mix - Sinister Aesthetic (Illustrious) Checkpoint - WAI-NSFW-illustrious-SDXL prompt - masterpiece,best quality,amazing quality,very aesthetic,absurdres, &lt;lora:CreateConcept_Illustrious:1&gt;, createconcept, 1girl, solo, sitting, tree, bird, traditional media, building, surreal, in tree, abstract, digital painting \\(artwork\\), glitch art, artwork Checkpoint - Unholy Desire Mix - Sinister Aesthetic (Illustrious) Checkpoint - WAI-NSFW-illustrious-SDXL pompt - masterpiece,best quality,amazing quality,very aesthetic,absurdres, &lt;lora:CreateConcept_Illustrious:1&gt;, createconcept, solo, simple background, character focus, 1girl, asuna, digital painting \\(artwork\\), glitch art, artwork Checkpoint - Unholy Desire Mix - Sinister Aesthetic (Illustrious) Checkpoint - WAI-NSFW-illustrious-SDXL",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:27:27.378036"
+}

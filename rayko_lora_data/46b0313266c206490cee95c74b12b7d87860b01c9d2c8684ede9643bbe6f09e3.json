@@ -1,0 +1,14 @@
+{
+  "hash": "46b0313266c206490cee95c74b12b7d87860b01c9d2c8684ede9643bbe6f09e3",
+  "name": "Skin Tone Slider - (Krea2 + ZIT)",
+  "trained_words": [
+    "color",
+    "tool",
+    "skin",
+    "loraholic",
+    "sloder"
+  ],
+  "description": "Krea2 This is somewhat unstable. It will affect other elements of the image like ethnicity and color of clothes, as samples show. Sample images was somewhat cherrypicked in the sense that the prompt is a blue eyes norwegian woman. So ethnicity in the prompt is mandatoy if you dont want the etnicity to drift and use values that make a large impact on the color. Recommended stable range: -1.5 to 1.5 Recommended unstable range: -4.0 to 4.0 ZIT V2 is a huge improvement. V2 is as close to ethnicity stable as i think is possible. As long as you stay within the range, this should not change a prompted ethnicity to something else. But it may drift within the ethnicity, like east to west. Samples represents the LoRAs effect very well. Only in the negative there is a tiny bit asian-bias when there is other asians in the image, as my sample with the 3 girls show. Stable range: -3 and 3 But i will leave the range available wider just in case. All my work is 100% free. The only thing that really matters to me is people leaving a review , good or bad . I will NEVER remove or block anyone for leaving a bad review, so don't be afraid to give me criticism. I'm stating this because when a creator blocks someone for leaving a bad review, that person can no longer see any of the creator's models, essentially muting their critics. This is something I'm highly critical of, and I believe it's a fundamental quality problem on this site.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:51:30.030325"
+}

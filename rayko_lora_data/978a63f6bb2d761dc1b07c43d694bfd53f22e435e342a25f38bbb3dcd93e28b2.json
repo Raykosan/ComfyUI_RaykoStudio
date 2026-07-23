@@ -1,0 +1,10 @@
+{
+  "hash": "978a63f6bb2d761dc1b07c43d694bfd53f22e435e342a25f38bbb3dcd93e28b2",
+  "name": "Image Blend Fusion for Flux.2 Klein 4B & 9B Edit",
+  "trained_words": [
+    "Blend the object into the image seamlessly"
+  ],
+  "description": "Suggested tags: Blend the &lt;object&gt; into the image seamlessly Suggested strength: 0.8-1.0 Suggested usage: Inspired by the Image Fusion model for Qwen Image Edit. The purpose is to run a single image that already has a roughly cutout image of objects, people, cars, etc and run it through the model to make it blend seamlessly into backgrounds, onto people, all kinds of things. The more simple the task the better it does. See the before/after examples for what it can do currently. The after images should still have their workflow if you need a workflow. Tried something complex like a UFO floating in a city and it created a dropshadow in the sky unfortunately, but that may be for a V2.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:36:47.694784"
+}

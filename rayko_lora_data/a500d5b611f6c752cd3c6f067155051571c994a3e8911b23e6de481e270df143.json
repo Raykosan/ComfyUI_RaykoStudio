@@ -1,0 +1,10 @@
+{
+  "hash": "a500d5b611f6c752cd3c6f067155051571c994a3e8911b23e6de481e270df143",
+  "name": "Igor Arterchuk",
+  "trained_words": [
+    "Igoratuk style"
+  ],
+  "description": "Igor Arterchuk is a Ukrainian illustrator and creative director known for his dynamic digital artwork blending fantasy, sci-fi, and RPG aesthetics. His illustrations often feature richly detailed characters and immersive worlds, reflecting a strong influence from anime and graphic storytelling. Active on platforms like Instagram and Pinterest under the handle @igor_art_ua, Arterchuk has built a global following through his vibrant visual style and contributions to concept art and game design. NOTE : The length of the prompt influences the expression of the model, the shorter the prompt, the more the model expresses itself. Latent injection gives better results than empty latent. Using controlnet limits the impact of LoRA on rendering. Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow. All licensing conditions for the Flux Dev model apply. You can find the details here . IMPORTANT NOTE : This model is a tribute to the artist and not an attempt to copy or reproduce his works. Flux1.D is unable to reproduce a graphic universe on which it was trained, the goal is solely to expand Flux's pictorial capabilities. VERY IMPORTANT NOTE : Do not like my models, do not give me buzz, do not follow me, otherwise you will be reported to Civitai for attempted corruption",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:36:26.400549"
+}

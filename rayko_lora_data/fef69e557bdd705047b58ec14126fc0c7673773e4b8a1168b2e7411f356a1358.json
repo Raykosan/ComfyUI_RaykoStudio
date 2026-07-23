@@ -1,0 +1,10 @@
+{
+  "hash": "fef69e557bdd705047b58ec14126fc0c7673773e4b8a1168b2e7411f356a1358",
+  "name": "zit-badmilk1968gpt",
+  "trained_words": [
+    "base model"
+  ],
+  "description": "Lora generated with 60 GPT images, used with zimage-turbo-badmilk-1968, a strength of 0.3 seems correct; beyond that, the Lora data is lost. Example of the starting prompt: Masterpiece, high quality, RPG character, highly detailed illustration, full color illustration, vivid colors, Coniltralution art style, Niji art style.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:24:11.492840"
+}

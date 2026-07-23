@@ -1,0 +1,10 @@
+{
+  "hash": "0e24f2d762e5c6b9e1dd19fd9e40c1acfe1edb740e458048dd76217c3eb1adb5",
+  "name": "Qwen-Edit_Anime2Real",
+  "trained_words": [
+    "将图片转为真实风格"
+  ],
+  "description": "Anime2Real is a Qwen-Edit Lora designed to convert anime characters into realistic styles. The current version is beta, with characters appearing somewhat greasy. The Lora strength must be set to &lt;1. You may click the link below to test the LoRa effect: Anime2Real V1.0 Update: This version makes characters appear less greasy and significantly more natural. The default generation produces Western facial features; to generate Asian or other facial types, simply load an additional Realistic Series LORA.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:23:01.150270"
+}

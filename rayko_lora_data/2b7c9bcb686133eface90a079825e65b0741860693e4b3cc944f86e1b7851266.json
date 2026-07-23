@@ -1,0 +1,10 @@
+{
+  "hash": "2b7c9bcb686133eface90a079825e65b0741860693e4b3cc944f86e1b7851266",
+  "name": "Antique Golden Style - CE",
+  "trained_words": [
+    "antqgldnCE_style"
+  ],
+  "description": "The Antique Golden Style LoRA was trained on images with rich golden hues to produce a particular style, characterized by colorful sunsets and an antique quality. V02 Version 1 lacked some flexibility, particularly when it came to indoor scenes. I produced a new set of training images to create version 2. Overall, it seems to retain the same characteristics. but with improved results. Please share your creations. I would love to see how you have used the LoRA.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:23:21.860783"
+}

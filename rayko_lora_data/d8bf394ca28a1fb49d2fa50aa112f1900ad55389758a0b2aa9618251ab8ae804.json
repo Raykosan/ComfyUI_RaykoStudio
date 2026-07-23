@@ -1,0 +1,10 @@
+{
+  "hash": "d8bf394ca28a1fb49d2fa50aa112f1900ad55389758a0b2aa9618251ab8ae804",
+  "name": "Comic Book | Tome 3",
+  "trained_words": [
+    "ComicsFact2 style"
+  ],
+  "description": "NOTE : Base model category: ZImageTurbo &amp; Flux1 . Showcase images were created with ComfyUI and are in PNG, include metadata &amp; workflow.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:26:56.789965"
+}

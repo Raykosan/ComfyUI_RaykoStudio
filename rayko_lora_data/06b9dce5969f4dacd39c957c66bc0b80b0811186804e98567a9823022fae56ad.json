@@ -1,0 +1,13 @@
+{
+  "hash": "06b9dce5969f4dacd39c957c66bc0b80b0811186804e98567a9823022fae56ad",
+  "name": "Decay",
+  "trained_words": [
+    "aging",
+    "decay",
+    "style",
+    "decrepitude"
+  ],
+  "description": "DECAY *If you found this model useful, please give it a like! Experimental LoRa for Z image Turbo, for decay effect, aging , decrepitude ... How to use: - Add the LoRa to your workflow; recommended very high strength ( 2.0 to 6.0 ) And that's all! Information: In the example images you have the image without LoRa and then with LoRa with the indicated strength. With low strength, the Lora can serve as a gentle detailer. It hasn't been tested with negative strength, who knows what it will do! :P Experiment with it! Recommended checkpoint: SWIFT! . Enjoy!",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:28:30.023141"
+}

@@ -1,0 +1,10 @@
+{
+  "hash": "b7d520aa4ab5582556bdf7cbc0d8d17dfa9e12a098f86a5094b490eff6752f1d",
+  "name": "Western comic semirrealistic 2.5D style Z-Image Turbo edition",
+  "trained_words": [
+    "a-semi"
+  ],
+  "description": "New model, new version of my traditional lora. This style is a tribute to fantasy and science fiction comics by artists such as Alfonso Azpiri, Luis Royo, Juan Gimenez, Richard Corben, Frank Frazetta and many others that could be found in prestigious magazines such as the famous Heavy Metal. I hope you all enjoy it. The recommended strength for this lora is between 0.8 and 1, with the best results obtained at 0.8. Details start to shine at resolutions of 1440x1440 and above.",
+  "source": "sidebar",
+  "imported_at": "2026-07-22T21:56:52.187788"
+}

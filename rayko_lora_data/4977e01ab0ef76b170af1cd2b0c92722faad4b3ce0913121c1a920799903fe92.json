@@ -1,0 +1,21 @@
+{
+  "hash": "4977e01ab0ef76b170af1cd2b0c92722faad4b3ce0913121c1a920799903fe92",
+  "name": "Hyper Realism Lora by aidma [FLUX + ILLUSTRIOUS] (FLUX v0.3)",
+  "trained_words": [
+    "aidmaHyperrealism",
+    "landscape",
+    "realism",
+    "photo",
+    "woman",
+    "still life",
+    "hyperrealism",
+    "man",
+    "professional",
+    "studio",
+    "realistic",
+    "tool"
+  ],
+  "description": "v0.3 added 25 more training images Strength comparison",
+  "source": "civitai",
+  "imported_at": "2026-07-23T14:52:02.223209"
+}

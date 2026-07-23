@@ -146,11 +146,11 @@ app.registerExtension({
                 const updateClipButton = () => {
                     const isEnabled = useClipWidget ? useClipWidget.value : true;
                     if (isEnabled) {
-                        clipToggleBtn.textContent = "🟢 CLIP ON";
+                        clipToggleBtn.textContent = "CLIP ON (model and clip mode)";
                         clipToggleBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #4CAF50;border-radius:5px;background:#1a3a1a;color:#aaffaa;cursor:pointer;height:26px;margin:0;font-weight:bold;";
                     } else {
-                        clipToggleBtn.textContent = "🔴 CLIP OFF";
-                        clipToggleBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #f44336;border-radius:5px;background:#3a1a1a;color:#ffaaaa;cursor:pointer;height:26px;margin:0;font-weight:bold;";
+                        clipToggleBtn.textContent = "CLIP OFF (model only mode)";
+                        clipToggleBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #00B0B0;border-radius:5px;background:#1E5986;color:#ffaaaa;cursor:pointer;height:26px;margin:0;font-weight:bold;";
                     }
                 };
 
@@ -189,7 +189,7 @@ app.registerExtension({
                 presetsWrapper.append(loraPresetsRoot);
 
                 const presetsWidget = this.addDOMWidget("presets_ui", "custom", presetsWrapper);
-                presetsWidget.computeSize = function() { return [this.width || 130, 35]; };
+                presetsWidget.computeSize = function() { return [this.width || 130, 40]; };
 
                 const collectLoraPresetData = () => ({
                     lora_rows: this.loraRows.map(row => ({

@@ -92,7 +92,6 @@ app.registerExtension({
                 this.oldWheelHandler = null;
                 this.currentFilter = "";
                 
-                // Drag & Drop state
                 this.draggingIndex = null;
                 this.dragCurrentY = null;
                 
@@ -325,10 +324,10 @@ app.registerExtension({
                         if (!res.ok) {
                             return res.text().then(text => { throw new Error(text || res.statusText); });
                         }
-                        showRaykoToast("Preset saved successfully!", "success", self);
+                        showRaykoToast("Preset saved successfully!", "success", this);
                     })
                     .catch(err => {
-                        showRaykoToast("Failed to save preset: " + err.message, "error", self);
+                        showRaykoToast("Failed to save preset: " + err.message, "error", this);
                     });
                 };
 
@@ -374,9 +373,9 @@ app.registerExtension({
                                     const data = await res2.json();
                                     if (pendingSelectType === "model") applyPresetData(data);
                                     else applyLoraPresetData(data);
-                                    showRaykoToast("Preset loaded!", "success", self);
+                                    showRaykoToast("Preset loaded!", "success", this);
                                 } catch (err) {
-                                    showRaykoToast("Failed to load preset: " + err.message, "error", self);
+                                    showRaykoToast("Failed to load preset: " + err.message, "error", this);
                                 }
                             };
                             
@@ -400,7 +399,7 @@ app.registerExtension({
                             presetListOverlay.appendChild(row);
                         });
                     } catch (e) {
-                        showRaykoToast("Failed to list presets: " + e.message, "error", self);
+                        showRaykoToast("Failed to list presets: " + e.message, "error", this);
                         presetListOverlay.textContent = "Error loading";
                     }
                 };
@@ -432,9 +431,9 @@ app.registerExtension({
                             deleteConfirmOverlay.style.display = "none";
                             presetListOverlay.style.display = "none";
                             pendingDeleteName = null;
-                            showRaykoToast("Preset deleted!", "success", self);
+                            showRaykoToast("Preset deleted!", "success", this);
                         } catch (err) {
-                            showRaykoToast("Failed to delete preset: " + err.message, "error", self);
+                            showRaykoToast("Failed to delete preset: " + err.message, "error", this);
                         }
                     }
                 });
@@ -728,7 +727,6 @@ app.registerExtension({
                     const dataIdx = visibleStart + i;
                     const row = this.loraRows[dataIdx];
                     
-                    // Если эта строка перетаскивается, рисуем её позже, а сейчас пропускаем
                     if (this.draggingIndex === dataIdx) continue;
 
                     const y = startY + (i * this.rowHeight);
@@ -738,7 +736,6 @@ app.registerExtension({
                     ctx.fillStyle = i % 2 === 0 ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.15)";
                     ctx.fillRect(padding, y, this.size[0] - (padding * 2), h);
 
-                    // Drag handle zone
                     this.clickZones.push({ type: "drag", index: dataIdx, x: padding, y: y, w: 20, h: h });
                     ctx.fillStyle = "#888";
                     ctx.font = "14px sans-serif";
@@ -751,8 +748,15 @@ app.registerExtension({
                     ctx.fill();
                     this.clickZones.push({ type: "toggle", index: dataIdx, x: toggleX, y: y, w: 24, h: h });
 
-                    const nameX = toggleX + 30;
-                    const nameW = this.size[0] - (padding * 2) - 50 - rightPanelWidth - 20;
+                    const infoX = toggleX + 15;
+                    const infoW = 24;
+                    ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
+                    ctx.font = "bold 18px sans-serif";
+                    ctx.fillText("ℹ️", infoX + 2, toggleY + 6);
+                    this.clickZones.push({ type: "info", index: dataIdx, x: infoX, y: y, w: infoW, h: h });
+
+                    const nameX = infoX + infoW + 5;
+                    const nameW = this.size[0] - (padding * 2) - 50 - rightPanelWidth - 20 - infoW - 5;
                     ctx.fillStyle = row.enabled ? "#fff" : "#777";
                     ctx.font = "12px sans-serif";
                     let displayName = row.name;
@@ -800,11 +804,10 @@ app.registerExtension({
                     this.clickZones.push({ type: "delete", index: dataIdx, x: arrowRX + 35, y: y, w: 30, h: h });
                 }
 
-                // Рисуем перетаскиваемую строку поверх остальных
                 if (this.draggingIndex !== null && this.dragCurrentY !== null) {
                     const row = this.loraRows[this.draggingIndex];
                     const h = this.rowHeight - 2;
-                    const y = this.dragCurrentY - (h / 2); // Центрируем по курсору
+                    const y = this.dragCurrentY - (h / 2);
                     const toggleY = y + h/2;
                     const padding = 10;
 
@@ -820,7 +823,6 @@ app.registerExtension({
                     ctx.fillText(row.name, padding + 25, toggleY + 4);
                     ctx.globalAlpha = 1.0;
 
-                    // Подсветка целевой позиции
                     const relativeY = this.dragCurrentY - startY;
                     let targetIndex = Math.floor(relativeY / this.rowHeight) + this.scrollOffset;
                     targetIndex = Math.max(0, Math.min(targetIndex, this.loraRows.length - 1));
@@ -870,11 +872,15 @@ app.registerExtension({
                             this.draggingIndex = zone.index;
                             this.dragCurrentY = pos[1];
                             if (this.graph) this.graph.setDirtyCanvas(true, true);
-                            return true; // Захватываем мышь
+                            return true;
                         } else if (zone.type === "toggle") {
                             this.loraRows[zone.index].enabled = !this.loraRows[zone.index].enabled;
                             this.syncData();
                             if (this.graph) this.graph.setDirtyCanvas(true, true);
+                            return true;
+                        } else if (zone.type === "info") {
+                            const loraName = this.loraRows[zone.index].name;
+                            this.showLoraInfo(loraName);
                             return true;
                         } else if (zone.type === "strength_input") {
                             const newValue = prompt("Enter strength LoRA:", this.loraRows[zone.index].strength_model.toFixed(2));
@@ -924,7 +930,6 @@ app.registerExtension({
                 return false;
             };
 
-            // --- НОВЫЕ МЕТОДЫ ДЛЯ DRAG & DROP ---
             nodeType.prototype.onMouseMove = function(e, pos, canvas) {
                 if (this.draggingIndex !== null) {
                     this.dragCurrentY = pos[1];
@@ -1185,6 +1190,186 @@ app.registerExtension({
                         setTimeout(() => this.graph.setDirtyCanvas(true, true), 100);
                         setTimeout(() => this.graph.setDirtyCanvas(true, true), 150);
                     }
+                });
+            };
+
+            nodeType.prototype.showLoraInfo = function(loraName) {
+                const existingPopup = document.getElementById("rayko-lora-info-popup");
+                if (existingPopup) existingPopup.remove();
+                
+                const popup = document.createElement("div");
+                popup.id = "rayko-lora-info-popup";
+                popup.style.cssText = `
+                    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                    background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 20px;
+                    max-width: 500px; max-height: 400px; overflow-y: auto; z-index: 100001;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.8); font-family: sans-serif;
+                `;
+                
+                const header = document.createElement("div");
+                header.style.cssText = `display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #333;`;
+                
+                const title = document.createElement("div");
+                title.textContent = "LoRA Info";
+                title.style.cssText = `color: #fff; font-size: 16px; font-weight: bold;`;
+                
+                const closeBtn = document.createElement("button");
+                closeBtn.textContent = "✕";
+                closeBtn.style.cssText = `background: transparent; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 0 5px; line-height: 1;`;
+                closeBtn.onmouseenter = () => closeBtn.style.color = "#fff";
+                closeBtn.onmouseleave = () => closeBtn.style.color = "#888";
+                closeBtn.onclick = () => { popup.remove(); document.removeEventListener("keydown", handleEsc); };
+                
+                header.appendChild(title);
+                header.appendChild(closeBtn);
+                popup.appendChild(header);
+                
+                const fullNameLabel = document.createElement("div");
+                fullNameLabel.textContent = "Full Name:";
+                fullNameLabel.style.cssText = `color: #888; font-size: 12px; margin-bottom: 5px;`;
+                
+                const fullName = document.createElement("div");
+                fullName.textContent = loraName;
+                fullName.style.cssText = `color: #fff; font-size: 13px; background: #2a2a2a; padding: 8px; border-radius: 4px; margin-bottom: 15px; word-break: break-all;`;
+                
+                popup.appendChild(fullNameLabel);
+                popup.appendChild(fullName);
+                
+                const content = document.createElement("div");
+                content.style.cssText = `color: #999; font-size: 13px; text-align: center; padding: 20px;`;
+                content.textContent = "Loading...";
+                popup.appendChild(content);
+                
+                const sourceLabel = document.createElement("div");
+                sourceLabel.style.cssText = `color: #666; font-size: 10px; text-align: right; margin-top: 10px; font-style: italic;`;
+                popup.appendChild(sourceLabel);
+                
+                document.body.appendChild(popup);
+                
+                const handleEsc = (e) => { if (e.key === "Escape") { popup.remove(); document.removeEventListener("keydown", handleEsc); } };
+                document.addEventListener("keydown", handleEsc);
+                
+                const updateContent = (data) => {
+                    content.innerHTML = "";
+                    sourceLabel.textContent = `Source: ${data.source || 'unknown'}`;
+                    
+                    if (data.error) {
+                        content.textContent = data.message || "No metadata available";
+                        content.style.color = "#f44336";
+                        return;
+                    }
+                    
+                    if (data.full_name && data.full_name !== loraName) {
+                        fullName.textContent = data.full_name;
+                    }
+                    
+                    if (data.trained_words && data.trained_words.length > 0) {
+                        const twLabel = document.createElement("div");
+                        twLabel.textContent = "Trained Words:";
+                        twLabel.style.cssText = `color: #888; font-size: 12px; margin-bottom: 8px;`;
+                        content.appendChild(twLabel);
+                        
+                        const twContainer = document.createElement("div");
+                        twContainer.style.cssText = `display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px;`;
+                        
+                        data.trained_words.forEach(word => {
+                            const chip = document.createElement("div");
+                            chip.textContent = word;
+                            chip.style.cssText = `background: #2a3a2a; color: #4CAF50; padding: 4px 10px; border-radius: 12px; font-size: 11px; border: 1px solid #4CAF50; cursor: pointer; user-select: none;`;
+                            chip.onmouseenter = () => { chip.style.background = "#3a5a3a"; chip.style.borderColor = "#66dd66"; };
+                            chip.onmouseleave = () => { chip.style.background = "#2a3a2a"; chip.style.borderColor = "#4CAF50"; };
+                            chip.onclick = () => {
+                                navigator.clipboard.writeText(word).then(() => {
+                                    showRaykoToast(`Copied: "${word}"`, "success", this);
+                                    popup.remove();
+                                    document.removeEventListener("keydown", handleEsc);
+                                }).catch(() => showRaykoToast("Failed to copy", "error", this));
+                            };
+                            twContainer.appendChild(chip);
+                        });
+                        content.appendChild(twContainer);
+                        
+                        const copyBtn = document.createElement("button");
+                        copyBtn.textContent = "📋 Copy All";
+                        copyBtn.style.cssText = `background: #1a3a5a; color: #aadaff; border: 1px solid #5090cc; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 11px; margin-bottom: 15px;`;
+                        copyBtn.onmouseenter = () => copyBtn.style.background = "#2a4a6a";
+                        copyBtn.onmouseleave = () => copyBtn.style.background = "#1a3a5a";
+                        copyBtn.onclick = () => {
+                            const text = data.trained_words.join(", ");
+                            navigator.clipboard.writeText(text).then(() => {
+                                showRaykoToast("Trained words copied!", "success", this);
+                                popup.remove();
+                                document.removeEventListener("keydown", handleEsc);
+                            }).catch(() => showRaykoToast("Failed to copy", "error", this));
+                        };
+                        content.appendChild(copyBtn);
+                    }
+                    
+                    if (data.description) {
+                        const descLabel = document.createElement("div");
+                        descLabel.textContent = "Description:";
+                        descLabel.style.cssText = `color: #888; font-size: 12px; margin-bottom: 5px;`;
+                        content.appendChild(descLabel);
+                        
+                        const desc = document.createElement("div");
+                        desc.textContent = data.description;
+                        desc.style.cssText = `color: #ccc; font-size: 12px; background: #2a2a2a; padding: 8px; border-radius: 4px; line-height: 1.4;`;
+                        content.appendChild(desc);
+                    }
+                    
+                    if (!data.trained_words?.length && !data.description) {
+                        content.textContent = "No metadata available";
+                        content.style.color = "#888";
+                    }
+                    
+                    const actionsDiv = document.createElement("div");
+                    actionsDiv.style.cssText = `display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap;`;
+                    
+                    const fetchBtn = document.createElement("button");
+                    fetchBtn.textContent = "🌐 Fetch from Civitai";
+                    fetchBtn.style.cssText = `flex: 1; background: #3a2a1a; color: #fbbf24; border: 1px solid #fbbf24; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 11px;`;
+                    fetchBtn.onmouseenter = () => fetchBtn.style.background = "#4a3a2a";
+                    fetchBtn.onmouseleave = () => fetchBtn.style.background = "#3a2a1a";
+                    fetchBtn.onclick = async () => {
+                        fetchBtn.textContent = "⏳ Loading...";
+                        fetchBtn.disabled = true;
+                        fetchBtn.style.opacity = "0.5";
+                        
+                        try {
+                            const res = await fetch("/rayko/fetch_civitai_info", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ name: loraName })
+                            });
+                            const result = await res.json();
+                            if (result.error) {
+                                content.textContent = result.message || "Error fetching from Civitai";
+                                content.style.color = "#f44336";
+                                sourceLabel.textContent = "";
+                            } else {
+                                updateContent(result);
+                            }
+                        } catch (err) {
+                            content.textContent = "Network error";
+                            content.style.color = "#f44336";
+                            sourceLabel.textContent = "";
+                        }
+                    };
+                    actionsDiv.appendChild(fetchBtn);
+                    
+                    content.appendChild(actionsDiv);
+                };
+                
+                fetch("/rayko/get_lora_info", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: loraName })
+                })
+                .then(res => res.json())
+                .then(updateContent)
+                .catch(err => {
+                    content.textContent = "Error loading metadata";
+                    content.style.color = "#f44336";
                 });
             };
 

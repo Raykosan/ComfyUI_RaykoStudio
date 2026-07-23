@@ -825,7 +825,7 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 # 🦊 RS Models Loader  
 **A powerful universal model loading node that combines UNET, CLIP (with additional dual-clip support), VAE and LoRa downloads in a single interface and the function of saving model and LoRA configurations to preset presets.**  
 
-<img width="538" height="692" alt="Screenshot_1" src="https://github.com/user-attachments/assets/93a8ded0-6875-420d-9856-de66eb07cfea" />
+<img width="598" height="644" alt="Screenshot_1" src="https://github.com/user-attachments/assets/b1c9da4a-a505-4694-be28-0024e8241821" />
 
 ### 🔥 Features  
 - **Unified Loading** - Load UNET, CLIP, VAE, and multiple LoRAs in one node  

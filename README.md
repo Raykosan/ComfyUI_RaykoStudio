@@ -783,7 +783,7 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 # 🦊 RS LoRA Loader  
 **A powerful, highly customizable node for managing multiple LoRAs. It features a sleek custom interface, a robust preset system, drag-and-drop reordering, and seamless integration with the Civitai API for fetching metadata and trained words.**  
 
-<img width="605" height="560" alt="Screenshot_1" src="https://github.com/user-attachments/assets/81fe9316-02a3-4507-a6de-f458af353f4c" />
+<img width="1078" height="696" alt="Screenshot_2" src="https://github.com/user-attachments/assets/41171801-a066-4f82-8416-dd16d1ad869e" />
 
 ### 🎨 Advanced Custom UI  
 - **Visual Multi-LoRA Management** - Add, remove, and reorder multiple LoRAs with drag-and-drop support.  

@@ -816,6 +816,16 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 - **Click to Copy** - Click on any individual green tag chip in the Info popup to instantly copy it to your clipboard and auto-close the window.  
 - **📋 Copy All** - A dedicated button to copy all trained words/tags at once.
 
+**The principle of adding a tag:**  
+One line is one tag.  
+If it is written in one line, even separated by commas:  
+(1tag, 2tag, 3tag) is one tag.  
+If it is written in several lines, there are several tags:  
+1tag  
+2tag  
+3tag  
+is three tags.  
+
 ### 🔔 Visual Feedback  
 - Custom toast notifications for successful actions, errors, and clipboard events.  
 
@@ -851,7 +861,17 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 
 ### 📋 One-Click Tag Copying  
 - **Click to Copy** - Click on any individual green tag chip in the Info popup to instantly copy it to your clipboard and auto-close the window.  
-- **📋 Copy All** - A dedicated button to copy all trained words/tags at once.
+- **📋 Copy All** - A dedicated button to copy all trained words/tags at once.  
+
+**The principle of adding a tag:**  
+One line is one tag.  
+If it is written in one line, even separated by commas:  
+(1tag, 2tag, 3tag) is one tag.  
+If it is written in several lines, there are several tags:  
+1tag  
+2tag  
+3tag  
+is three tags.  
 
 ### 🔔 Visual Feedback  
 - Custom toast notifications for successful actions, errors, and clipboard events. 

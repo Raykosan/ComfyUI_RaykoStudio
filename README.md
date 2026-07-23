@@ -830,6 +830,7 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 ### 🔥 Features  
 - **Unified Loading** - Load UNET, CLIP, VAE, and multiple LoRAs in one node  
 - **Dual CLIP Support** - Toggle between single CLIP mode (CLIPLoader) and dual CLIP mode (DualCLIPLoader) for models like Flux, SD3, Hunyuan DiT, and PixArt  
+- **Visual Multi-LoRA Management** - Add, remove, and reorder multiple LoRAs with drag-and-drop support. 
 - **LoRA Management** - Add, enable/disable, and adjust strengths for multiple LoRAs with an intuitive visual interface  
 - **Persistent Storage** - LoRA configurations are saved per node and persist across sessions  
 - **Folder Structure** - Browse LoRAs with folder tree navigation  
@@ -837,8 +838,21 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 - **Presets of model sets** - Save model sets to presets for quick switching between models  
 - **Presets of LoRA sets** - Save LoRA sets to presets for quick switching between models  
 - **Quick update** - When adding a new LoRA to the 'loras' folder, you do not need to reload ComfyUI or the browser page. Just click the ✔️ Update LoRA list button  
-- **Drag and drop** - Changing the position of LoRA in the list of active loras  
 - **Pop-up messages** - Confirmation of successful or unsuccessful processes in the node  
+
+### 🌐 Civitai Metadata Integration (Info Popup)  
+- **Instant Info** - Click the `ℹ️` icon on any LoRA row to open a detailed popup.  
+- **Fetch from Civitai** - Automatically fetches the model's true name, description, and tags directly from Civitai using the file's SHA256 hash.  
+- **Getting metadata** - If no data is found, click the **🌐 Fetch from Civitai** button.  
+   - *Note: The node calculates the SHA256 hash of the `.safetensors` file and queries the Civitai API. This may take a few seconds on the first run.*  
+- **Local Caching** - Fetched metadata is saved locally in the `rayko_lora_data` folder. Subsequent views are instant and require no internet connection.  
+
+### 📋 One-Click Tag Copying  
+- **Click to Copy** - Click on any individual green tag chip in the Info popup to instantly copy it to your clipboard and auto-close the window.  
+- **📋 Copy All** - A dedicated button to copy all trained words/tags at once.
+
+### 🔔 Visual Feedback  
+- Custom toast notifications for successful actions, errors, and clipboard events. 
 
 ### 📃 Notes  
 - When dual CLIP mode is disabled, clip_name2 is visible but disabled (grayed out)  

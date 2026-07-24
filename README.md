@@ -1,5 +1,6 @@
 # 🦊 ComfyUI_RaykoStudio  
 Set of custom nodes for ComfyUI providing additional image processing capabilities  
+--- 
 ---  
 
 <details>

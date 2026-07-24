@@ -1099,9 +1099,9 @@ Toggle **ENABLE SHADOW** to activate.
   <summary>🦊 RS Color Picker</summary>
 
 # 🦊 RS Color Picker  
-**Professional color picker node with advanced features including eyedropper and color history**  
+**Professional color picker node with advanced features including eyedropper, color history and presets**  
 
-<img width="470" height="664" alt="Screenshot_13" src="https://github.com/user-attachments/assets/0c5bb126-1c46-4ece-ae3d-037399a0b6c5" />
+<img width="412" height="667" alt="Screenshot_1" src="https://github.com/user-attachments/assets/13c817b7-28c8-414c-9f3c-39494c9e468a" />
 
 ### 🔥 Features  
 - **Visual Color Picker** - Intuitive color selection with live preview  
@@ -1110,7 +1110,9 @@ Toggle **ENABLE SHADOW** to activate.
 - **Basic Colors** - 8 preset colors for quick access  
 - **Recent Colors** - History of last 24 used colors (saved in localStorage)  
 - **Multiple Outputs** - HEX_INT, HEX_STR, and RGB formats  
-- **Clean UI** - Professional interface matching ComfyUI design  
+- **Presets** - Saving color history to preset, loading saved presets  
+- **Clean All** - Professional interface matching ComfyUI design
+-  **Copy HEX** - Copying the HEX value to the clipboard with one button  
 
 ### 🪛 Usage  
 1. **Select a color using one of these methods:**  

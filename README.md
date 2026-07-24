@@ -1107,13 +1107,13 @@ Toggle **ENABLE SHADOW** to activate.
 ### 🔥 Features  
 - **Visual Color Picker** - Intuitive color selection with live preview  
 - **Eyedropper Tool** - Pick colors from anywhere on screen (Chrome/Edge) or from ComfyUI canvas (all browsers)  
-- **Copy to Clipboard** - Double-click color swatch to copy HEX value  
+- **Copy to Clipboard** - Click Copy button next to the HEX values window  
 - **Basic Colors** - 8 preset colors for quick access  
 - **Recent Colors** - History of last 24 used colors (saved in localStorage)  
 - **Multiple Outputs** - HEX_INT, HEX_STR, and RGB formats  
 - **Presets** - Saving color history to preset, loading saved presets  
-- **Clean All** - Professional interface matching ComfyUI design
--  **Copy HEX** - Copying the HEX value to the clipboard with one button  
+- **Clean All** - The '❌ Clear All' button clears the panel of all colors
+- **Delete button** - Appears by right-clicking on any color in the panel and deletes the selected color when clicked  
 
 ### 🪛 Usage  
 1. **Select a color using one of these methods:**  

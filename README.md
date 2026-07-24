@@ -810,7 +810,7 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 - **Instant Info** - Click the `ℹ️` icon on any LoRA row to open a detailed popup.  
 - **Fetch from Civitai** - Automatically fetches the model's true name, description, and tags directly from Civitai.  
 - **Getting metadata** - If no data is found, click the **🌐 Fetch from Civitai** button.  
-   - *Note: The node calculates the SHA256 hash of the `.safetensors` file and queries the Civitai API. This may take a few seconds on the first run.*  
+   - *Note: This may take a few seconds on the first run.*  
 - **Local Caching** - Fetched metadata is saved locally in the `rayko_lora_data` folder. Subsequent views are instant and require no internet connection.  
 
 ### 📋 One-Click Tag Copying  
@@ -857,7 +857,7 @@ is three tags.
 - **Instant Info** - Click the `ℹ️` icon on any LoRA row to open a detailed popup.  
 - **Fetch from Civitai** - Automatically fetches the model's true name, description, and tags directly from Civitai.  
 - **Getting metadata** - If no data is found, click the **🌐 Fetch from Civitai** button.  
-   - *Note: The node calculates the SHA256 hash of the `.safetensors` file and queries the Civitai API. This may take a few seconds on the first run.*  
+   - *Note: This may take a few seconds on the first run.*  
 - **Local Caching** - Fetched metadata is saved locally in the `rayko_lora_data` folder. Subsequent views are instant and require no internet connection.  
 
 ### 📋 One-Click Tag Copying  

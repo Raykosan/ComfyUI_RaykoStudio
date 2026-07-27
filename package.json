@@ -10,6 +10,7 @@
   },
   "comfyui": {
     "nodes": [
+      "Rayko_Adjustments.py"
       "Rayko_Any_Switch.py"
       "Rayko_Bypass.py"
       "Rayko_Collage.py"
@@ -31,7 +32,6 @@
       "Rayko_Prompts.py"
       "Rayko_Ref2Latent.py"
       "Rayko_RGB2RGBA.py"
-      "Rayko_Saturation.py"
       "Rayko_Save_Image.py"
       "Rayko_Save_Image_Pair.py"
       "Rayko_Spline_Mask.py"

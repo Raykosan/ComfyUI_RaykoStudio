@@ -1,3 +1,21 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025-2026 Raykosan (RaykoStudio)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import aiohttp
+import base64
+from io import BytesIO
 import os
 import torch
 import numpy as np
@@ -223,7 +241,6 @@ def apply_color_balance(img_bgr, shadows_cyan_red, shadows_magenta_green, shadow
     return result
 
 def apply_black_and_white(img_bgr, red, yellow, green, cyan, blue, magenta):
-    # Всегда преобразуем в ч/б
     img_float = img_bgr.astype(np.float32) / 255.0
     img_rgb = img_float[:, :, ::-1]
     img_hsv = cv2.cvtColor((img_rgb * 255).astype(np.uint8), cv2.COLOR_RGB2HSV)
@@ -236,7 +253,6 @@ def apply_black_and_white(img_bgr, red, yellow, green, cyan, blue, magenta):
     w_blue = blue / 100.0
     w_magenta = magenta / 100.0
 
-    # Опорные точки (градусы) и веса (R,G,B)
     ref_hues = np.array([0, 30, 60, 90, 120, 150], dtype=np.float32)
     ref_weights = np.array([
         [w_red, 0, 0],
@@ -247,7 +263,6 @@ def apply_black_and_white(img_bgr, red, yellow, green, cyan, blue, magenta):
         [w_red, 0, w_blue]
     ], dtype=np.float32)
 
-    # Интерполяция с учётом цикличности (подробно в предыдущем ответе)
     ref_hues_ext = np.array([0, 30, 60, 90, 120, 150, 360])
     ref_weights_ext = np.concatenate([ref_weights, ref_weights[:1]], axis=0)
 
@@ -256,9 +271,9 @@ def apply_black_and_white(img_bgr, red, yellow, green, cyan, blue, magenta):
     idx = np.clip(idx, 0, 5)
 
     left_weights = ref_weights[idx]
-    right_weights = ref_weights_ext[idx + 1]   # берём следующий элемент из расширенного массива
+    right_weights = ref_weights_ext[idx + 1]
     left_angle = ref_hues[idx]
-    right_angle = ref_hues_ext[idx + 1]        # аналогично для углов
+    right_angle = ref_hues_ext[idx + 1]
     t = (hue_norm - left_angle) / (right_angle - left_angle + 1e-6)
     weights = left_weights + t[:, :, np.newaxis] * (right_weights - left_weights)
 
@@ -305,12 +320,10 @@ def apply_selective_color(img_bgr, color_name, cyan, magenta, yellow, black):
     s = img_hsv[:, :, 1]  # 0..255
     v = img_hsv[:, :, 2]  # 0..255
     
-    # Нормируем для удобства
     h_deg = h * 2.0  # 0..358
     s_norm = s / 255.0
     v_norm = v / 255.0
     
-    # Определяем центральный угол и сигму для каждого цвета
     color_configs = {
         "Reds":     (0, 25),
         "Yellows":  (30, 20),
@@ -322,28 +335,19 @@ def apply_selective_color(img_bgr, color_name, cyan, magenta, yellow, black):
     
     if color_name in color_configs:
         center, sigma = color_configs[color_name]
-        # Вычисляем угловое расстояние с учётом цикличности (в градусах)
         diff = np.abs(h_deg - center)
         diff = np.minimum(diff, 360 - diff)
-        # Гауссова маска
         mask = np.exp(-(diff ** 2) / (2 * sigma ** 2))
-        # Дополнительно можно учесть насыщенность – для чистых цветов маска выше
-        # Оставим только по оттенку для простоты
     elif color_name == "Whites":
-        # Белые: высокая яркость >0.8 и низкая насыщенность <0.2
-        mask = (v_norm > 0.8) * (1 - s_norm)  # плавно убывает с насыщенностью
-        # Можно сделать гауссову по яркости и насыщенности
+        mask = (v_norm > 0.8) * (1 - s_norm)
         mask = np.exp(-((v_norm - 1.0)**2) / (2*0.1**2)) * np.exp(-(s_norm**2) / (2*0.2**2))
     elif color_name == "Neutrals":
-        # Нейтральные: средняя яркость 0.3..0.7, низкая насыщенность
         mask = np.exp(-((v_norm - 0.5)**2) / (2*0.15**2)) * np.exp(-(s_norm**2) / (2*0.2**2))
     elif color_name == "Blacks":
-        # Чёрные: низкая яркость <0.3
         mask = np.exp(-(v_norm**2) / (2*0.15**2)) * np.exp(-(s_norm**2) / (2*0.2**2))
     else:
         mask = np.ones_like(h, dtype=np.float32)
     
-    # Преобразуем RGB в CMYK (как и было)
     height, width = img_float.shape[:2]
     img_cmyk = np.zeros((height, width, 4), dtype=np.float32)
     k = 1.0 - np.max(img_float, axis=2)
@@ -352,7 +356,6 @@ def apply_selective_color(img_bgr, color_name, cyan, magenta, yellow, black):
     img_cmyk[:, :, 2] = (1.0 - img_float[:, :, 0] - k) / np.maximum(1.0 - k, 0.001)
     img_cmyk[:, :, 3] = k
     
-    # Применяем поправки с учётом плавной маски
     img_cmyk[:, :, 0] += mask * (cyan / 100.0)
     img_cmyk[:, :, 1] += mask * (magenta / 100.0)
     img_cmyk[:, :, 2] += mask * (yellow / 100.0)
@@ -360,7 +363,6 @@ def apply_selective_color(img_bgr, color_name, cyan, magenta, yellow, black):
     
     img_cmyk = np.clip(img_cmyk, 0, 1)
     
-    # Обратное преобразование CMYK -> RGB
     result_rgb = np.zeros((height, width, 3), dtype=np.float32)
     result_rgb[:, :, 2] = 1.0 - img_cmyk[:, :, 0] - img_cmyk[:, :, 3]
     result_rgb[:, :, 1] = 1.0 - img_cmyk[:, :, 1] - img_cmyk[:, :, 3]
@@ -538,6 +540,63 @@ async def preview_handler(request):
         import traceback
         traceback.print_exc()
         return web.json_response({"error": str(e)}, status=500)
+
+@PromptServer.instance.routes.get("/rayko/rs_adjustments/ws")
+async def ws_preview_handler(request):
+    ws = web.WebSocketResponse()
+    await ws.prepare(request)
+    
+    print("[RS Adjustments] WebSocket connection opened")
+    
+    try:
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                try:
+                    data = json.loads(msg.data)
+                    node_id = str(data.get("node_id", "unknown"))
+                    adjustments = data.get("adjustments", {})
+                    image_file = data.get("image_file", "")
+                    
+                    temp_dir = folder_paths.get_temp_directory()
+                    img_path = os.path.join(temp_dir, image_file)
+                    
+                    if not os.path.exists(img_path):
+                        await ws.send_json({"error": "Image not found"})
+                        continue
+                    
+                    img_pil = Image.open(img_path).convert('RGB')
+                    img_bgr = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
+                    
+                    max_size = 1024
+                    h, w = img_bgr.shape[:2]
+                    if h > max_size or w > max_size:
+                        scale = max_size / max(h, w)
+                        new_w = int(w * scale)
+                        new_h = int(h * scale)
+                        img_bgr = cv2.resize(img_bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
+                    
+                    result_bgr = process_image(img_bgr, adjustments)
+                    
+                    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+                    _, jpeg_buffer = cv2.imencode('.jpg', result_bgr, encode_param)
+                    jpeg_bytes = jpeg_buffer.tobytes()
+                    
+                    await ws.send_bytes(jpeg_bytes)
+                    
+                except Exception as e:
+                    print(f"[RS Adjustments] WebSocket error: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    await ws.send_json({"error": str(e)})
+            
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                print(f"[RS Adjustments] WebSocket error: {ws.exception()}")
+    
+    except Exception as e:
+        print(f"[RS Adjustments] WebSocket connection error: {e}")
+    
+    print("[RS Adjustments] WebSocket connection closed")
+    return ws
 
 class RS_ImageAdjustments:
     @classmethod

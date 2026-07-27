@@ -172,6 +172,9 @@ app.registerExtension({
       this._previewTimestamp = null;
       this._previewKey = null;
       this._overlayRenderLoop = null;
+      this._ws = null;
+      this._wsConnected = false;
+      this._wsReconnectTimer = null;
       this._lastHeavyRenderTime = 0;
       this._isHeavyRenderPending = false;
 
@@ -491,15 +494,13 @@ app.registerExtension({
       buttonContainer.appendChild(btnApply);
       const btnCancel = makeBtn("❌ CANCEL", "#dc3545", () => { this._cancelEditing(); this._toggleAdvancedMode(); });
       buttonContainer.appendChild(btnCancel);
-      // Контейнер для нижнего ряда кнопок
       const bottomRow = document.createElement('div');
       bottomRow.style.cssText = 'display:flex;gap:8px;width:100%;';
 
       const btnResetAll = makeBtn("🔄 RESET ALL", "#FF9800", () => { this._resetAllParameters(); });
-      btnResetAll.style.flex = '1'; // Занимает половину ширины
+      btnResetAll.style.flex = '1';
       bottomRow.appendChild(btnResetAll);
 
-      // Кнопка Expand/Collapse
       this._expandCollapseBtn = makeBtn("▶ EXPAND ALL", "#888", () => {
         this._allSectionsExpanded = !this._allSectionsExpanded;
         
@@ -507,7 +508,6 @@ app.registerExtension({
         const icon = this._allSectionsExpanded ? '▼' : '▶';
         const text = this._allSectionsExpanded ? '▼ COLLAPSE ALL' : '▶ EXPAND ALL';
 
-        // Проходим по всем секциям и меняем состояние
         this._sectionRegistry.forEach(entry => {
           if (entry.content) entry.content.style.display = display;
           if (entry.chevron) entry.chevron.textContent = icon;
@@ -515,7 +515,7 @@ app.registerExtension({
         
         this._expandCollapseBtn.textContent = text;
       });
-      this._expandCollapseBtn.style.flex = '1'; // Занимает половину ширины
+      this._expandCollapseBtn.style.flex = '1';
       bottomRow.appendChild(this._expandCollapseBtn);
 
       buttonContainer.appendChild(bottomRow);
@@ -932,7 +932,12 @@ app.registerExtension({
       
       this._lastHeavyRenderTime = now;
       this._syncWidgetsFromAdjustments();
-      this._fetchPreviewFromServer();
+      
+      if (this._wsConnected) {
+        this._sendPreviewViaWebSocket();
+      } else {
+        this._fetchPreviewFromServer();
+      }
     };
 
     nodeType.prototype._fetchPreviewFromServer = async function() {
@@ -981,6 +986,84 @@ app.registerExtension({
       }
     };
 
+    nodeType.prototype._initWebSocket = function() {
+      if (this._ws && this._ws.readyState === WebSocket.OPEN) {
+        return;
+      }
+      
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${location.host}/rayko/rs_adjustments/ws`;
+      
+      this._ws = new WebSocket(wsUrl);
+      this._ws.binaryType = 'blob';
+      
+      this._ws.onopen = () => {
+        console.log('[RS Adjustments] WebSocket connected');
+        this._wsConnected = true;
+        if (this._wsReconnectTimer) {
+          clearTimeout(this._wsReconnectTimer);
+          this._wsReconnectTimer = null;
+        }
+      };
+      
+      this._ws.onmessage = (event) => {
+        if (event.data instanceof Blob) {
+          const url = URL.createObjectURL(event.data);
+          const img = new Image();
+          img.crossOrigin = "Anonymous";
+          img.onload = () => {
+            this.previewImage = img;
+            this.setDirtyCanvas(true);
+            URL.revokeObjectURL(url);
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(url);
+          };
+          img.src = url;
+        } else if (event.data instanceof ArrayBuffer) {
+          const blob = new Blob([event.data], { type: 'image/jpeg' });
+          const url = URL.createObjectURL(blob);
+          const img = new Image();
+          img.onload = () => {
+            this.previewImage = img;
+            this.setDirtyCanvas(true);
+            URL.revokeObjectURL(url);
+          };
+          img.src = url;
+        }
+      };
+      
+      this._ws.onclose = () => {
+        console.log('[RS Adjustments] WebSocket disconnected');
+        this._wsConnected = false;
+        if (!this._wsReconnectTimer) {
+          this._wsReconnectTimer = setTimeout(() => {
+            this._initWebSocket();
+          }, 2000);
+        }
+      };
+      
+      this._ws.onerror = (error) => {
+        console.error('[RS Adjustments] WebSocket error:', error);
+        this._ws.close();
+      };
+    };
+
+    nodeType.prototype._sendPreviewViaWebSocket = function() {
+      if (!this._ws || this._ws.readyState !== WebSocket.OPEN) {
+        this._fetchPreviewFromServer();
+        return;
+      }
+      
+      const payload = {
+        node_id: String(this.id),
+        image_file: this.pendingEditorData.bg_file,
+        adjustments: this.adjustments
+      };
+      
+      this._ws.send(JSON.stringify(payload));
+    };
+
     nodeType.prototype._openDeferredEditor = function() {
       if (!this.pendingEditorData) return;
       this.backgroundImage = null;
@@ -1017,6 +1100,7 @@ app.registerExtension({
         this.backgroundImage = img;
         this.isLoading = false;
         this.isEditing = true;
+        this._initWebSocket();
         
         this._tempCanvas.width = img.width;
         this._tempCanvas.height = img.height;
@@ -1060,6 +1144,15 @@ app.registerExtension({
           cancelAnimationFrame(this._overlayRenderLoop);
           this._overlayRenderLoop = null;
         }
+      if (this._ws) {
+        this._ws.close();
+        this._ws = null;
+        this._wsConnected = false;
+      }
+      if (this._wsReconnectTimer) {
+        clearTimeout(this._wsReconnectTimer);
+        this._wsReconnectTimer = null;
+      }
         this.setDirtyCanvas(true);
         return;
       }

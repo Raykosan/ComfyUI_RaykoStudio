@@ -1130,38 +1130,84 @@ Toggle **ENABLE SHADOW** to activate.
 
 </details> 
 <details>
-  <summary>🦊 RS Saturation</summary>
+  <summary>🦊 RS Image Adjustments</summary>
 	
-# 🦊 RS Saturation  
-**Professional image saturation control with artifact and highlight protection.**  
+# 🦊 RS Image Adjustments  
+**A powerful interactive image adjustment node with real-time preview and professional-grade controls.**  
 
-<img width="1024" height="742" alt="134" src="https://github.com/user-attachments/assets/e4266ff4-29e7-44bb-b7c3-67a1a895ec56" />
+<img width="621" height="953" alt="Screenshot_1" src="https://github.com/user-attachments/assets/9d921205-5d92-43da-aebe-3884664afe61" />
+<img width="1862" height="1060" alt="Screenshot_2" src="https://github.com/user-attachments/assets/832a63c5-7cc6-483b-a5da-a6470526015b" />
 
 ### 🔥 Features  
-- **Smooth adjustment** with 0.05 steps  
-- **Smart boosting** without overexposure  
-- **Artifact protection** even at extreme values  
-- **Batch processing** optimized  
+- **Real-time Preview** - See adjustments instantly with GPU-accelerated rendering  
+- **Professional Tools** - 8 adjustment categories with 40+ parameters  
+- **Interactive UI** - Custom sidebar interface with collapsible sections  
+- **Smart Caching** - Efficient preview system with LRU cache  
+- **Batch Processing** - Full support for image sequences  
+- **LUT Support** - Import and apply .cube color lookup tables  
+- **Non-Destructive** - Preview changes before applying to your workflow
+
+### 🎛️ Available Adjustments  
+**Basic Adjustments**  
+- **Brightness**: -100 to +100  
+- **Contrast**: -100 to +100  
+- **Hue**: -180° to +180°  
+- **Saturation**: -100% to +100%  
+
+**Color Lookup (LUT)**  
+- Load `.cube` files  
+- Adjustable intensity (0-100%)  
+- Support for 3D LUTs  
+
+**Levels**  
+- Input Black: 0-255  
+- Gamma: 0.1-3.0  
+- Input White: 0-255  
+
+**Exposure**  
+- Exposure: -100 to +100  
+- Offset: -100 to +100  
+
+**Color Balance**  
+- Shadows, Midtones, Highlights  
+- Cyan/Red, Magenta/Green, Yellow/Blue channels  
+
+**Black & White**  
+- Channel mixer for monochrome conversion  
+- Red, Yellow, Green, Cyan, Blue, Magenta controls  
+
+**Channel Mixer**  
+- Independent RGB channel mixing  
+- Output Red/Green/Blue controls  
+
+**Selective Color**  
+- Target specific color ranges  
+- Reds, Yellows, Greens, Cyans, Blues, Magentas, Whites, Neutrals, Blacks  
+- CMYK adjustments per range  
 
 ### 🪛 Usage  
-![RS Safe Saturation](https://github.com/user-attachments/assets/a46ad5c2-2a79-4f2a-bd8f-1f4dcec5084b)
+1. **Add Node**: Add `RS Image Adjustments` to your workflow  
+2. **Connect Image**: Connect your input image  
+3. **Base Parameters**: Use the node interface to change the basic parameters  
+4. **Open Editor**: Click `✨ ADVANCED` button to open the sidebar with advanced correction options  
+5. **Adjust**: Use sliders or click values for manual input  
+6. **Preview**: Changes appear in real-time  
+7. **Apply**: Click `✔️ APPLY` to finalize and pass to next node  
+8. **Cancel**: Click `❌ CANCEL` to discard changes  
 
+### Quick Controls  
+- **Node Interface**: 4 basic sliders (Brightness, Contrast, Hue, Saturation)  
+- **Sidebar**: Full control panel with all parameters  
+- **Reset All**: 🔄 button to reset all parameters to defaults  
+- **Expand/Collapse**: ▶/▼ buttons to show/hide all sections  
+- **Individual Reset**: 🔄 button next to each slider 
 
-| Range      | Processing Type               | Use Case                    |
-|------------|-------------------------------|-----------------------------|
-| 0.0-0.9    | Toning/desaturation           | Gradual color removal       |
-| 1.0-1.3    | Natural enhancement           | Recommended range           |
-| 1.3-2.0    | Vibrant artistic effects      | Stylization                 |
-| 2.0-3.0    | Maximum saturation            | Cinematic effects           |
-
-### ⚙️ Technical Details  
-
-Algorithm workflow:  
-Luminance space conversion  
-Non-linear adjustment:  
-Values <1.0: Linear interpolation  
-Values >1.0: Adaptive S-curve  
-Auto highlight recovery  
+### 🎨 Interface Features  
+- **Collapsible Sections**: Organized parameter groups  
+- **Color-Coded Labels**: Green indicates modified parameters  
+- **Value Input**: Click any value to type exact numbers  
+- **Live Section Headers**: Modified sections highlighted in green  
+- **Responsive Design**: Adapts to different screen sizes  
 
 </details> 
 <details>

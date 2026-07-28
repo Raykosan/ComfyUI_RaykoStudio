@@ -1151,6 +1151,7 @@ Toggle **ENABLE SHADOW** to activate.
 **Basic Adjustments**  
 - **Brightness**: -100 to +100  
 - **Contrast**: -100 to +100  
+- **Sharpen**: 0 to +100  
 - **Hue**: -180° to +180°  
 - **Saturation**: -100% to +100%  
 
@@ -1158,6 +1159,10 @@ Toggle **ENABLE SHADOW** to activate.
 - Load `.cube` files  
 - Adjustable intensity (0-100%)  
 - Support for 3D LUTs  
+
+**Advanced Tools**  
+- Vibrance: -100 to +100    
+- Clarity: -100 to +100   
 
 **Levels**  
 - Input Black: 0-255  

@@ -285,11 +285,11 @@ def apply_black_and_white(img_bgr, red, yellow, green, cyan, blue, magenta):
     ref_hues = np.array([0, 30, 60, 90, 120, 150], dtype=np.float32)
     ref_weights = np.array([
         [w_red, 0, 0],
-        [w_red, w_green, 0],
+        [w_yellow, w_yellow, 0],
         [0, w_green, 0],
-        [0, w_green, w_blue],
+        [0, w_cyan, w_cyan],
         [0, 0, w_blue],
-        [w_red, 0, w_blue]
+        [w_magenta, 0, w_magenta]
     ], dtype=np.float32)
 
     ref_hues_ext = np.array([0, 30, 60, 90, 120, 150, 360])
@@ -343,61 +343,49 @@ def apply_selective_color(img_bgr, color_name, cyan, magenta, yellow, black):
     if cyan == 0 and magenta == 0 and yellow == 0 and black == 0:
         return img_bgr
     
-    img_float = img_bgr.astype(np.float32) / 255.0
+    img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
     img_hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV).astype(np.float32)
-    h = img_hsv[:, :, 0]
-    s = img_hsv[:, :, 1]
-    v = img_hsv[:, :, 2]
     
-    h_deg = h * 2.0
-    s_norm = s / 255.0
-    v_norm = v / 255.0
+    h_deg = img_hsv[:, :, 0] * 2.0
+    s_norm = img_hsv[:, :, 1] / 255.0
+    v_norm = img_hsv[:, :, 2] / 255.0
     
-    color_configs = {
-        "Reds":     (0, 25),
-        "Yellows":  (30, 20),
-        "Greens":   (60, 20),
-        "Cyans":    (90, 20),
-        "Blues":    (120, 20),
-        "Magentas": (150, 20),
+    color_centers = {
+        "Reds": 0, "Yellows": 60, "Greens": 120, 
+        "Cyans": 180, "Blues": 240, "Magentas": 300
     }
     
-    if color_name in color_configs:
-        center, sigma = color_configs[color_name]
+    if color_name in color_centers:
+        center = color_centers[color_name]
         diff = np.abs(h_deg - center)
-        diff = np.minimum(diff, 360 - diff)
-        mask = np.exp(-(diff ** 2) / (2 * sigma ** 2))
-    elif color_name == "Whites":
-        mask = np.exp(-((v_norm - 1.0)**2) / (2*0.1**2)) * np.exp(-(s_norm**2) / (2*0.2**2))
-    elif color_name == "Neutrals":
-        mask = np.exp(-((v_norm - 0.5)**2) / (2*0.15**2)) * np.exp(-(s_norm**2) / (2*0.2**2))
-    elif color_name == "Blacks":
-        mask = np.exp(-(v_norm**2) / (2*0.15**2)) * np.exp(-(s_norm**2) / (2*0.2**2))
+        diff = np.minimum(diff, 360.0 - diff)
+        mask_h = np.exp(-(diff ** 2) / (2 * 40.0 ** 2))
+        mask_s = 1.0 - np.exp(-(s_norm ** 2) / (2 * 0.15 ** 2))
+        mask = mask_h * mask_s
     else:
-        mask = np.ones_like(h, dtype=np.float32)
+        if color_name == "Whites":
+            mask_v = np.exp(-((v_norm - 1.0) ** 2) / (2 * 0.15 ** 2))
+            mask_s = np.exp(-(s_norm ** 2) / (2 * 0.25 ** 2))
+            mask = mask_v * mask_s
+        elif color_name == "Neutrals":
+            mask_v = np.exp(-((v_norm - 0.5) ** 2) / (2 * 0.15 ** 2))
+            mask_s = np.exp(-(s_norm ** 2) / (2 * 0.25 ** 2))
+            mask = mask_v * mask_s
+        elif color_name == "Blacks":
+            mask_v = np.exp(-(v_norm ** 2) / (2 * 0.15 ** 2))
+            mask_s = np.exp(-(s_norm ** 2) / (2 * 0.25 ** 2))
+            mask = mask_v * mask_s
+        else:
+            mask = np.zeros_like(h_deg)
+
+    c, m, y, k = cyan / 100.0, magenta / 100.0, yellow / 100.0, black / 100.0
     
-    height, width = img_float.shape[:2]
-    img_cmyk = np.zeros((height, width, 4), dtype=np.float32)
-    k = 1.0 - np.max(img_float, axis=2)
-    img_cmyk[:, :, 0] = (1.0 - img_float[:, :, 2] - k) / np.maximum(1.0 - k, 0.001)
-    img_cmyk[:, :, 1] = (1.0 - img_float[:, :, 1] - k) / np.maximum(1.0 - k, 0.001)
-    img_cmyk[:, :, 2] = (1.0 - img_float[:, :, 0] - k) / np.maximum(1.0 - k, 0.001)
-    img_cmyk[:, :, 3] = k
+    img_rgb[:, :, 0] += mask * (-c - k)  # Red: Cyan уменьшает Red, Black уменьшает все
+    img_rgb[:, :, 1] += mask * (-m - k)  # Green: Magenta уменьшает Green
+    img_rgb[:, :, 2] += mask * (-y - k)  # Blue: Yellow уменьшает Blue
     
-    img_cmyk[:, :, 0] += mask * (cyan / 100.0)
-    img_cmyk[:, :, 1] += mask * (magenta / 100.0)
-    img_cmyk[:, :, 2] += mask * (yellow / 100.0)
-    img_cmyk[:, :, 3] += mask * (black / 100.0)
-    
-    img_cmyk = np.clip(img_cmyk, 0, 1)
-    
-    result_rgb = np.zeros((height, width, 3), dtype=np.float32)
-    result_rgb[:, :, 2] = 1.0 - img_cmyk[:, :, 0] - img_cmyk[:, :, 3]
-    result_rgb[:, :, 1] = 1.0 - img_cmyk[:, :, 1] - img_cmyk[:, :, 3]
-    result_rgb[:, :, 0] = 1.0 - img_cmyk[:, :, 2] - img_cmyk[:, :, 3]
-    
-    result_rgb = np.clip(result_rgb, 0, 1)
-    result_bgr = (result_rgb[:, :, ::-1] * 255).astype(np.uint8)
+    img_rgb = np.clip(img_rgb, 0, 1)
+    result_bgr = (cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR) * 255).astype(np.uint8)
     return result_bgr
 
 def process_image(img_bgr, adjustments):

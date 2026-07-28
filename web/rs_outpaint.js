@@ -22,8 +22,17 @@ function applyCanvasCr(canvasCr, st) { let s = crToSrc(canvasCr, st.sf, st.scale
 function toWorld(e, wrapEl, view) { const rect = wrapEl.getBoundingClientRect(); return { x: (e.clientX - rect.left - view.panX) / view.zoom, y: (e.clientY - rect.top - view.panY) / view.zoom }; }
 function defaultOut(_st) { return { w: 0, h: 0 }; }
 
+// ТВОЙ ПЛАН: Добавлены approved и srcHash
 function createState() {
-    return { srcW: 1280, srcH: 720, scale: 1, sf: { x: 0, y: 0, w: 0, h: 0 }, cr: { x: 0, y: 0, w: 0, h: 0 }, cropAR: 16 / 9, arLocked: false, initialized: false, view: { zoom: 1.0, panX: 0, panY: 0 }, outW: 0, outH: 0, maskColor: "#ff0000", bgColor: "#141414", batchMode: false, hasPreset: false };
+    return { 
+        srcW: 1280, srcH: 720, scale: 1, sf: { x: 0, y: 0, w: 0, h: 0 }, 
+        cr: { x: 0, y: 0, w: 0, h: 0 }, cropAR: 16 / 9, arLocked: false, 
+        initialized: false, view: { zoom: 1.0, panX: 0, panY: 0 }, 
+        outW: 0, outH: 0, maskColor: "#ff0000", bgColor: "#141414", 
+        batchMode: false, hasPreset: false,
+        approved: false,
+        srcHash: null
+    };
 }
 
 function setUIActive(dom, isActive) {
@@ -55,9 +64,7 @@ function setUIActive(dom, isActive) {
     dom.arBtn.style.pointerEvents = pointerEvents;
     dom.arBtn.style.filter = filter;
     
-    dom.resetBtn.style.opacity = opacity;
-    dom.resetBtn.style.pointerEvents = pointerEvents;
-    dom.resetBtn.style.filter = filter;
+    // ResetBtn намеренно НЕ трогаем — он всегда активен
     
     dom.wInput.style.opacity = opacity;
     dom.wInput.style.pointerEvents = pointerEvents;
@@ -84,33 +91,71 @@ function setUIActive(dom, isActive) {
     dom.batchBtn.style.filter = filter;
 }
 
-function resetNodeState(st, dom, widgets) {
+// ТВОЙ ПЛАН: Сброс approved, srcHash и скрытие кнопок
+function resetNodeState(st, dom, widgets, nodeId) { // <-- Добавлен nodeId
     const savedMaskColor = st.maskColor;
     const savedBgColor = st.bgColor;
 
-    Object.assign(st, createState());
+    // Сбрасываем утверждение на сервере перед локальным сбросом
+    if (st.srcHash && nodeId) {
+        fetch("/rs_outpaint/unapprove", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ node_id: String(nodeId), src_hash: st.srcHash })
+        }).catch(() => {});
+    }
 
+    Object.assign(st, createState());
     st.maskColor = savedMaskColor;
     st.bgColor = savedBgColor;
+    st.approved = false;
+    st.srcHash = null;
 
     st.arLocked = false;
     dom.arBtn.textContent = "🔓"; dom.arBtn.style.border = "1px solid #444"; dom.arBtn.style.background = "#2a2a2a"; dom.arBtn.style.color = "#bbb"; dom.arBtn._active = false;
+    
+    dom.waitingMsg.style.display = "none";
+    dom.acceptBtn.style.display = "none";
+    dom.cancelBtn.style.display = "none";
+    dom.batchBtn.style.display = "none";
+    
     if(dom.wInput) dom.wInput.value = ""; if(dom.hInput) dom.hInput.value = "";
     if(dom.maskColorInput) { dom.maskColorInput.picker.value = st.maskColor; dom.maskColorInput.swatch.style.background = st.maskColor; dom.maskColorInput.hexInput.value = st.maskColor.toUpperCase(); }
     if(dom.bgColorInput) { dom.bgColorInput.picker.value = st.bgColor; dom.bgColorInput.swatch.style.background = st.bgColor; dom.bgColorInput.hexInput.value = st.bgColor.toUpperCase(); }
-    if(dom.waitingMsg) dom.waitingMsg.style.display = "none";
-    if(dom.acceptBtn) { dom.acceptBtn.style.display = "none"; dom.acceptBtn.textContent = "✔️ ACCEPT"; dom.acceptBtn.disabled = false; }
-    if(dom.cancelBtn) dom.cancelBtn.style.display = "none";
-    if(dom.batchBtn) { dom.batchBtn.style.display = "none"; dom.batchBtn.dataset.active = "false"; dom.batchBtn.style.borderColor = "#444"; dom.batchBtn.style.background = "#2a2a2a"; dom.batchBtn.style.color = "#bbb"; dom.batchBtn.textContent = "⚙️ BATCH"; }
     if(dom.presetNameInput) dom.presetNameInput.style.display = "none";
     if(dom.presetListOverlay) dom.presetListOverlay.style.display = "none";
     if(dom.noDataMsg) { dom.noDataMsg.style.display = "none"; dom.noDataMsg.textContent = ""; }
     if(dom.imageEl) { dom.imageEl.style.display = "none"; if (dom.imageEl.src && dom.imageEl.src.startsWith("blob:")) URL.revokeObjectURL(dom.imageEl.src); }
+    
     updateMaskColors(st, dom);
     st.initialized = false;
     syncWidgets(st, widgets, { graph: null });
-    
     setUIActive(dom, false);
+}
+
+// ТВОЙ ПЛАН: Функция для сброса флага approved при любом изменении кропа
+function unapprove(st, dom, nodeId) {
+    if (st.approved) {
+        st.approved = false;
+        dom.waitingMsg.style.display = "flex";
+        dom.acceptBtn.style.display = "block";
+        dom.cancelBtn.style.display = "block";
+        dom.batchBtn.style.display = "block";
+        dom.acceptBtn.disabled = false;
+        dom.acceptBtn.textContent = "✔️ ACCEPT";
+        setUIActive(dom, true);
+        
+        if (st.srcHash && nodeId) {
+            fetch("/rs_outpaint/unapprove", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    node_id: String(nodeId),
+                    src_hash: st.srcHash
+                })
+            }).catch(err => console.error("Unapprove failed:", err));
+        }
+    }
 }
 
 function initLayout(st, wrapEl) {
@@ -395,7 +440,8 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
         if (!st.arLocked) st.cropAR = s.w / s.h; 
         fitCropInView(st, dom); 
         render(st, dom); 
-        syncWidgets(st, widgets, node); 
+        syncWidgets(st, widgets, node);
+        unapprove(st, dom, nodeId); // ТВОЙ ПЛАН
     });
     
     hInput.addEventListener("change", () => { 
@@ -411,15 +457,45 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
         if (!st.arLocked) st.cropAR = s.w / s.h; 
         fitCropInView(st, dom); 
         render(st, dom); 
-        syncWidgets(st, widgets, node); 
+        syncWidgets(st, widgets, node);
+        unapprove(st, dom, nodeId); // ТВОЙ ПЛАН
     });
     
-    resetBtn.addEventListener("click", () => { 
-        initLayout(st, dom.wrap); 
-        setArLocked(st, dom, false); 
-        fitCropInView(st, dom); 
-        render(st, dom); 
-        syncWidgets(st, widgets, node); 
+    resetBtn.addEventListener("click", async () => {
+        resetBtn.disabled = true;
+        resetBtn.textContent = "⏳ Resetting...";
+        
+        try {
+            await fetch("/rs_outpaint/cleanup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ node_id: String(node.id) })
+            });
+            
+            // Сбрасываем локальное состояние
+            st.approved = false;
+            st.srcHash = null;
+            if (widgets.cropState) widgets.cropState.value = "";
+            
+            initLayout(st, dom.wrap);
+            setArLocked(st, dom, false);
+            fitCropInView(st, dom);
+            render(st, dom);
+            syncWidgets(st, widgets, node);
+            
+            // Скрываем интерфейс редактирования
+            dom.waitingMsg.style.display = "none";
+            dom.acceptBtn.style.display = "none";
+            dom.cancelBtn.style.display = "none";
+            dom.batchBtn.style.display = "none";
+            dom.resetBtn.style.display = "none";
+            
+        } catch (err) {
+            console.error("Reset failed:", err);
+        } finally {
+            resetBtn.disabled = false;
+            resetBtn.textContent = "🔄️ Reset";
+        }
     });
     
     for (const btn of chipBtns) { 
@@ -445,7 +521,8 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
             
             fitCropInView(st, dom); 
             render(st, dom); 
-            syncWidgets(st, widgets, node); 
+            syncWidgets(st, widgets, node);
+            unapprove(st, dom, nodeId); // ТВОЙ ПЛАН
         }); 
     }
     
@@ -465,7 +542,8 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
             st.cr = srcToCr(s, st.sf, st.scale); 
             if (!st.arLocked) st.cropAR = s.w / s.h; 
             render(st, dom); 
-            syncWidgets(st, widgets, node); 
+            syncWidgets(st, widgets, node);
+            unapprove(st, dom, nodeId); // ТВОЙ ПЛАН
         }); 
     }
     
@@ -474,7 +552,7 @@ function wireInteractions(st, dom, widgets, node, nodeId) {
     let drag = null; let pan = null;
     wrap.addEventListener("pointerdown", e => { if (e.button === 1) { pan = { sx: e.clientX, sy: e.clientY, ox: st.view.panX, oy: st.view.panY }; wrap.setPointerCapture(e.pointerId); e.preventDefault(); return; } const handle = e.target.closest("[data-dir]"); const inBox = dom.cropBox.contains(e.target); if (!handle && !inBox) return; e.preventDefault(); wrap.setPointerCapture(e.pointerId); const wc = toWorld(e, wrap, st.view); drag = { type: handle ? "resize" : "move", dir: handle?.dataset.dir, sx: wc.x, sy: wc.y, sb: { ...st.cr }, ar: st.arLocked ? st.cropAR : null }; });
     wrap.addEventListener("pointermove", e => { if (pan) { st.view.panX = pan.ox + (e.clientX - pan.sx); st.view.panY = pan.oy + (e.clientY - pan.sy); render(st, dom); return; } if (!drag) return; const wc = toWorld(e, wrap, st.view); const dx = wc.x - drag.sx; const dy = wc.y - drag.sy; const minPx = MIN_DRAG_PX; if (drag.type === "move") { applyCanvasCr({ x: drag.sb.x + dx, y: drag.sb.y + dy, w: drag.sb.w, h: drag.sb.h }, st); render(st, dom); return; } let { x, y, w, h } = { ...drag.sb }; const { dir, ar } = drag; if (dir === "br") { w = Math.max(minPx, w + dx); h = ar ? Math.round(w / ar) : Math.max(minPx, h + dy); } else if (dir === "bl") { const nw = Math.max(minPx, w - dx); x += w - nw; w = nw; h = ar ? Math.round(w / ar) : Math.max(minPx, h + dy); } else if (dir === "tr") { w = Math.max(minPx, w + dx); const nh = ar ? Math.round(w / ar) : Math.max(minPx, h - dy); y += h - nh; h = nh; } else if (dir === "tl") { const nw = Math.max(minPx, w - dx); x += w - nw; w = nw; const nh = ar ? Math.round(w / ar) : Math.max(minPx, h - dy); y += h - nh; h = nh; } else if (dir === "t") { const nh = Math.max(minPx, h - dy); const nw = ar ? Math.round(nh * ar) : w; if (ar) x += Math.round((w - nw) / 2); y += h - nh; h = nh; w = nw; } else if (dir === "b") { const nh = Math.max(minPx, h + dy); const nw = ar ? Math.round(nh * ar) : w; if (ar) x += Math.round((w - nw) / 2); h = nh; w = nw; } else if (dir === "l") { const nw = Math.max(minPx, w - dx); const nh = ar ? Math.round(nw / ar) : h; if (ar) y += Math.round((h - nh) / 2); x += w - nw; w = nw; h = nh; } else if (dir === "r") { const nw = Math.max(minPx, w + dx); const nh = ar ? Math.round(nw / ar) : h; if (ar) y += Math.round((h - nh) / 2); w = nw; h = nh; } applyCanvasCr({ x, y, w, h }, st); render(st, dom); });
-    wrap.addEventListener("pointerup", e => { if (pan) { pan = null; return; } if (!drag) return; const type = drag.type; if (type === "resize" && st.arLocked) { let s = crToSrc(st.cr, st.sf, st.scale); s = quantizeSrc(s); s.h = Math.max(GRID, Math.round(s.w / st.cropAR / GRID) * GRID); s = clampToValid(s, st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); } if (type === "resize" && !st.arLocked) { const s = crToSrc(st.cr, st.sf, st.scale); st.cropAR = s.w / s.h; } if (type === "resize") fitCropInView(st, dom); drag = null; render(st, dom); syncWidgets(st, widgets, node); });
+    wrap.addEventListener("pointerup", e => { if (pan) { pan = null; return; } if (!drag) return; const type = drag.type; if (type === "resize" && st.arLocked) { let s = crToSrc(st.cr, st.sf, st.scale); s = quantizeSrc(s); s.h = Math.max(GRID, Math.round(s.w / st.cropAR / GRID) * GRID); s = clampToValid(s, st.srcW, st.srcH); st.cr = srcToCr(s, st.sf, st.scale); } if (type === "resize" && !st.arLocked) { const s = crToSrc(st.cr, st.sf, st.scale); st.cropAR = s.w / s.h; } if (type === "resize") fitCropInView(st, dom); drag = null; render(st, dom); syncWidgets(st, widgets, node); unapprove(st, dom, nodeId); }); // ТВОЙ ПЛАН
     wrap.addEventListener("pointercancel", () => { pan = null; drag = null; });
 }
 
@@ -501,7 +579,7 @@ api.addEventListener("status", (e) => {
                             headers: { "Content-Type": "application/json" }, 
                             body: JSON.stringify({ node_id: String(node.id) }) 
                         }).catch(err => console.error("Failed to clear preset:", err));
-                        resetNodeState(st, dom, widgets);
+                        resetNodeState(st, dom, widgets, node.id);
                         dom.noDataMsg.textContent = "🔄 Batch complete. Node reset.";
                         dom.noDataMsg.style.display = "flex";
                         setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 3000);
@@ -539,19 +617,188 @@ app.registerExtension({
             node.stopHeartbeat = function() { if (this.heartbeatInterval) { clearInterval(this.heartbeatInterval); this.heartbeatInterval = null; } };
             allNodes.push({st, dom, widgets, node});
             
-            const onShow = (event) => { const data = event.detail || event; const { node_id, image_width, image_height } = data; if (String(node_id) !== String(node.id)) return; const hasActivePreset = st.batchMode && st.hasPreset; resetNodeState(st, dom, widgets); st.srcW = image_width; st.srcH = image_height; if (initLayout(st, dom.wrap)) { if (hasActivePreset) { dom.waitingMsg.style.display = "none"; dom.noDataMsg.style.display = "flex"; dom.noDataMsg.textContent = `🔄 Applying saved crop to ${image_width}×${image_height}...`; dom.acceptBtn.style.display = "none"; dom.cancelBtn.style.display = "none"; dom.batchBtn.style.display = "none"; const tempUrl = api.apiURL(`/view?filename=rsoutpaint_${node_id}.png&type=temp&subfolder=rsoutpaint&t=${Date.now()}`); const img = new Image(); img.onload = () => { dom.imageEl.src = tempUrl; dom.imageEl.style.display = "block"; fitCropInView(st, dom); render(st, dom); (async () => { try { await fetch("/rs_outpaint/decision", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id), decision: "approve", crop_state: "", batch_mode: true }) }); node.startHeartbeat(); dom.noDataMsg.textContent = `✅ Batch: ${image_width}×${image_height} processed`; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 1000); } catch (err) { console.error("Batch auto-approve failed:", err); } })(); }; img.src = tempUrl; node.startHeartbeat(); } else { dom.waitingMsg.style.display = "flex"; dom.noDataMsg.style.display = "none"; dom.acceptBtn.style.display = "block"; dom.cancelBtn.style.display = "block"; dom.batchBtn.style.display = "block"; dom.acceptBtn.disabled = false; dom.acceptBtn.textContent = "✔️ ACCEPT"; dom.batchBtn.textContent = "⚙️ BATCH"; dom.batchBtn.style.borderColor = "#444"; dom.batchBtn.style.background = "#2a2a2a"; dom.batchBtn.style.color = "#bbb"; dom.batchBtn.dataset.active = "false"; const tempUrl = api.apiURL(`/view?filename=rsoutpaint_${node_id}.png&type=temp&subfolder=rsoutpaint&t=${Date.now()}`); const img = new Image(); img.onload = () => { dom.imageEl.src = tempUrl; dom.imageEl.style.display = "block"; fitCropInView(st, dom); render(st, dom); }; img.src = tempUrl; node.startHeartbeat(); } 
+            const onShow = (event) => { 
+                const data = event.detail || event; 
+                const { node_id, image_width, image_height, is_new_image, src_hash } = data; 
+                if (String(node_id) !== String(node.id)) return; 
                 
-                setUIActive(dom, true);
-            } };
+                const isSameImage = st.initialized && st.srcHash === src_hash;
+
+                if (isSameImage) {
+                    // То же изображение – обновляем картинку
+                    const tempUrl = api.apiURL(`/view?filename=rsoutpaint_${node_id}.png&type=temp&subfolder=rsoutpaint&t=${Date.now()}`);
+                    const img = new Image();
+                    img.onload = () => {
+                        dom.imageEl.src = tempUrl;
+                        dom.imageEl.style.display = "block";
+                        
+                        if (st.approved) {
+                            dom.waitingMsg.style.display = "none";
+                            dom.acceptBtn.style.display = "none";
+                            dom.cancelBtn.style.display = "none";
+                            dom.batchBtn.style.display = "none";
+                            dom.resetBtn.style.display = "block";
+                            
+                            setUIActive(dom, false);
+                            dom.resetBtn.style.opacity = "1";
+                            dom.resetBtn.style.pointerEvents = "auto";
+                            dom.resetBtn.style.filter = "none";
+                        } else {
+                            dom.waitingMsg.style.display = "flex";
+                            dom.acceptBtn.style.display = "block";
+                            dom.cancelBtn.style.display = "block";
+                            dom.batchBtn.style.display = "block";
+                            dom.acceptBtn.disabled = false;
+                            dom.acceptBtn.textContent = "✔️ ACCEPT";
+                            dom.resetBtn.style.display = "none";
+                        }
+                        fitCropInView(st, dom);
+                        render(st, dom);
+                        if (!st.approved) {
+                            setUIActive(dom, true);
+                        }
+                    };
+                    img.src = tempUrl;
+                    return;
+                }
+
+                // Новое изображение – полный сброс
+                resetNodeState(st, dom, widgets);
+                st.srcW = image_width;
+                st.srcH = image_height;
+                st.srcHash = src_hash;
+
+                const hasActivePreset = st.batchMode && st.hasPreset;
+                if (initLayout(st, dom.wrap)) {
+                    if (hasActivePreset) {
+                        dom.waitingMsg.style.display = "none";
+                        dom.noDataMsg.style.display = "flex";
+                        dom.noDataMsg.textContent = `🔄 Applying saved crop to ${image_width}×${image_height}...`;
+                        dom.acceptBtn.style.display = "none";
+                        dom.cancelBtn.style.display = "none";
+                        dom.batchBtn.style.display = "none";
+                        dom.resetBtn.style.display = "none";
+                        
+                        const tempUrl = api.apiURL(`/view?filename=rsoutpaint_${node_id}.png&type=temp&subfolder=rsoutpaint&t=${Date.now()}`);
+                        const img = new Image();
+                        img.onload = () => {
+                            dom.imageEl.src = tempUrl;
+                            dom.imageEl.style.display = "block";
+                            fitCropInView(st, dom);
+                            render(st, dom);
+                            (async () => {
+                                try {
+                                    await fetch("/rs_outpaint/decision", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ node_id: String(node.id), decision: "approve", crop_state: "", batch_mode: true })
+                                    });
+                                    node.startHeartbeat();
+                                    dom.noDataMsg.textContent = `✅ Batch: ${image_width}×${image_height} processed`;
+                                    setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 1000);
+                                } catch (err) {
+                                    console.error("Batch auto-approve failed:", err);
+                                }
+                            })();
+                        };
+                        img.src = tempUrl;
+                        node.startHeartbeat();
+                    } else {
+                        dom.waitingMsg.style.display = "flex";
+                        dom.noDataMsg.style.display = "none";
+                        dom.acceptBtn.style.display = "block";
+                        dom.cancelBtn.style.display = "block";
+                        dom.batchBtn.style.display = "block";
+                        dom.acceptBtn.disabled = false;
+                        dom.acceptBtn.textContent = "✔️ ACCEPT";
+                        dom.batchBtn.textContent = "⚙️ BATCH";
+                        dom.batchBtn.style.borderColor = "#444";
+                        dom.batchBtn.style.background = "#2a2a2a";
+                        dom.batchBtn.style.color = "#bbb";
+                        dom.batchBtn.dataset.active = "false";
+                        dom.resetBtn.style.display = "none";
+                        
+                        const tempUrl = api.apiURL(`/view?filename=rsoutpaint_${node_id}.png&type=temp&subfolder=rsoutpaint&t=${Date.now()}`);
+                        const img = new Image();
+                        img.onload = () => {
+                            dom.imageEl.src = tempUrl;
+                            dom.imageEl.style.display = "block";
+                            fitCropInView(st, dom);
+                            render(st, dom);
+                        };
+                        img.src = tempUrl;
+                        node.startHeartbeat();
+                    }
+                    setUIActive(dom, true);
+                }
+            };
             api.addEventListener("rs_outpaint.show", onShow);
-            dom.acceptBtn.addEventListener("click", async () => { const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale)); const mR = parseInt(st.maskColor.slice(1,3), 16), mG = parseInt(st.maskColor.slice(3,5), 16), mB = parseInt(st.maskColor.slice(5,7), 16); const cropState = `${s.x},${s.y},${s.w},${s.h},0,0,${mR},${mG},${mB}`; dom.acceptBtn.textContent = "⏳ Sending..."; dom.acceptBtn.disabled = true; try { const resp = await fetch("/rs_outpaint/decision", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id), decision: "approve", crop_state: cropState, batch_mode: st.batchMode }) }); if (resp.ok) { node.stopHeartbeat(); if (st.batchMode) { st.hasPreset = true; dom.waitingMsg.style.display = "none"; dom.acceptBtn.style.display = "none"; dom.cancelBtn.style.display = "none"; dom.batchBtn.style.display = "none"; dom.noDataMsg.textContent = "💾 Crop preset saved! Ready for batch."; dom.noDataMsg.style.display = "flex"; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 2000); } else { resetNodeState(st, dom, widgets); dom.noDataMsg.textContent = "✅ Approved! Continuing..."; dom.noDataMsg.style.display = "flex"; setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 1500); fetch("/rs_outpaint/clear_preset", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id) }) }).catch(()=>{}); } 
-                
+
+            dom.acceptBtn.addEventListener("click", async () => { 
+                const s = quantizeSrc(crToSrc(st.cr, st.sf, st.scale)); 
+                const mR = parseInt(st.maskColor.slice(1,3), 16), mG = parseInt(st.maskColor.slice(3,5), 16), mB = parseInt(st.maskColor.slice(5,7), 16); 
+                const cropState = `${s.x},${s.y},${s.w},${s.h},0,0,${mR},${mG},${mB}`; 
+                dom.acceptBtn.textContent = "⏳ Sending..."; 
+                dom.acceptBtn.disabled = true; 
+                try { 
+                    const resp = await fetch("/rs_outpaint/decision", { 
+                        method: "POST", 
+                        headers: { "Content-Type": "application/json" }, 
+                        body: JSON.stringify({ 
+                            node_id: String(node.id), 
+                            decision: "approve", 
+                            crop_state: cropState, 
+                            batch_mode: st.batchMode,
+                            src_hash: st.srcHash // <-- ДОБАВЛЕНО
+                        }) 
+                    }); 
+                    if (resp.ok) { 
+                        node.stopHeartbeat(); 
+                        st.approved = true;
+
+                        if (st.batchMode) { 
+                            st.hasPreset = true; 
+                            dom.waitingMsg.style.display = "none"; 
+                            dom.acceptBtn.style.display = "none"; 
+                            dom.cancelBtn.style.display = "none"; 
+                            dom.batchBtn.style.display = "none"; 
+                            dom.noDataMsg.textContent = "💾 Crop preset saved! Ready for batch."; 
+                            dom.noDataMsg.style.display = "flex"; 
+                            setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 2000); 
+                        } else { 
+                            dom.acceptBtn.style.display = "none";
+                            dom.cancelBtn.style.display = "none";
+                            dom.waitingMsg.style.display = "none";
+                            dom.batchBtn.style.display = "none";
+                            dom.resetBtn.style.display = "block";  // <-- ДОБАВИТЬ
+
+                            dom.noDataMsg.textContent = "✅ Crop applied!";
+                            dom.noDataMsg.style.display = "flex";
+                            setTimeout(() => { dom.noDataMsg.style.display = "none"; }, 1500);
+                        }  
+                        setUIActive(dom, false);
+                    } 
+                } catch (err) { 
+                    console.error("Accept failed:", err); 
+                } 
+            });
+
+            dom.cancelBtn.addEventListener("click", async () => { 
+                node.stopHeartbeat(); 
+                resetNodeState(st, dom, widgets, node.id); // ТВОЙ ПЛАН: сброс при отмене
+                try { 
+                    await fetch("/rs_outpaint/cleanup", { 
+                        method: "POST", 
+                        headers: { "Content-Type": "application/json" }, 
+                        body: JSON.stringify({ node_id: String(node.id) }) 
+                    }); 
+                } catch(e){} 
+                try { 
+                    await api.interrupt(); 
+                } catch(e){} 
                 setUIActive(dom, false);
-            } } catch (err) { console.error("Accept failed:", err); } });
-            dom.cancelBtn.addEventListener("click", async () => { node.stopHeartbeat(); resetNodeState(st, dom, widgets); try { await fetch("/rs_outpaint/cleanup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ node_id: String(node.id) }) }); } catch(e){} try { await api.interrupt(); } catch(e){} 
-            
-            setUIActive(dom, false);
-        });
+            });
+
             wireInteractions(st, dom, widgets, node, String(node.id));
             requestAnimationFrame(() => { requestAnimationFrame(() => { if (!st.initialized && initLayout(st, dom.wrap)) { fitCropInView(st, dom); render(st, dom); syncWidgets(st, widgets, node); } }); });
             

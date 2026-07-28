@@ -1135,8 +1135,8 @@ Toggle **ENABLE SHADOW** to activate.
 # 🦊 RS Image Adjustments  
 **A powerful interactive image adjustment node with real-time preview and professional-grade controls.**  
 
-<img width="621" height="953" alt="Screenshot_1" src="https://github.com/user-attachments/assets/9d921205-5d92-43da-aebe-3884664afe61" />
-<img width="1862" height="1060" alt="Screenshot_2" src="https://github.com/user-attachments/assets/832a63c5-7cc6-483b-a5da-a6470526015b" />
+<img width="566" height="905" alt="Screenshot_5" src="https://github.com/user-attachments/assets/b329aa14-58e4-41a1-a382-94e09cdd61e8" />
+<img width="315" height="929" alt="Screenshot_6" src="https://github.com/user-attachments/assets/31bf377d-7515-4591-9430-f169143ca9d9" />
 
 ### 🔥 Features  
 - **Real-time Preview** - See adjustments instantly with GPU-accelerated rendering  

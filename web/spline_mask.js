@@ -1,6 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
-// Copyright 2025-2026 Raykosan (RaykoStudio)
-console.log("[SPLINE 🦊] spline_mask.js LOADED!");
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 
@@ -52,8 +49,8 @@ app.registerExtension({
             node.imageList = [];
             
             node.buttons = [
-                { label: "🎨 IMAGE", color: "#2196F3", callback: () => node.showImageSelector(), hover: false },
-                { label: "🖼️ UPLOAD", color: "#4CAF50", callback: () => node.triggerFileUpload(), hover: false },
+                { label: "📂 INPUT", color: "#2196F3", callback: () => node.showImageSelector(), hover: false },
+                { label: "🖥️ UPLOAD", color: "#4CAF50", callback: () => node.triggerFileUpload(), hover: false },
                 { label: "🔴 CLEAR", color: "#dc3545", callback: () => node.clearPoints(), hover: false }
             ];
             
@@ -499,6 +496,20 @@ app.registerExtension({
                 const btnY = h - 45;
                 const btnW = (w - 50) / 3;
                 
+                // === РАЗМЕРЫ ИЗОБРАЖЕНИЯ НАД ПРЕВЬЮ ===
+                if (this.imageLoaded && this.image) {
+                    ctx.fillStyle = "#888";
+                    ctx.font = "11px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "top";
+                    ctx.fillText(
+                        `${this.image.width} × ${this.image.height}`,
+                        w / 2,
+                        titleBarHeight + widgetsHeight - 13
+                    );
+                }
+                // ====================================
+                
                 const startY = titleBarHeight + widgetsHeight + padding;
                 const availableHeight = h - startY - footerHeight - padding;
                 const availableWidth = w - (padding * 2);
@@ -527,6 +538,7 @@ app.registerExtension({
                     ctx.fillStyle = "#555";
                     ctx.font = "14px Arial";
                     ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
                     ctx.fillText("Select Image...", w / 2, startY + availableHeight / 2);
                 }
                 

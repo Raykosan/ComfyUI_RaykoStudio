@@ -4,12 +4,17 @@ import { api } from "../../../scripts/api.js";
 let activeNodeId = null;
 
 const BASIC_PARAMS = ['brightness', 'contrast', 'hue', 'saturation'];
+const HIGHLIGHT_PARAMS = [...BASIC_PARAMS, 'sharpen'];
+const HIDDEN_WIDGETS = ['brightness', 'contrast', 'hue', 'saturation', 'sharpen'];
 
 const DEFAULT_SLIDER_VALUES = {
   brightness: 0,
   contrast: 0,
+  sharpen: 0,
   hue: 0,
   saturation: 0,
+  vibrance: 0,
+  clarity: 0,
   lut_intensity: 100,
   input_black: 0,
   gamma: 1.0,
@@ -40,10 +45,6 @@ const DEFAULT_SLIDER_VALUES = {
   blue_red: 0,
   blue_green: 0,
   blue_blue: 100,
-  selective_cyan: 0,
-  selective_magenta: 0,
-  selective_yellow: 0,
-  selective_black: 0,
   sc_cyan: 0,
   sc_magenta: 0,
   sc_yellow: 0,
@@ -54,8 +55,11 @@ const DEFAULT_SLIDER_VALUES = {
 const DEFAULT_ADJUSTMENTS = {
   brightness: 0,
   contrast: 0,
+  sharpen: 0,
   hue: 0,
   saturation: 0,
+  vibrance: 0,
+  clarity: 0,
   lut_path: "",
   lut_intensity: 100,
   levels: { input_black: 0, gamma: 1.0, input_white: 255 },
@@ -190,6 +194,8 @@ app.registerExtension({
       this.sidePanel = null;
       this.overlayInputs = {};
       this.sliderDisplays = {};
+      this._basicParamLabels = {};
+      this._allSectionsExpanded = false;
 
       this.minWidth = 500;
       this.minHeight = 450;
@@ -198,27 +204,18 @@ app.registerExtension({
       this.slidersY = 0;
       this.sliderRects = [];
       this.resetBtnRects = [];
-      this.sliderHover = [false, false, false, false];
-      this.resetBtnHover = [false, false, false, false];
+      this.sliderHover = [false, false, false, false, false];
+      this.resetBtnHover = [false, false, false, false, false];
       this.sliderDragging = -1;
 
       this.btnApplyHover = false;
       this.btnCancelHover = false;
       this.btnAdvancedHover = false;
       this.btnResetAllHover = false;
-      this._allSectionsExpanded = false;
-      this._basicParamLabels = {};
 
       this._syncingWidgets = false;
 
-      const syncWidgetValue = (widgetName, value) => {
-        const widget = this.widgets?.find(w => w.name === widgetName);
-        if (widget) {
-          widget.value = value;
-        }
-      };
-
-      ["brightness", "contrast", "hue", "saturation"].forEach(n => {
+      BASIC_PARAMS.forEach(n => {
         const w = this.widgets?.find(w => w.name === n);
         if (w) {
           w.hidden = true;
@@ -231,6 +228,25 @@ app.registerExtension({
               this.adjustments[n] = v;
               this.previewImage = null;
               this.setDirtyCanvas(true);
+            }
+          };
+        }
+      });
+      
+      const serverParams = ['sharpen'];
+      serverParams.forEach(n => {
+        const w = this.widgets?.find(w => w.name === n);
+        if (w) {
+          w.hidden = true;
+          w.computeSize = () => [0, 0];
+          w.y = 0;
+          const origCallback = w.callback;
+          w.callback = (v) => {
+            if (origCallback) origCallback.apply(w, arguments);
+            if (!this._syncingWidgets) {
+              this.adjustments[n] = v;
+              this.setDirtyCanvas(true);
+              this._scheduleHeavyRender();
             }
           };
         }
@@ -272,7 +288,7 @@ app.registerExtension({
 
     nodeType.prototype._hideNativeWidgets = function() {
       if (!this.widgets) return;
-      BASIC_PARAMS.forEach(param => {
+      HIDDEN_WIDGETS.forEach(param => {
         const widget = this.widgets.find(w => w.name === param);
         if (widget) {
           widget.hidden = true;
@@ -288,7 +304,7 @@ app.registerExtension({
       if (!this.widgets) return;
       this._syncingWidgets = true;
       try {
-        BASIC_PARAMS.forEach(param => {
+        HIDDEN_WIDGETS.forEach(param => {
           const widget = this.widgets.find(w => w.name === param);
           if (widget && widget.value !== this.adjustments[param]) {
             widget.value = this.adjustments[param];
@@ -310,22 +326,24 @@ app.registerExtension({
           this.sliderDisplays[key].textContent = String(this.adjustments[key]);
         }
       });
+      
+      if (this.overlayInputs.sharpen) {
+        this.overlayInputs.sharpen.value = this.adjustments.sharpen || 0;
+      }
+      if (this.sliderDisplays.sharpen) {
+        this.sliderDisplays.sharpen.textContent = String(this.adjustments.sharpen || 0);
+      }
     };
 
     nodeType.prototype._isParamModified = function(key, parentObj = this.adjustments) {
       const def = DEFAULT_SLIDER_VALUES[key];
-      if (def === undefined) {
-        return false;
-      }
-  
+      if (def === undefined) return false;
+      
       const val = parentObj[key];
-      if (val === undefined) {
-        return false;
-      }
-  
+      if (val === undefined) return false;
+      
       if (typeof def === 'number') {
-        const isModified = Math.abs(val - def) > 0.001;
-        return isModified;
+        return Math.abs(val - def) > 0.001;
       }
       return val !== def;
     };
@@ -333,39 +351,30 @@ app.registerExtension({
     nodeType.prototype._isSectionModified = function(sectionName) {
       const checks = {
         lut: () => (this.adjustments.lut_path && this.adjustments.lut_path !== "") || this._isParamModified('lut_intensity'),
-    
+        advanced_tools: () => this._isParamModified('vibrance') || this._isParamModified('clarity'),
         levels: () => this._isParamModified('input_black', this.adjustments.levels) || 
                       this._isParamModified('gamma', this.adjustments.levels) || 
                       this._isParamModified('input_white', this.adjustments.levels),
-                  
         exposure: () => this._isParamModified('exposure', this.adjustments.exposure) || 
                         this._isParamModified('offset', this.adjustments.exposure),
-                    
         color_balance: () => [
           'shadows_cyan_red', 'shadows_magenta_green', 'shadows_yellow_blue',
           'midtones_cyan_red', 'midtones_magenta_green', 'midtones_yellow_blue',
           'highlights_cyan_red', 'highlights_magenta_green', 'highlights_yellow_blue'
         ].some(k => this._isParamModified(k, this.adjustments.color_balance)),
-    
         black_white: () => ['bw_red', 'bw_yellow', 'bw_green', 'bw_cyan', 'bw_blue', 'bw_magenta'].some(k => this._isParamModified(k, this.adjustments.black_white)),
-    
         channel_mixer: () => [
           'red_red', 'red_green', 'red_blue',
           'green_red', 'green_green', 'green_blue',
           'blue_red', 'blue_green', 'blue_blue'
         ].some(k => this._isParamModified(k, this.adjustments.channel_mixer)),
-    
         selective_color: () => ['sc_cyan', 'sc_magenta', 'sc_yellow', 'sc_black'].some(k => this._isParamModified(k, this.adjustments.selective_color))
       };
-  
       return checks[sectionName] ? checks[sectionName]() : false;
     };
 
     nodeType.prototype._updateSectionHeaders = function() {
-      if (!this._sectionRegistry) {
-        return;
-      }
-  
+      if (!this._sectionRegistry) return;
       this._sectionRegistry.forEach(entry => {
         const modified = this._isSectionModified(entry.name);
         if (entry.label) {
@@ -375,7 +384,7 @@ app.registerExtension({
     };
 
     nodeType.prototype._updateBasicParamLabels = function() {
-      BASIC_PARAMS.forEach(key => {
+      HIGHLIGHT_PARAMS.forEach(key => {
         const lbl = this._basicParamLabels[key];
         if (lbl) {
           const isModified = this._isParamModified(key);
@@ -451,11 +460,9 @@ app.registerExtension({
 
         this._updateSectionHeaders();
         this._updateBasicParamLabels();
-
         this.previewImage = null;
         this.setDirtyCanvas(true);
         this._scheduleHeavyRender();
-
         this._syncWidgetsFromAdjustments();
     };
 
@@ -488,12 +495,13 @@ app.registerExtension({
         return b;
       };
 
-      const btnNormalMode = makeBtn("🟢 NORMAL MODE", "#2196F3", () => { this._toggleAdvancedMode(); });
+      const btnNormalMode = makeBtn(" NORMAL MODE", "#2196F3", () => { this._toggleAdvancedMode(); });
       buttonContainer.appendChild(btnNormalMode);
       const btnApply = makeBtn("✔️ APPLY", "#4CAF50", () => { this._sendAdjustments(); this._toggleAdvancedMode(); });
       buttonContainer.appendChild(btnApply);
-      const btnCancel = makeBtn("❌ CANCEL", "#dc3545", () => { this._cancelEditing(); this._toggleAdvancedMode(); });
+      const btnCancel = makeBtn(" CANCEL", "#dc3545", () => { this._cancelEditing(); this._toggleAdvancedMode(); });
       buttonContainer.appendChild(btnCancel);
+
       const bottomRow = document.createElement('div');
       bottomRow.style.cssText = 'display:flex;gap:8px;width:100%;';
 
@@ -503,7 +511,6 @@ app.registerExtension({
 
       this._expandCollapseBtn = makeBtn("▶ EXPAND ALL", "#888", () => {
         this._allSectionsExpanded = !this._allSectionsExpanded;
-        
         const display = this._allSectionsExpanded ? 'block' : 'none';
         const icon = this._allSectionsExpanded ? '▼' : '▶';
         const text = this._allSectionsExpanded ? '▼ COLLAPSE ALL' : '▶ EXPAND ALL';
@@ -512,7 +519,6 @@ app.registerExtension({
           if (entry.content) entry.content.style.display = display;
           if (entry.chevron) entry.chevron.textContent = icon;
         });
-        
         this._expandCollapseBtn.textContent = text;
       });
       this._expandCollapseBtn.style.flex = '1';
@@ -527,9 +533,11 @@ app.registerExtension({
         lbl.textContent = label;
         lbl.style.cssText = 'color:#aaa;font-size:11px;font-weight:600;';
         container.appendChild(lbl);
-        if (BASIC_PARAMS.includes(key)) {
+        
+        if (HIGHLIGHT_PARAMS.includes(key)) {
           this._basicParamLabels[key] = lbl;
         }
+        
         const row = document.createElement('div');
         row.style.cssText = 'display:flex;align-items:center;gap:8px;';
         const slider = document.createElement('input');
@@ -573,10 +581,10 @@ app.registerExtension({
             const widget = this.widgets?.find(w => w.name === key);
             if (widget) widget.value = num;
             
-            this.previewImage = null;
             this.setDirtyCanvas(true);
             
             if (BASIC_PARAMS.includes(key)) {
+              this.previewImage = null;
             } else {
               this._scheduleHeavyRender();
             }
@@ -621,7 +629,7 @@ app.registerExtension({
         };
         
         const resetBtn = document.createElement('button');
-        resetBtn.textContent = '🔄';
+        resetBtn.textContent = '🔄️';
         resetBtn.style.cssText = 'width:28px;height:28px;background:#252525;color:#888;border:1px solid #444;border-radius:4px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:0.15s;flex-shrink:0;';
         resetBtn.onmouseenter = () => { resetBtn.style.background = '#2a2a2a'; resetBtn.style.color = '#fff'; resetBtn.style.borderColor = '#4CAF50'; };
         resetBtn.onmouseleave = () => { resetBtn.style.background = '#252525'; resetBtn.style.color = '#888'; resetBtn.style.borderColor = '#444'; };
@@ -635,7 +643,6 @@ app.registerExtension({
           this._updateBasicParamLabels();
           
           this.setDirtyCanvas(true);
-          
           if (BASIC_PARAMS.includes(key)) {
             this.previewImage = null;
           }
@@ -709,6 +716,7 @@ app.registerExtension({
       this.sidePanel.appendChild(div());
       this.sidePanel.appendChild(makeSlider("BRIGHTNESS", "brightness", -100, 100, 1));
       this.sidePanel.appendChild(makeSlider("CONTRAST", "contrast", -100, 100, 1));
+      this.sidePanel.appendChild(makeSlider("SHARPEN", "sharpen", 0, 200, 1));
       this.sidePanel.appendChild(makeSlider("HUE", "hue", -180, 180, 1));
       this.sidePanel.appendChild(makeSlider("SATURATION", "saturation", -100, 100, 1));
       this.sidePanel.appendChild(div());
@@ -731,7 +739,7 @@ app.registerExtension({
         browseBtn.onmouseleave = () => { browseBtn.style.background = '#252525'; browseBtn.style.color = '#aaa'; browseBtn.style.borderColor = '#444'; };
         browseBtn.onclick = (e) => { e.stopPropagation(); fileInput.click(); };
         const resetBtn = document.createElement('button');
-        resetBtn.textContent = '🔄️';
+        resetBtn.textContent = '🔄';
         resetBtn.style.cssText = 'width:28px;height:28px;background:#252525;color:#888;border:1px solid #444;border-radius:4px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:0.15s;flex-shrink:0;';
         resetBtn.onmouseenter = () => { resetBtn.style.background = '#2a2a2a'; resetBtn.style.color = '#fff'; resetBtn.style.borderColor = '#4CAF50'; };
         resetBtn.onmouseleave = () => { resetBtn.style.background = '#252525'; resetBtn.style.color = '#888'; resetBtn.style.borderColor = '#444'; };
@@ -786,6 +794,12 @@ app.registerExtension({
         content.appendChild(makeSlider("INTENSITY", "lut_intensity", 0, 100, 1));
       });
       this.sidePanel.appendChild(lutSection);
+
+      const advancedToolsSection = makeSection("ADVANCED TOOLS", "advanced_tools", (content) => {
+        content.appendChild(makeSlider("VIBRANCE", "vibrance", -100, 100, 1));
+        content.appendChild(makeSlider("CLARITY", "clarity", -100, 100, 1));
+      });
+      this.sidePanel.appendChild(advancedToolsSection);
 
       const levelsSection = makeSection("LEVELS", "levels", (content) => {
         content.appendChild(makeSlider("INPUT BLACK", "input_black", 0, 255, 1, false, this.adjustments.levels));
@@ -947,7 +961,6 @@ app.registerExtension({
       }
       this.currentRenderAbortController = new AbortController();
       const signal = this.currentRenderAbortController.signal;
-      this._isHeavyRenderPending = true;
 
       const payload = {
         node_id: String(this.id),
@@ -972,16 +985,12 @@ app.registerExtension({
             if (this._previewTimestamp === ts) {
               this.previewImage = img;
               this.setDirtyCanvas(true);
-              this._isHeavyRenderPending = false;
             }
           };
-          img.onerror = () => {
-            this._isHeavyRenderPending = false;
-          };
+          img.onerror = () => {};
           img.src = `/view?filename=${data.preview_file}&type=temp&t=${ts}`;
         }
       } catch (e) {
-        this._isHeavyRenderPending = false;
         if (e.name === 'AbortError') return;
       }
     };
@@ -1076,16 +1085,27 @@ app.registerExtension({
       const data = this.pendingEditorData;
       this.adjustments.brightness = data.brightness || 0;
       this.adjustments.contrast = data.contrast || 0;
+      this.adjustments.sharpen = data.sharpen || 0;
       this.adjustments.hue = data.hue || 0;
       this.adjustments.saturation = data.saturation || 0;
       
       try {
         const adv = JSON.parse(data.advanced_params || "{}");
-        Object.keys(adv).forEach(key => {
-          if (this.adjustments[key] !== undefined) {
-            this.adjustments[key] = adv[key];
+        
+        const mergeRecursive = (target, source) => {
+          for (let key in source) {
+            if (source.hasOwnProperty(key)) {
+              if (source[key] !== null && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                if (!target[key] || typeof target[key] !== 'object') target[key] = {};
+                mergeRecursive(target[key], source[key]);
+              } else {
+                target[key] = source[key];
+              }
+            }
           }
-        });
+        };
+        
+        mergeRecursive(this.adjustments, adv);
       } catch (e) {}
 
       this.realBackground = { width: data.bg_width, height: data.bg_height };
@@ -1100,7 +1120,6 @@ app.registerExtension({
         this.backgroundImage = img;
         this.isLoading = false;
         this.isEditing = true;
-        this._initWebSocket();
         
         this._tempCanvas.width = img.width;
         this._tempCanvas.height = img.height;
@@ -1112,6 +1131,7 @@ app.registerExtension({
         this._syncWidgetsFromAdjustments();
         this._syncOverlayUI();
         this._updateBasicParamLabels();
+        this._initWebSocket();
         this._scheduleHeavyRender();
       };
       img.onerror = () => {
@@ -1144,15 +1164,6 @@ app.registerExtension({
           cancelAnimationFrame(this._overlayRenderLoop);
           this._overlayRenderLoop = null;
         }
-      if (this._ws) {
-        this._ws.close();
-        this._ws = null;
-        this._wsConnected = false;
-      }
-      if (this._wsReconnectTimer) {
-        clearTimeout(this._wsReconnectTimer);
-        this._wsReconnectTimer = null;
-      }
         this.setDirtyCanvas(true);
         return;
       }
@@ -1274,6 +1285,15 @@ app.registerExtension({
         cancelAnimationFrame(this._overlayRenderLoop);
         this._overlayRenderLoop = null;
       }
+      if (this._ws) {
+        this._ws.close();
+        this._ws = null;
+        this._wsConnected = false;
+      }
+      if (this._wsReconnectTimer) {
+        clearTimeout(this._wsReconnectTimer);
+        this._wsReconnectTimer = null;
+      }
       this.setDirtyCanvas(true);
     };
 
@@ -1284,7 +1304,7 @@ app.registerExtension({
       const cSize = Math.max(200, size[0] - 40);
       this.canvasPixelSize = cSize;
       
-      const slidersH = 4 * 30 + 10;
+      const slidersH = 5 * 30 + 10;
       const btnH = 30;
       const gaps = 10 + 8 + 8 + 20 + 15;
       const neededHeight = titleH + canvasTopPadding + cSize + slidersH + btnH + gaps;
@@ -1493,6 +1513,7 @@ app.registerExtension({
       const sliderConfigs = [
         { label: "BRIGHTNESS", key: "brightness", min: -100, max: 100 },
         { label: "CONTRAST", key: "contrast", min: -100, max: 100 },
+        { label: "SHARPEN", key: "sharpen", min: 0, max: 200 },
         { label: "HUE", key: "hue", min: -180, max: 180 },
         { label: "SATURATION", key: "saturation", min: -100, max: 100 }
       ];
@@ -1519,7 +1540,7 @@ app.registerExtension({
         }
       });
 
-      const buttonsY = slidersY + 4 * (sliderH + gapSlider) + 10;
+      const buttonsY = slidersY + 5 * (sliderH + gapSlider) + 10;
       const btnH2 = 30;
       const btnGap2 = 10;
       const btnW2 = (this.size[0] - 35) / 2;
@@ -1541,7 +1562,7 @@ app.registerExtension({
       ctx.strokeStyle = "#dc3545";
       ctx.stroke();
       ctx.fillStyle = "#dc3545";
-      ctx.fillText("❌ CANCEL", 15 + btnW2 + btnGap2 + btnW2 / 2, buttonsY + btnH2 / 2 + 4);
+      ctx.fillText(" CANCEL", 15 + btnW2 + btnGap2 + btnW2 / 2, buttonsY + btnH2 / 2 + 4);
     };
 
     nodeType.prototype.onMouseDown = function(event, pos) {
@@ -1605,7 +1626,7 @@ app.registerExtension({
         const btnH2 = 30;
         const btnGap2 = 10;
         const btnW2 = (this.size[0] - 35) / 2;
-        const buttonsY = this.slidersY + 4 * 38 + 10;
+        const buttonsY = this.slidersY + 5 * 38 + 10;
         const y1 = buttonsY;
 
         if (pos[0] >= 15 && pos[0] <= 15 + btnW2 && pos[1] >= y1 && pos[1] <= y1 + btnH2) {
@@ -1677,7 +1698,7 @@ app.registerExtension({
         const btnH2 = 30;
         const btnGap2 = 10;
         const btnW2 = (this.size[0] - 35) / 2;
-        const buttonsY = this.slidersY + 4 * 38 + 10;
+        const buttonsY = this.slidersY + 5 * 38 + 10;
         const y1 = buttonsY;
 
         const prevApply = this.btnApplyHover;
@@ -1715,7 +1736,11 @@ app.registerExtension({
         }
       }
       
-      this.previewImage = null;
+      if (BASIC_PARAMS.includes(rect.key)) {
+        this.previewImage = null;
+      } else {
+        this._scheduleHeavyRender();
+      }
       this.setDirtyCanvas(true);
     };
 

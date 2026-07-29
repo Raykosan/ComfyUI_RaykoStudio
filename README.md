@@ -295,7 +295,7 @@ The node pauses the queue until you confirm the settings, then outputs a ready-t
 
 - When receiving an image, the node pauses during the generation process. During the pause, you set the parameters to get the result you need and press the ✔️ ACCEPT button. The finished image with the mask goes to the following nodes according to your workflow. The parameters of this image are cached on the server, so when you restart generation with the same image, the node will give exactly the same result as when it was first generated. This is useful if you process this image in subsequent nodes with different parameters.  
 - If you need to edit the parameters for this image, you can press the 🔄️ Reset button. The cache on the server will be erased, and the next time the node is generated, it will consider the resulting image as new and pause for editing.  
-- When a new image is received, the node always pauses for editing.  
+- ❗ When a new image is received, the node always pauses for editing.  
 
 **Single mode**  
 Add the node to your workflow and connect an IMAGE input.  

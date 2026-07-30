@@ -37,6 +37,60 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - To update ComfyUI_RaykoStudio, use the update.bat file  
 
 </details>
+<details>
+  <summary>🆙 UPDATES</summary>
+
+- v0.17.3 - Adding to RS Prompts node output "PROMPT_STRING", which returns the text value of the final prompt  
+- v0.17.5 - A switch has been added that allows you to enable/disable external text input with a single mouse click  
+- v0.17.6 - Changing the name of the RS Spline Mask node to RS Load Image
+- v0.17.8 - Minor fix in RS Load Image node. Added the ability to upload images to a node by dragging an image from Explorer to node  
+- v0.18.0 - Added a new node - RS Image to Latent
+- v0.18.1 - Modification of the RS Models Loader node
+- v0.19.0 - License change and addition of the RS Collage node and the RS rgb2rgba node
+- v0.20.0 - Complete modification of the RS Collage node
+- v0.20.1 - Fixed the behavior of the overlay, which in some cases overlapped the ComfyUI popups
+- v0.20.2 - Modification of the RS Crop Image node  
+- v0.20.3 - Adding a mask mode to the RS Crop Image node  
+- v0.20.4 - Fixed image loading by dragging in the RS Load Image node  
+- v0.20.5 - Adding the ideogram4 parameter to the Models Loader clip node list  
+- v0.20.6 - Fixed the logic of the RS Prompts node  
+- v0.21.0 - Complete redesign of the RS Prompts node logic  
+- v0.21.2 - Modification of the RS Models Loader node: pixel_spaces has been added to the VAE list  
+- v0.22.0 - Added the 'Interface Settings Manager' extension
+- v0.23.0 - Added the RS Any Switch node
+- v0.23.1 - Adding an RS Image to Latent (simplified) node
+- v0.23.2 - The 'UPDATE NAME' button has been added to the RS Any Switch node
+- v0.23.3 - Fixed resetting the mask color to default after pressing the ACCEPT and CANCEL buttons in the RS Outpaint node
+- v0.23.4 - A BATCH button has been added to the RS Intermediate Spline Mask node for batch image processing with a permanent mask
+- v0.23.5 - Fixed the operation of the RS Prompts node with light themes of the ComfyUI interface
+- v0.25.0 - Modification of the RS Color Picker node
+- v0.25.1 - Fixed a bug with the generation process hanging under certain circumstances
+- v0.25.2 - Clip added to RS Models Loader node: boogu and krea2
+- v0.26.0 - Adding a new RS Text Overlay Pro node  
+- v0.26.1 - Correcting the color selection in the RS Colorpicker node
+- v0.27.0 - Added the RS MultiLatent node
+- v0.28.0 - Adding preset functions to the RS Models Loader node
+- v0.28.2 - Adding a new node RS Ref 2 Latent  
+- v0.29.0 - Adding a new node RS Bypass Manager
+- v0.29.1 - Added a csv file with the styles 'Krea2 Style RS'
+- v0.30.0 - Upgrading the RS Styles Loader node
+- v0.30.1 - Upgrading the RS Models Loader node
+- v0.30.2 - Code optimization and visual changes in the RS Models Loader node
+- v0.30.3 - Adding the LoRA drag and drop feature to the RS Models Loader node
+- v0.31.0 - Adding a new node RS Lora Loader
+- v0.31.1 - Adding the metadata display function for LoRA to the RS Models Loader node
+- v0.31.2 - Added the ability to create and edit tags for LoRA
+- v0.31.3 - Upgrading the RS Color Picker node
+- v0.32.1 - Adding the RS Image Adjustments node
+- v0.32.2 - Code optimization in the RS Image Adjustments node. The time to receive data from the ComfyUI server has been reduced by 10-15 times
+- v0.32.3 - The Sharpen, Vibration and Clarity parameters have been added to the RS Image Adjustments node
+- v0.32.4 - Corrections of formulas for calculating the parameters of the RS Image Adjustments node
+- v0.33.0 - Changing the operating method of the RS Outpaint node
+- v0.33.1 - clip_type 'mage' added to RS Models Loader node
+- v0.33.2 - Deep modification of the RS Outpaint node  
+- v0.34.0 - Adding the RS Load Images From Dir node  
+
+</details>
 
 ---
 ---

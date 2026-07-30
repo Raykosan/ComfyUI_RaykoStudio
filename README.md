@@ -121,9 +121,43 @@ You can create a chain of these nodes by connecting the Image output to the Back
 
 </details>
 <details>
-  <summary>🦊 RS RS Bypass Manager</summary>
+  <summary>🦊 RS Load Images From Dir</summary>
 
-# 🦊 RS RS Bypass Manager  
+# 🦊 RS Load Images From Dir  
+**A custom node designed to load images from a local directory with advanced filtering, precise index control, and a fully custom user interface.**  
+
+<img width="495" height="537" alt="Screenshot_1" src="https://github.com/user-attachments/assets/ca0c42c5-3dc6-42a4-a3e7-ef6b5498aadb" />
+
+### 🔥 Features  
+- **Unified Custom UI** - All widgets are custom-drawn with a consistent dark theme, rounded corners, and custom modal prompts (no ugly native browser dialogs).  
+- **Smart Path Display** - Automatically truncates long folder paths from the beginning, ensuring the actual folder name is always visible (e.g., `...omfyUI\output\images`).  
+- **Advanced Filtering** - Built-in support for common formats (`*.png`, `*.jpg`, `*.webp`, etc.) plus a "custom" mode for specific glob patterns (e.g., `*_mask.png`).  
+- **Precise Index Control** - Load specific subsets of images using 1-based Start and End indices.  
+- **Quality Preservation** - Maintains the original image resolution and preserves the alpha channel (RGBA) when present.  
+- **Detailed Outputs** - Returns the images, filenames, folder path, and total file count.  
+   
+### Inputs  
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `folder_path` | String | Absolute path to the directory containing your images. Use the "📁 Select folder" button to input it. |
+| `filter_type` | Dropdown | Choose a standard file extension filter or select `custom` to use the `custom_filter` input. |
+| `start_index` | Integer | The 1-based starting index of the file range to load (inclusive). |
+| `end_index` | Integer | The 1-based ending index of the file range to load (inclusive). |
+| `custom_filter` | String | *(Optional)* Custom glob pattern used only when `filter_type` is set to `custom`. |
+
+### Outputs  
+| Output | Type | Description |
+| :--- | :--- | :--- |
+| `image` | IMAGE (List) | A list of image tensors loaded from the directory. |
+| `filename` | STRING (List) | A list of corresponding filenames for each loaded image. |
+| `folder_path` | STRING | The absolute path of the processed directory. |
+| `number_of_files` | INT | The total number of files found matching the filter in the directory. | 
+
+</details>
+<details>
+  <summary>🦊 RS Bypass Manager</summary>
+
+# 🦊 RS Bypass Manager  
 **A powerful node for managing the states of Bypass nodes and groups in complex ComfyUI circuits. If your workflow has turned into a "spaghetti monster" and you need to quickly disable entire modules (for example, switch between txt2img, inpaint and upscale), this node will save you dozens of clicks and nerves.**  
 
 https://youtu.be/Ockp2SpuFSY

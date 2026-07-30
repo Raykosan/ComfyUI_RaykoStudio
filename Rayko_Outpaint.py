@@ -13,20 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import base64
 import io
 import json
 import numpy as np
 import server
 import torch
-import torch.nn.functional as F
 from aiohttp import web
 from PIL import Image
 import time
 import os
 import folder_paths
-import threading
-import gc
 
 _GRID = 16
 _MIN_DIM = 32
@@ -35,10 +31,11 @@ _DEFAULT_PAD_FACTOR = 0.3
 _frame_cache = {}
 _PENDING_DECISIONS = {}
 _SAVED_CROP_PRESETS = {}
-_APPROVED_CROPS = {}  # {node_id: {src_hash: crop_state}}
+_APPROVED_CROPS = {} 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PRESET_DIR = os.path.join(CURRENT_DIR, "presets")
+
 
 def _tensor_hash(tensor):
     try:
@@ -48,12 +45,14 @@ def _tensor_hash(tensor):
     except Exception:
         return None
 
+
 def _tensor_to_jpeg(image_tensor):
     arr = (image_tensor.cpu().numpy() * 255).clip(0, 255).astype(np.uint8)
     img = Image.fromarray(arr)
     buf = io.BytesIO()
     img.save(buf, format="JPEG", quality=85)
     return buf.getvalue()
+
 
 def _adapt_crop_to_new_size(crop_state, new_w, new_h):
     if not crop_state:
@@ -67,7 +66,7 @@ def _adapt_crop_to_new_size(crop_state, new_w, new_h):
         cy = max(-new_h, min(cy, new_h - _GRID))
         cw = max(_GRID, min(cw, new_w * 2))
         ch = max(_GRID, min(ch, new_h * 2))
-        
+
         out_w = parts[4] if len(parts) >= 5 else 0
         out_h = parts[5] if len(parts) >= 6 else 0
         colors = parts[6:9] if len(parts) >= 9 else [255, 0, 0]
@@ -75,6 +74,7 @@ def _adapt_crop_to_new_size(crop_state, new_w, new_h):
         return f"{cx},{cy},{cw},{ch},{out_w},{out_h},{','.join(map(str, colors))},{','.join(map(str, bg_colors))}"
     except Exception:
         return None
+
 
 class RSOutpaint:
     @classmethod
@@ -101,27 +101,42 @@ class RSOutpaint:
     def outpaint_prep(self, image, crop_state, unique_id):
         src = image[0] if image.dim() == 4 else image
         src_h, src_w, _ = src.shape
-        
+
         if src_w < _MIN_DIM or src_h < _MIN_DIM:
             raise ValueError(f"Input image too small ({src_w}×{src_h}).")
 
         unique_id = str(unique_id)
-        
+
         try:
             src_hash = _tensor_hash(src)
             cached = _frame_cache.get(unique_id, {})
-            is_new_image = (cached.get("src_hash") != src_hash or 
-                            cached.get("width") != src_w or 
+            is_new_image = (cached.get("src_hash") != src_hash or
+                            cached.get("width") != src_w or
                             cached.get("height") != src_h)
 
-            # Проверяем, есть ли утверждённый кроп для этого изображения
-            approved_crop = _APPROVED_CROPS.get(unique_id, {}).get(src_hash)
+            saved_preset = _SAVED_CROP_PRESETS.get(unique_id, {})
+            batch_mode_active = saved_preset.get("active", False)
+            batch_mode_type = saved_preset.get("mode", "single")
 
-            if approved_crop and not is_new_image:
-                # Используем сохранённый кроп, пропускаем ожидание
-                crop_state = approved_crop
-    
-                # Но всё равно отправляем событие на фронтенд, чтобы показать Reset
+            auto_apply = False
+            if batch_mode_active and saved_preset.get("crop_state"):
+                if batch_mode_type == "multi":
+                    auto_apply = True
+                elif batch_mode_type == "single" and not is_new_image:
+                    auto_apply = True
+
+            if not auto_apply:
+                approved_crop = _APPROVED_CROPS.get(unique_id, {}).get(src_hash)
+                if approved_crop and not is_new_image:
+                    crop_state = approved_crop
+                    auto_apply = True
+
+            if auto_apply:
+                if not batch_mode_active:
+                    pass
+                else:
+                    crop_state = _adapt_crop_to_new_size(saved_preset["crop_state"], src_w, src_h)
+
                 try:
                     i = 255. * src.cpu().numpy()
                     img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
@@ -138,98 +153,89 @@ class RSOutpaint:
                         "image_height": img.height,
                         "is_new_image": is_new_image,
                         "src_hash": src_hash,
-                        "already_approved": True  # <-- НОВЫЙ ФЛАГ
+                        "auto_approved": True,
+                        "applied_crop_state": crop_state
                     })
-                except Exception as e:
+                except Exception:
                     pass
             else:
                 if is_new_image:
                     if unique_id in _frame_cache:
                         del _frame_cache[unique_id]
-                    if unique_id in _APPROVED_CROPS:
-                        del _APPROVED_CROPS[unique_id]
-                    if unique_id in _SAVED_CROP_PRESETS:
-                        del _SAVED_CROP_PRESETS[unique_id]
                     crop_state = ""
 
-                # Обновляем кеш
                 _frame_cache[unique_id] = {
-                    "width": src_w, 
-                    "height": src_h, 
-                    "src_hash": src_hash, 
+                    "width": src_w,
+                    "height": src_h,
+                    "src_hash": src_hash,
                     "image": _tensor_to_jpeg(src)
                 }
 
-                saved_preset = _SAVED_CROP_PRESETS.get(unique_id, {})
-                batch_mode_active = saved_preset.get("active", False)
-
-                if not batch_mode_active:
-                    if unique_id not in _PENDING_DECISIONS:
-                        _PENDING_DECISIONS[unique_id] = {
-                            "status": "pending",
-                            "crop_state": crop_state,
-                            "last_heartbeat": time.time()
-                        }
-                    else:
-                        _PENDING_DECISIONS[unique_id]["status"] = "pending"
-                        _PENDING_DECISIONS[unique_id]["crop_state"] = crop_state
-                        _PENDING_DECISIONS[unique_id]["last_heartbeat"] = time.time()
-
-                    try:
-                        i = 255. * src.cpu().numpy()
-                        img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
-                        filename = f"rsoutpaint_{unique_id}.png"
-                        subfolder = "rsoutpaint"
-                        full_output_folder = os.path.join(folder_paths.get_temp_directory(), subfolder)
-                        os.makedirs(full_output_folder, exist_ok=True)
-                        img.save(os.path.join(full_output_folder, filename))
-
-                        server.PromptServer.instance.send_sync("rs_outpaint.show", {
-                            "node_id": unique_id,
-                            "image_url": f"/view?filename={filename}&type=temp&subfolder={subfolder}",
-                            "image_width": img.width,
-                            "image_height": img.height,
-                            "is_new_image": is_new_image,
-                            "src_hash": src_hash
-                        })
-                    except Exception as e:
-                        pass
-
-                    while True:
-                        state = _PENDING_DECISIONS.get(unique_id, {})
-                        current_status = state.get("status", "pending")
-                        current_crop_state = state.get("crop_state", crop_state)
-                        last_hb = state.get("last_heartbeat", time.time())
-                        
-                        if current_status == "approved":
-                            crop_state = current_crop_state
-                            if unique_id not in _APPROVED_CROPS:
-                                _APPROVED_CROPS[unique_id] = {}
-                            _APPROVED_CROPS[unique_id][src_hash] = crop_state
-                            break
-                        elif current_status == "cancelled":
-                            return (torch.zeros((1, src_h, src_w, 3)), torch.ones((1, src_h, src_w)), torch.zeros((1, src_h, src_w, 3)), 0, 0)
-                        elif current_status == "removed":
-                            return (image, torch.ones((1, src_h, src_w)), image, src_w, src_h)
-                        elif time.time() - last_hb > 10.0:
-                            return (image, torch.ones((1, src_h, src_w)), image, src_w, src_h)
-                        elif current_status == "rejected":
-                            _PENDING_DECISIONS[unique_id]["status"] = "pending"
-                            crop_state = current_crop_state
-                            
-                        time.sleep(0.2)
-
+                if unique_id not in _PENDING_DECISIONS:
+                    _PENDING_DECISIONS[unique_id] = {
+                        "status": "pending",
+                        "crop_state": crop_state,
+                        "last_heartbeat": time.time()
+                    }
                 else:
-                    if saved_preset.get("crop_state"):
-                        crop_state = _adapt_crop_to_new_size(saved_preset["crop_state"], src_w, src_h)
+                    _PENDING_DECISIONS[unique_id]["status"] = "pending"
+                    _PENDING_DECISIONS[unique_id]["crop_state"] = crop_state
+                    _PENDING_DECISIONS[unique_id]["last_heartbeat"] = time.time()
 
-            # --- Формирование результата (без изменений) ---
+                try:
+                    i = 255. * src.cpu().numpy()
+                    img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
+                    filename = f"rsoutpaint_{unique_id}.png"
+                    subfolder = "rsoutpaint"
+                    full_output_folder = os.path.join(folder_paths.get_temp_directory(), subfolder)
+                    os.makedirs(full_output_folder, exist_ok=True)
+                    img.save(os.path.join(full_output_folder, filename))
+
+                    server.PromptServer.instance.send_sync("rs_outpaint.show", {
+                        "node_id": unique_id,
+                        "image_url": f"/view?filename={filename}&type=temp&subfolder={subfolder}",
+                        "image_width": img.width,
+                        "image_height": img.height,
+                        "is_new_image": is_new_image,
+                        "src_hash": src_hash
+                    })
+                except Exception:
+                    pass
+
+                while True:
+                    state = _PENDING_DECISIONS.get(unique_id, {})
+                    current_status = state.get("status", "pending")
+                    current_crop_state = state.get("crop_state", crop_state)
+                    last_hb = state.get("last_heartbeat", time.time())
+
+                    if current_status == "approved":
+                        crop_state = current_crop_state
+                        if unique_id not in _APPROVED_CROPS:
+                            _APPROVED_CROPS[unique_id] = {}
+                        _APPROVED_CROPS[unique_id][src_hash] = crop_state
+                        break
+                    elif current_status == "cancelled":
+                        if unique_id in _APPROVED_CROPS and src_hash:
+                            _APPROVED_CROPS[unique_id].pop(src_hash, None)
+                            if not _APPROVED_CROPS[unique_id]:
+                                del _APPROVED_CROPS[unique_id]
+                        return (torch.zeros((1, src_h, src_w, 3)), torch.ones((1, src_h, src_w)), torch.zeros((1, src_h, src_w, 3)), 0, 0)
+                    elif current_status == "removed":
+                        return (image, torch.ones((1, src_h, src_w)), image, src_w, src_h)
+                    elif time.time() - last_hb > 10.0:
+                        return (image, torch.ones((1, src_h, src_w)), image, src_w, src_h)
+                    elif current_status == "rejected":
+                        _PENDING_DECISIONS[unique_id]["status"] = "pending"
+                        crop_state = current_crop_state
+
+                    time.sleep(0.2)
+
             crop_x = crop_y = crop_w = crop_h = 0
             output_width = output_height = 0
             use_crop_state = False
             color_r, color_g, color_b = 255, 0, 0
             bg_r, bg_g, bg_b = 20, 20, 20
-            
+
             if crop_state:
                 try:
                     parts = [int(v) for v in str(crop_state).split(",")]
@@ -243,7 +249,7 @@ class RSOutpaint:
                     if len(parts) >= 9:
                         color_r, color_g, color_b = parts[6], parts[7], parts[8]
                         if len(parts) >= 12:
-                             bg_r, bg_g, bg_b = parts[9], parts[10], parts[11]
+                            bg_r, bg_g, bg_b = parts[9], parts[10], parts[11]
                 except ValueError:
                     pass
 
@@ -260,11 +266,13 @@ class RSOutpaint:
 
             eff_w = output_width if output_width >= _GRID else crop_w
             eff_h = output_height if output_height >= _GRID else crop_h
-            
+
             eff_w = max(eff_w, _GRID)
             eff_h = max(eff_h, _GRID)
-            if eff_w < 32: eff_w = src_w
-            if eff_h < 32: eff_h = src_h
+            if eff_w < 32:
+                eff_w = src_w
+            if eff_h < 32:
+                eff_h = src_h
 
             src_np = src.cpu().numpy()
             out = np.full((eff_h, eff_w, 3), 0.5, dtype=np.float32)
@@ -288,7 +296,7 @@ class RSOutpaint:
                 final_dst_y = max(0, min(final_dst_y, eff_h - 1))
                 copy_w = max(0, min(src_copy_w, eff_w - final_dst_x))
                 copy_h = max(0, min(src_copy_h, eff_h - final_dst_y))
-                
+
                 if copy_w > 0 and copy_h > 0:
                     src_slice = src_np[src_y_start:src_y_start + copy_h, src_x_start:src_x_start + copy_w]
                     dst_slice = out[final_dst_y:final_dst_y + copy_h, final_dst_x:final_dst_x + copy_w]
@@ -304,8 +312,8 @@ class RSOutpaint:
 
             control_image = torch.from_numpy(out).unsqueeze(0)
             control_mask = torch.from_numpy(mask).unsqueeze(0)
-            norm_color = torch.tensor([color_r/255.0, color_g/255.0, color_b/255.0]).view(1, 1, 1, 3)
-            norm_bg = torch.tensor([bg_r/255.0, bg_g/255.0, bg_b/255.0]).view(1, 1, 1, 3)
+            norm_color = torch.tensor([color_r / 255.0, color_g / 255.0, color_b / 255.0]).view(1, 1, 1, 3)
+            norm_bg = torch.tensor([bg_r / 255.0, bg_g / 255.0, bg_b / 255.0]).view(1, 1, 1, 3)
             mask_exp = control_mask.unsqueeze(3)
             mask_image = mask_exp * norm_color + (1.0 - mask_exp) * norm_bg
             mask_image = torch.clamp(mask_image, 0.0, 1.0)
@@ -316,8 +324,10 @@ class RSOutpaint:
             if unique_id in _PENDING_DECISIONS:
                 del _PENDING_DECISIONS[unique_id]
 
+
 NODE_CLASS_MAPPINGS = {"RSOutpaint": RSOutpaint}
 NODE_DISPLAY_NAME_MAPPINGS = {"RSOutpaint": "🦊 RS Outpaint"}
+
 
 @server.PromptServer.instance.routes.post("/rs_outpaint/decision")
 async def rs_outpaint_decision(request):
@@ -327,34 +337,29 @@ async def rs_outpaint_decision(request):
         decision = data.get("decision")
         crop_state = data.get("crop_state")
         batch_mode = data.get("batch_mode", False)
-        src_hash = data.get("src_hash")
-        
+        batch_type = data.get("batch_type", "single")
+
         if node_id in _PENDING_DECISIONS:
             if decision == "approve":
                 _PENDING_DECISIONS[node_id]["status"] = "approved"
-                if crop_state: 
+                if crop_state:
                     _PENDING_DECISIONS[node_id]["crop_state"] = crop_state
                 _PENDING_DECISIONS[node_id]["batch_mode"] = batch_mode
                 if batch_mode and crop_state:
-                    _SAVED_CROP_PRESETS[node_id] = {"crop_state": crop_state, "active": True}
-                
-                if src_hash:
-                    if node_id not in _APPROVED_CROPS:
-                        _APPROVED_CROPS[node_id] = {}
-                    _APPROVED_CROPS[node_id][src_hash] = crop_state
-                    
+                    _SAVED_CROP_PRESETS[node_id] = {
+                        "crop_state": crop_state,
+                        "active": True,
+                        "mode": batch_type
+                    }
             elif decision == "cancel":
                 _PENDING_DECISIONS[node_id]["status"] = "cancelled"
-                if node_id in _APPROVED_CROPS and src_hash:
-                    _APPROVED_CROPS[node_id].pop(src_hash, None)
-                    if not _APPROVED_CROPS[node_id]:
-                        del _APPROVED_CROPS[node_id]
                 if node_id in _SAVED_CROP_PRESETS:
                     del _SAVED_CROP_PRESETS[node_id]
             return web.Response(status=200, text="OK")
         return web.Response(status=404, text="Not waiting")
     except Exception as e:
         return web.Response(status=500, text=str(e))
+
 
 @server.PromptServer.instance.routes.post("/rs_outpaint/unapprove")
 async def rs_outpaint_unapprove(request):
@@ -370,6 +375,7 @@ async def rs_outpaint_unapprove(request):
     except Exception as e:
         return web.Response(status=500, text=str(e))
 
+
 @server.PromptServer.instance.routes.post("/rs_outpaint/cleanup")
 async def rs_outpaint_cleanup(request):
     try:
@@ -380,12 +386,14 @@ async def rs_outpaint_cleanup(request):
             _PENDING_DECISIONS[node_id]["last_heartbeat"] = time.time()
         if node_id in _APPROVED_CROPS:
             del _APPROVED_CROPS[node_id]
-        # Добавляем очистку кэша фрейма для полной надёжности
         if node_id in _frame_cache:
             del _frame_cache[node_id]
+        if node_id in _SAVED_CROP_PRESETS:
+            del _SAVED_CROP_PRESETS[node_id]
         return web.Response(status=200, text="OK")
     except Exception as e:
         return web.Response(status=500, text=str(e))
+
 
 @server.PromptServer.instance.routes.post("/rs_outpaint/heartbeat")
 async def rs_outpaint_heartbeat(request):
@@ -399,24 +407,34 @@ async def rs_outpaint_heartbeat(request):
     except Exception as e:
         return web.Response(status=500, text=str(e))
 
+
 @server.PromptServer.instance.routes.post("/rs_outpaint/batch_toggle")
 async def rs_outpaint_batch_toggle(request):
     try:
         data = await request.json()
         node_id = str(data.get("node_id"))
-        enabled = data.get("enabled", False)
+        batch_type = data.get("batch_type", "single")
+        enabled = data.get("enabled", True)
+
         if node_id in _SAVED_CROP_PRESETS:
             _SAVED_CROP_PRESETS[node_id]["active"] = enabled
+            _SAVED_CROP_PRESETS[node_id]["mode"] = batch_type
         elif enabled and node_id in _PENDING_DECISIONS:
             crop_state = _PENDING_DECISIONS[node_id].get("crop_state")
             if crop_state:
-                _SAVED_CROP_PRESETS[node_id] = {"crop_state": crop_state, "active": True}
+                _SAVED_CROP_PRESETS[node_id] = {
+                    "crop_state": crop_state,
+                    "active": True,
+                    "mode": batch_type
+                }
         return web.Response(status=200, text="OK")
     except Exception as e:
         return web.Response(status=500, text=str(e))
 
+
 @server.PromptServer.instance.routes.post("/rs_outpaint/clear_preset")
 async def rs_outpaint_clear_preset(request):
+    """Очищает только батч-пресет. Используется в обычном режиме."""
     try:
         data = await request.json()
         node_id = str(data.get("node_id"))
@@ -426,25 +444,42 @@ async def rs_outpaint_clear_preset(request):
     except Exception as e:
         return web.Response(status=500, text=str(e))
 
+
+@server.PromptServer.instance.routes.post("/rs_outpaint/clear_all")
+async def rs_outpaint_clear_all(request):
+    """Очищает батч-пресет и кэш утверждённых кропов. Используется после завершения батча."""
+    try:
+        data = await request.json()
+        node_id = str(data.get("node_id"))
+        if node_id in _SAVED_CROP_PRESETS:
+            del _SAVED_CROP_PRESETS[node_id]
+        if node_id in _APPROVED_CROPS:
+            del _APPROVED_CROPS[node_id]
+        return web.Response(status=200, text="OK")
+    except Exception as e:
+        return web.Response(status=500, text=str(e))
+
+
 @server.PromptServer.instance.routes.post("/rs_outpaint/save_preset")
 async def rs_outpaint_save_preset(request):
     try:
         data = await request.json()
         name = data.get("name", "").strip()
-        if not name: 
+        if not name:
             return web.Response(status=400, text="Name required")
         name = "".join(c for c in name if c.isalnum() or c in " _-").strip()
-        if not name: 
+        if not name:
             return web.Response(status=400, text="Invalid name")
-        
+
         os.makedirs(PRESET_DIR, exist_ok=True)
-        
+
         filepath = os.path.join(PRESET_DIR, f"{name}.json")
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(data.get("preset_data", {}), f, indent=2)
         return web.Response(status=200, text="OK")
     except Exception as e:
         return web.Response(status=500, text=str(e))
+
 
 @server.PromptServer.instance.routes.post("/rs_outpaint/list_presets")
 async def rs_outpaint_list_presets(request):
@@ -455,6 +490,7 @@ async def rs_outpaint_list_presets(request):
         return web.json_response(presets)
     except Exception as e:
         return web.Response(status=500, text=str(e))
+
 
 @server.PromptServer.instance.routes.post("/rs_outpaint/load_preset")
 async def rs_outpaint_load_preset(request):
@@ -469,12 +505,14 @@ async def rs_outpaint_load_preset(request):
     except Exception as e:
         return web.Response(status=500, text=str(e))
 
+
 @server.PromptServer.instance.routes.post("/rs_outpaint/delete_preset")
 async def rs_outpaint_delete_preset(request):
     try:
         data = await request.json()
         name = data.get("name")
-        if not name: return web.Response(status=400, text="Name required")
+        if not name:
+            return web.Response(status=400, text="Name required")
         filepath = os.path.join(PRESET_DIR, f"{name}.json")
         if os.path.exists(filepath):
             os.remove(filepath)

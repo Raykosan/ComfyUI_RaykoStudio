@@ -269,7 +269,7 @@ Upscale Method 3 ──→ input_3
 
 <img width="1419" height="709" alt="Screenshot_2" src="https://github.com/user-attachments/assets/625b6043-688f-4bb2-a8eb-7a486f5f02f8" />  
 <br>
-<img width="1477" height="681" alt="Screenshot_1" src="https://github.com/user-attachments/assets/3d02cef1-b686-4714-8dcd-02dfba4da73a" />  
+<img width="1613" height="749" alt="Screenshot_1" src="https://github.com/user-attachments/assets/45625ce8-84b8-4c5d-a05f-203128a35533" />
 
 ### 🔥 Features  
 RS Outpaint is a custom ComfyUI node that turns mask/crop definition into an interactive, visual process. Instead of manually calculating coordinates or relying on static crops, you can drag, resize, and pan the crop region directly on the preview canvas.  
@@ -278,7 +278,7 @@ The node pauses the queue until you confirm the settings, then outputs a ready-t
 ❗ *All changes in the node (setting the mask, creating and applying presets, replacing colors, etc. settings) are available only when it is on pause in generation - "foolproof"*  
 - **Visual Mask Editor** — Drag, resize, and position the crop area directly on the image preview  
 - **Pause & Approve** — Workflow pauses after first execution, waiting for your confirmation  
-- **Batch Mode** – Apply saved presets automatically to the next images in a queue. Auto-resets when the queue finishes  
+- **Batch Processing** — Two batch modes for automated workflows. Auto-resets when the queue finishes  
 - **Preset System** – Save, load, rename, and delete presets crop configurations.   
 - **Grid Snapping** — All dimensions snap to 16px grid for clean, model-friendly outputs  
 - **Aspect Ratio Lock** —  Switching 🔒🔓 between maintaining crop proportions and freely choosing the mask size   
@@ -297,32 +297,105 @@ The node pauses the queue until you confirm the settings, then outputs a ready-t
 - If you need to edit the parameters for this image, you can press the 🔄️ Reset button. The cache on the server will be erased, and the next time the node is generated, it will consider the resulting image as new and pause for editing.  
 - ❗ When a new image is received, the node always pauses for editing.  
 
-**Single mode**  
-Add the node to your workflow and connect an IMAGE input.  
-Start the generation with the RUN button. After reaching the node, the generation will pause.  
-Adjust the crop area using the markers.  
-You can create or apply a previously created preset of settings.  
-Click ✔️ ACCEPT to send the configuration to the backend.  
-Use the outputs in your downstream nodes (ControlNet, mask blending, etc.).  
-If you are not satisfied with something, you can click ❌ CANCEL to interrupt the generation process.  
+### Mode 1: Standard Single Image  
 
-**Batch mode**  
-Add the node to your workflow and connect an IMAGE input.  
-Select the number of passes in the generation queue.  
-Start the generation with the RUN button. After reaching the node, the generation will pause.  
-Adjust the crop area using the markers.  
-You can create or apply a previously created preset of settings.  
-Click the ⚙️ BATCH, it should turn green.  
-Click ✔️ ACCEPT to send the configuration to the backend.  
-Use the outputs in your downstream nodes (ControlNet, mask blending, etc.).  
-If you are not satisfied with something, you can click ❌ CANCEL to interrupt the generation process.  
+**Use Case**: Process one image at a time with manual confirmation  
 
-📁 Preset Storage  
+- **Input**: Single image (e.g., from `Load Image` node)  
+- **Behavior**:  
+  - Node pauses and displays the image  
+  - Adjust the crop frame and mask settings  
+  - Click **✔️ ACCEPT** to confirm or **❌ CANCEL** to skip  
+  - Each new image requires manual confirmation  
+
+**Example Workflow**:  
+```
+Load Image → RS Outpaint → [Your Model] → Save Image  
+```  
+
+### Mode 2: Single Image Batch  
+
+**Use Case**: Generate multiple variations of the same image with identical crop settings  
+
+- **Input**: Single image  
+- **Behavior**:  
+  - First image: Manual confirmation required  
+  - Subsequent runs with the **same image**: Automatically applies saved crop settings  
+  - Batch resets after queue completion  
+
+**How to Use**:  
+1. Enable **⚙️ BATCH SINGLE IMAGE** button  
+2. Confirm the first image with **✔️ ACCEPT**  
+3. Run the queue multiple times with the same image  
+4. Batch automatically resets when queue finishes  
+
+**Example Workflow**:  
+```
+Load Image → RS Outpaint → [Multiple Model Variations] → Save Image (×N)  
+``` 
+
+### Mode 3: Multi-Image Batch  
+
+**Use Case**: Process multiple different images with the same crop settings  
+
+- **Input**: Multiple images (e.g., from `Load Images From Directory` node)  
+- **Behavior**:  
+  - First image: Manual confirmation required  
+  - All subsequent images in the queue: Automatically apply saved crop settings  
+  - Batch resets after queue completion  
+
+**How to Use**:  
+1. Enable **✨ BATCH MULTI IMAGE** button  
+2. Confirm the first image with **✔️ ACCEPT**  
+3. All remaining images in the queue process automatically  
+4. Batch automatically resets when queue finishes  
+
+**Example Workflow**:  
+```
+Load Images From Directory → RS Outpaint → [Your Model] → Save Image (×N)  
+```
+
+### Mode 4: Semi-Batch (Multi-Image with Manual Control)  
+
+**Use Case**: Process multiple images with individual adjustments for each  
+
+- **Input**: Multiple images (e.g., from `Load Images From Directory` node)  
+- **Behavior**:  
+  - Each image pauses for manual confirmation  
+  - Adjust crop settings per image as needed  
+  - Images flow automatically from the loader, but require individual approval  
+
+**Example Workflow**:  
+```
+Load Images From Directory → RS Outpaint → [Your Model] → Save Image  
+```
+
+### 📁 Preset Storage  
 Presets are stored as JSON files in the presets folder within the node's directory:  
 ComfyUI/custom_nodes/ComfyUI_RaykoStudio/presets/  
 The folder is created automatically the first time you save the preset.   
 
-💡Tip: For precise positioning, use the arrow keys on your keyboard (hold Shift to move faster)  
+## Technical Details  
+
+### Grid System  
+- All dimensions snap to 16px grid for compatibility with most models  
+- Minimum dimension: 32px  
+- Default padding: 30% of image height  
+
+### Cache Behavior  
+- Frame cache stores the last processed image hash  
+- Approved crops are cached per image hash  
+- Batch presets are stored per node instance  
+- All caches clear on: Reset button, queue completion, or node removal  
+
+---
+
+💡 **Tips & Best Practices**  
+1. **For consistent results**: Use batch modes to ensure identical crop settings across multiple generations  
+2. **For fine-tuning**: Use semi-batch mode (Mode 4) to adjust each image individually  
+3. **Preset workflow**: Save your favorite crop configurations as presets for quick reuse  
+4. **Zoom for precision**: Use mouse wheel to zoom in when making precise adjustments  
+5. **Snap buttons**: Use snap controls for quick alignment instead of manual positioning  
 
 ### ↔️ Inputs and Outputs:  
 **Input** :  

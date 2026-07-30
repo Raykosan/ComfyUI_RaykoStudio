@@ -370,10 +370,39 @@ Load Images From Directory → RS Outpaint → [Your Model] → Save Image (×N)
 Load Images From Directory → RS Outpaint → [Your Model] → Save Image  
 ```
 
-### 📁 Preset Storage  
-Presets are stored as JSON files in the presets folder within the node's directory:  
-ComfyUI/custom_nodes/ComfyUI_RaykoStudio/presets/  
-The folder is created automatically the first time you save the preset.   
+## Interface Controls  
+
+### Canvas Controls  
+- **Drag**: Move the crop frame  
+- **Resize Handles**: Adjust frame dimensions (corners and edges)  
+- **Mouse Wheel**: Zoom in/out  
+- **Middle Mouse Drag**: Pan the canvas  
+- **100% Button**: Reset zoom to default  
+
+### Toolbar  
+- **W/H Inputs**: Manually enter crop dimensions (snaps to 16px grid)  
+- **🔓/🔒 Aspect Lock**: Lock/unlock aspect ratio  
+- **️ Reset**: Reset crop to full image size and clear all caches  
+
+### Snap Buttons  
+Quick positioning:  
+- **center**: Center the crop  
+- **top/bottom/left/right**: Align to edges  
+- **fit W**: Fit to image width  
+- **fit H**: Fit to image height  
+
+### Color Controls  
+- **mask**: Color for masked areas (default: red)  
+- **bg**: Background color for outpaint areas (default: dark gray)  
+
+### Batch Controls  
+- **⚙️ BATCH SINGLE IMAGE**: Enable batch mode for same image (mutually exclusive with multi-batch)  
+- **✨ BATCH MULTI IMAGE**: Enable batch mode for different images (mutually exclusive with single-batch)  
+
+### ⭐ Preset Management  
+- **💾 Save preset**: Save current crop configuration  
+- **📂 Select preset**: Load saved configuration  
+- Presets store: crop dimensions, position, colors, and aspect ratio lock  
 
 ## Technical Details  
 

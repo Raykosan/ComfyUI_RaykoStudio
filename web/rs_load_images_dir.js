@@ -30,44 +30,52 @@ app.registerExtension({
             node.setSize([NODE_WIDTH, MIN_HEIGHT_NORMAL]);
             node.min_size = [NODE_WIDTH, MIN_HEIGHT_NORMAL];
             
+            const wNodeData = node.widgets?.find(w => w.name === "node_data");
             const wPath = node.widgets?.find(w => w.name === "folder_path");
             const wFilter = node.widgets?.find(w => w.name === "filter_type");
             const wStart = node.widgets?.find(w => w.name === "start_index");
             const wEnd = node.widgets?.find(w => w.name === "end_index");
             const wCustom = node.widgets?.find(w => w.name === "custom_filter");
 
-            [wPath, wFilter, wStart, wEnd, wCustom].forEach(w => {
+            [wNodeData, wPath, wFilter, wStart, wEnd, wCustom].forEach(w => {
                 if (w) {
                     w.hidden = true;
                     if (w.element) w.element.style.display = "none";
                 }
             });
 
-            if (wPath) wPath.serializeValue = () => node.data.folder_path;
-            if (wFilter) wFilter.serializeValue = () => node.data.filter_type;
-            if (wStart) wStart.serializeValue = () => parseInt(node.data.start_index);
-            if (wEnd) wEnd.serializeValue = () => parseInt(node.data.end_index);
-            if (wCustom) wCustom.serializeValue = () => node.data.custom_filter;
-
-            if (wPath?.value) node.data.folder_path = wPath.value;
-            if (wFilter?.value) node.data.filter_type = wFilter.value;
-            if (wStart?.value) node.data.start_index = parseInt(wStart.value);
-            if (wEnd?.value) node.data.end_index = parseInt(wEnd.value);
-            if (wCustom?.value) node.data.custom_filter = wCustom.value;
+            if (wNodeData) {
+                try {
+                    const savedData = JSON.parse(wNodeData.value || "{}");
+                    if (savedData && typeof savedData === 'object') {
+                        node.data = { ...node.data, ...savedData };
+                    }
+                } catch (e) {}
+                
+                wNodeData.serializeValue = () => {
+                    node.syncData();
+                    return JSON.stringify(node.data);
+                };
+            }
 
             node.uiElements = [];
             node.dropdownMenu = null;
             node.customModal = null;
 
-            const syncData = () => {
+            node.syncData = function() {
                 if (wPath) wPath.value = node.data.folder_path;
                 if (wFilter) wFilter.value = node.data.filter_type;
                 if (wStart) wStart.value = parseInt(node.data.start_index);
                 if (wEnd) wEnd.value = parseInt(node.data.end_index);
                 if (wCustom) wCustom.value = node.data.custom_filter;
                 
-                if (node.graph) node.graph.changeTracker?.dispatchEvent(new Event("change"));
-                node.setDirtyCanvas(true, true);
+                if (wNodeData) {
+                    wNodeData.value = JSON.stringify(node.data);
+                }
+                
+                if (node.graph) {
+                    node.graph.changeTracker?.dispatchEvent(new Event("change"));
+                }
             };
 
             const updateNodeSize = () => {
@@ -89,6 +97,21 @@ app.registerExtension({
                     this.size[1] = minHeight;
                 }
                 this.setDirtyCanvas(true, true);
+            };
+
+            const onConfigure = node.onConfigure;
+            node.onConfigure = function(o) {
+                if (onConfigure) onConfigure.apply(this, arguments);
+                if (wNodeData && wNodeData.value) {
+                    try {
+                        const restoredData = JSON.parse(wNodeData.value);
+                        if (restoredData) {
+                            node.data = { ...node.data, ...restoredData };
+                            node.syncData();
+                            updateNodeSize();
+                        }
+                    } catch (e) {}
+                }
             };
 
             const closeDropdown = (e) => {
@@ -155,11 +178,9 @@ app.registerExtension({
                     user-select: none; -moz-user-select: none;
                     display: inline-flex; align-items: center; justify-content: center;
                 `;
-                
                 btnPaste.onmousedown = (e) => e.preventDefault();
                 btnPaste.onmouseup = (e) => e.preventDefault();
                 btnPaste.oncontextmenu = (e) => e.preventDefault();
-                
                 btnPaste.onmouseover = () => { if (!btnPaste.disabled) btnPaste.style.background = "#3a3a3a"; };
                 btnPaste.onmouseout = () => { if (!btnPaste.disabled) btnPaste.style.background = "#2a2a2a"; };
                 
@@ -182,7 +203,6 @@ app.registerExtension({
                             btnPaste.style.color = "#4CAF50";
                         }
                     } catch (err) {
-                        console.log("Clipboard read blocked by browser:", err);
                         btnPaste.textContent = "⌨️ Ctrl+V";
                         btnPaste.style.borderColor = "#FF9800";
                         btnPaste.style.color = "#FF9800";
@@ -265,18 +285,14 @@ app.registerExtension({
 
             const truncatePath = (ctx, path, maxWidth) => {
                 if (!path) return "Folder not selected";
-                
                 const ellipsis = "...";
-                
                 if (ctx.measureText(path).width <= maxWidth) {
                     return path;
                 }
-                
                 let truncated = path;
                 while (truncated.length > 0 && ctx.measureText(ellipsis + truncated).width > maxWidth) {
                     truncated = truncated.substring(1);
                 }
-                
                 return ellipsis + truncated;
             };
 
@@ -310,27 +326,21 @@ app.registerExtension({
                 const padding = 10;
                 const rowHeight = 23;
                 const borderRadius = 3;
-                
                 let currentY = 35 + 60;
 
                 ctx.font = "12px sans-serif";
                 ctx.textBaseline = "middle";
 
                 const pathDisplayHeight = 20;
-                const pathDisplayY = currentY;
-                
                 ctx.fillStyle = "#1a1a1a";
                 ctx.strokeStyle = "#333";
-                drawRoundedRect(ctx, padding, pathDisplayY, w - padding * 2, pathDisplayHeight, borderRadius);
+                drawRoundedRect(ctx, padding, currentY, w - padding * 2, pathDisplayHeight, borderRadius);
                 
                 const pathText = node.data.folder_path || "Folder not selected";
-                const maxTextWidth = w - padding * 2 - 10;
-                const displayPath = truncatePath(ctx, pathText, maxTextWidth);
-                
+                const displayPath = truncatePath(ctx, pathText, w - padding * 2 - 10);
                 ctx.fillStyle = node.data.folder_path ? "#aaa" : "#666";
                 ctx.textAlign = "left";
-                ctx.fillText(displayPath, padding + 5, pathDisplayY + pathDisplayHeight / 2);
-                
+                ctx.fillText(displayPath, padding + 5, currentY + pathDisplayHeight / 2);
                 currentY += pathDisplayHeight + 7;
 
                 ctx.fillStyle = "#2a2a2a";
@@ -339,7 +349,6 @@ app.registerExtension({
                 ctx.fillStyle = "#2196F3";
                 ctx.textAlign = "center";
                 ctx.fillText("📁 Select folder", w / 2, currentY + rowHeight / 2);
-                
                 this.uiElements.push({ type: "btn_folder", x: padding, y: currentY, w: w - padding * 2, h: rowHeight });
                 currentY += rowHeight + 7;
 
@@ -350,7 +359,6 @@ app.registerExtension({
                 ctx.fillStyle = "#4CAF50";
                 ctx.textAlign = "center";
                 ctx.fillText(filterLabel, w / 2, currentY + rowHeight / 2);
-
                 this.uiElements.push({ type: "btn_filter", x: padding, y: currentY, w: w - padding * 2, h: rowHeight });
                 currentY += rowHeight + 7;
 
@@ -427,16 +435,12 @@ app.registerExtension({
                 for (const el of this.uiElements) {
                     if (x >= el.x && x <= el.x + el.w && y >= el.y && y <= el.y + el.h) {
                         if (el.type === "btn_folder") {
-                            showCustomPrompt(
-                                "Enter folder path",
-                                this.data.folder_path,
-                                (result) => {
-                                    if (result !== null) {
-                                        this.data.folder_path = result.trim();
-                                        syncData();
-                                    }
+                            showCustomPrompt("Enter folder path", this.data.folder_path, (result) => {
+                                if (result !== null) {
+                                    this.data.folder_path = result.trim();
+                                    node.syncData();
                                 }
-                            );
+                            });
                             return true;
                         }
                         
@@ -463,7 +467,7 @@ app.registerExtension({
                                 item.onclick = (e) => {
                                     e.stopPropagation();
                                     this.data.filter_type = f;
-                                    syncData();
+                                    node.syncData();
                                     updateNodeSize();
                                     menu.remove();
                                     this.dropdownMenu = null;
@@ -487,63 +491,51 @@ app.registerExtension({
 
                         if (el.type === "btn_start_minus") {
                             this.data.start_index = Math.max(1, parseInt(this.data.start_index) - 1);
-                            syncData();
+                            node.syncData();
                             return true;
                         }
                         if (el.type === "btn_start_plus") {
                             this.data.start_index = parseInt(this.data.start_index) + 1;
-                            syncData();
+                            node.syncData();
                             return true;
                         }
                         if (el.type === "val_start") {
-                            showCustomPrompt(
-                                "Start index (min 1)",
-                                String(this.data.start_index),
-                                (result) => {
-                                    if (result !== null) {
-                                        this.data.start_index = Math.max(1, parseInt(result) || 1);
-                                        syncData();
-                                    }
+                            showCustomPrompt("Start index (min 1)", String(this.data.start_index), (result) => {
+                                if (result !== null) {
+                                    this.data.start_index = Math.max(1, parseInt(result) || 1);
+                                    node.syncData();
                                 }
-                            );
+                            });
                             return true;
                         }
 
                         if (el.type === "btn_end_minus") {
                             this.data.end_index = Math.max(1, parseInt(this.data.end_index) - 1);
-                            syncData();
+                            node.syncData();
                             return true;
                         }
                         if (el.type === "btn_end_plus") {
                             this.data.end_index = parseInt(this.data.end_index) + 1;
-                            syncData();
+                            node.syncData();
                             return true;
                         }
                         if (el.type === "val_end") {
-                            showCustomPrompt(
-                                "End index",
-                                String(this.data.end_index),
-                                (result) => {
-                                    if (result !== null) {
-                                        this.data.end_index = Math.max(1, parseInt(result) || 1);
-                                        syncData();
-                                    }
+                            showCustomPrompt("End index", String(this.data.end_index), (result) => {
+                                if (result !== null) {
+                                    this.data.end_index = Math.max(1, parseInt(result) || 1);
+                                    node.syncData();
                                 }
-                            );
+                            });
                             return true;
                         }
 
                         if (el.type === "val_custom") {
-                            showCustomPrompt(
-                                "Custom filter (e.g. *_mask.png)",
-                                this.data.custom_filter,
-                                (result) => {
-                                    if (result !== null) {
-                                        this.data.custom_filter = result.trim() || "*.png";
-                                        syncData();
-                                    }
+                            showCustomPrompt("Custom filter (e.g. *_mask.png)", this.data.custom_filter, (result) => {
+                                if (result !== null) {
+                                    this.data.custom_filter = result.trim() || "*.png";
+                                    node.syncData();
                                 }
-                            );
+                            });
                             return true;
                         }
                     }
@@ -565,7 +557,7 @@ app.registerExtension({
                 if (originalOnRemoved) originalOnRemoved.apply(this, arguments);
             };
 
-            syncData();
+            node.syncData();
             updateNodeSize();
             
             return result;

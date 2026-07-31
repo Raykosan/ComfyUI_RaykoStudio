@@ -15,6 +15,7 @@
 
 import os
 import glob
+import json
 import torch
 import numpy as np
 import folder_paths
@@ -27,6 +28,7 @@ class RSLoadImagesFromDir:
     def INPUT_TYPES(cls) -> Dict[str, Dict[str, Any]]:
         return {
             "required": {
+                "node_data": ("STRING", {"default": "{}", "hidden": True}),
                 "folder_path": ("STRING", {"default": "", "multiline": False}),
                 "filter_type": (["*.*", "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.gif", "custom"], {"default": "*.png"}),
                 "start_index": ("INT", {"default": 1, "min": 1, "max": 999999, "step": 1}),
@@ -46,12 +48,24 @@ class RSLoadImagesFromDir:
 
     def load_images(
         self,
-        folder_path: str,
-        filter_type: str,
-        start_index: int,
-        end_index: int,
+        node_data: str = "{}",
+        folder_path: str = "",
+        filter_type: str = "*.png",
+        start_index: int = 1,
+        end_index: int = 1,
         custom_filter: str = "*.png"
     ):
+        try:
+            data = json.loads(node_data) if node_data else {}
+            if data:
+                folder_path = data.get("folder_path", folder_path)
+                filter_type = data.get("filter_type", filter_type)
+                start_index = data.get("start_index", start_index)
+                end_index = data.get("end_index", end_index)
+                custom_filter = data.get("custom_filter", custom_filter)
+        except Exception:
+            pass
+
         if not folder_path or not os.path.isdir(folder_path):
             raise ValueError(f"Invalid folder path: {folder_path}")
 

@@ -88,7 +88,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.33.0 - Changing the operating method of the RS Outpaint node
 - v0.33.1 - clip_type 'mage' added to RS Models Loader node
 - v0.33.2 - Deep modification of the RS Outpaint node  
-- v0.34.0 - Adding the RS Load Images From Dir node  
+- v0.34.0 - Adding the RS Load Images From Dir node
+- v0.34.1 - Added the 'Paste' button to the RS Load Images From Dir node  
 
 </details>
 
@@ -181,6 +182,7 @@ You can create a chain of these nodes by connecting the Image output to the Back
 **A custom node designed to load images from a local directory with advanced filtering, precise index control, and a fully custom user interface.**  
 
 <img width="495" height="537" alt="Screenshot_1" src="https://github.com/user-attachments/assets/ca0c42c5-3dc6-42a4-a3e7-ef6b5498aadb" />
+<img width="461" height="429" alt="Screenshot_1" src="https://github.com/user-attachments/assets/6457cde5-2940-4215-a13e-a9b6733d79bc" />
 
 ### 🔥 Features  
 - **Unified Custom UI** - All widgets are custom-drawn with a consistent dark theme, rounded corners, and custom modal prompts (no ugly native browser dialogs).  
@@ -188,7 +190,14 @@ You can create a chain of these nodes by connecting the Image output to the Back
 - **Advanced Filtering** - Built-in support for common formats (`*.png`, `*.jpg`, `*.webp`, etc.) plus a "custom" mode for specific glob patterns (e.g., `*_mask.png`).  
 - **Precise Index Control** - Load specific subsets of images using 1-based Start and End indices.  
 - **Quality Preservation** - Maintains the original image resolution and preserves the alpha channel (RGBA) when present.  
-- **Detailed Outputs** - Returns the images, filenames, folder path, and total file count.  
+- **Detailed Outputs** - Returns the images, filenames, folder path, and total file count.
+- **"Paste" button** - Inserting a folder path from the clipboard
+
+💡 Tip: The "Paste" button works differently in all browsers.  
+In Chrome and Edge, the button works immediately (requires a one-time confirmation of access to the clipboard).  
+In Firefox, the Paste button will additionally pop up, when clicked, the path will be inserted.  
+**These are browser security principles and cannot be circumvented.**  
+In any case, you can always paste the path using the keyboard shortcut Ctrl+V.  
    
 ### Inputs  
 | Parameter | Type | Description |

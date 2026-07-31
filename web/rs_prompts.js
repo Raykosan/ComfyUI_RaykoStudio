@@ -34,6 +34,36 @@ styleBlock.innerHTML = `
         border-color: #ccc;
     }
     
+    .rs-toggle-btn {
+        flex: 1;
+        padding: 6px 8px;
+        font-size: 11px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+        text-align: center;
+        white-space: nowrap;
+    }
+    
+    .rs-toggle-btn.off {
+        background: #1a1a1a;
+        border: 1px solid #444;
+        color: #888;
+    }
+    
+    .rs-toggle-btn.on-enable {
+        background: #1a3a1a;
+        border: 1px solid #28a745;
+        color: #aaffaa;
+    }
+    
+    .rs-toggle-btn.on-pause {
+        background: #3a2a1a;
+        border: 1px solid #fbbf24;
+        color: #fbbf24;
+    }
+    
     .rs-waiting-overlay {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
@@ -76,13 +106,13 @@ app.registerExtension({
             
             if (this.widgets) {
                 const pauseWidget = this.widgets.find(w => w.name === "pause_for_edit");
-                const disableWidget = this.widgets.find(w => w.name === "disable_text_input");
+                const enableWidget = this.widgets.find(w => w.name === "enable_text_input");
                 
                 if (pauseWidget && this.properties?.rs_pause_state !== undefined) {
                     pauseWidget.value = this.properties.rs_pause_state;
                 }
-                if (disableWidget && this.properties?.rs_disable_state !== undefined) {
-                    disableWidget.value = this.properties.rs_disable_state;
+                if (enableWidget && this.properties?.rs_enable_state !== undefined) {
+                    enableWidget.value = this.properties.rs_enable_state;
                 }
             }
             
@@ -91,6 +121,10 @@ app.registerExtension({
                     this.restoreFromProperties();
                 }
             }, 100);
+            
+            if (this.updateToggleUI) {
+                this.updateToggleUI();
+            }
             
             return result;
         };
@@ -105,13 +139,13 @@ app.registerExtension({
             
             if (this.widgets) {
                 const pauseWidget = this.widgets.find(w => w.name === "pause_for_edit");
-                const disableWidget = this.widgets.find(w => w.name === "disable_text_input");
+                const enableWidget = this.widgets.find(w => w.name === "enable_text_input");
                 
                 if (pauseWidget && this.properties) {
                     this.properties.rs_pause_state = pauseWidget.value;
                 }
-                if (disableWidget && this.properties) {
-                    this.properties.rs_disable_state = disableWidget.value;
+                if (enableWidget && this.properties) {
+                    this.properties.rs_enable_state = enableWidget.value;
                 }
             }
             
@@ -143,9 +177,9 @@ app.registerExtension({
                 const pauseWidget = node.widgets?.find(w => w.name === "pause_for_edit");
                 node.properties.rs_pause_state = pauseWidget ? pauseWidget.value : false;
             }
-            if (node.properties.rs_disable_state === undefined) {
-                const disableWidget = node.widgets?.find(w => w.name === "disable_text_input");
-                node.properties.rs_disable_state = disableWidget ? disableWidget.value : false;
+            if (node.properties.rs_enable_state === undefined) {
+                const enableWidget = node.widgets?.find(w => w.name === "enable_text_input");
+                node.properties.rs_enable_state = enableWidget ? enableWidget.value : false;
             }
             if (node.properties.rs_is_waiting === undefined) {
                 node.properties.rs_is_waiting = false;
@@ -159,23 +193,28 @@ app.registerExtension({
 
             const textWidget = node.widgets?.find(w => w.name === "text");
             const pauseWidget = node.widgets?.find(w => w.name === "pause_for_edit");
-            const disableWidget = node.widgets?.find(w => w.name === "disable_text_input");
+            const enableWidget = node.widgets?.find(w => w.name === "enable_text_input");
             const uidWidget = node.widgets?.find(w => w.name === "instance_uid");
             
             if (uidWidget) {
                 uidWidget.value = instanceUid;
                 uidWidget.hidden = true;
+                uidWidget.type = "hidden";
                 uidWidget.serializeValue = () => node.properties.rs_instance_uid;
             }
             if (textWidget) {
                 textWidget.hidden = true;
+                textWidget.type = "hidden";
             }
-
             if (pauseWidget) {
                 pauseWidget.value = node.properties.rs_pause_state;
+                pauseWidget.hidden = true;
+                pauseWidget.type = "hidden";
             }
-            if (disableWidget) {
-                disableWidget.value = node.properties.rs_disable_state;
+            if (enableWidget) {
+                enableWidget.value = node.properties.rs_enable_state;
+                enableWidget.hidden = true;
+                enableWidget.type = "hidden";
             }
 
             const hidePhantomSlot = () => {
@@ -223,6 +262,14 @@ app.registerExtension({
             const statusBar = mkEl("div", "width:100%; padding: 4px 8px; font-size: 11px; font-weight: bold; text-align: center; border-radius: 4px 4px 0 0; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; line-height: 1.2;");
             root.appendChild(statusBar);
             
+            const toggleRow = mkEl("div", "display:flex;gap:4px;width:100%;padding:0 4px;margin-bottom:4px;box-sizing:border-box;");
+            const enableToggleBtn = mkEl("button", "rs-toggle-btn off");
+            enableToggleBtn.textContent = "🔴 TEXT INPUT OFF";
+            const pauseToggleBtn = mkEl("button", "rs-toggle-btn off");
+            pauseToggleBtn.textContent = "🔴 PAUSE FOR EDIT OFF";
+            toggleRow.append(enableToggleBtn, pauseToggleBtn);
+            root.appendChild(toggleRow);
+            
             const customTextarea = document.createElement("textarea");
             customTextarea.className = "rs-custom-textarea";
             customTextarea.style.cssText = "flex:1;width:100%;min-height:0;resize:none;outline:none;box-sizing:border-box;";
@@ -233,21 +280,21 @@ app.registerExtension({
             
             const clearRow = mkEl("div", "display:flex;gap:4px;width:100%;");
             const clearBtn = mkEl("button", "flex:1;padding:6px 2px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;");
-            clearBtn.textContent = "❌ Clear prompt";
+            clearBtn.textContent = "❌ CLEAR PROMPT";
             clearRow.append(clearBtn);
 
             const btnRow = mkEl("div", "display:flex;gap:4px;width:100%;");
             const saveBtn = mkEl("button", "flex:1;padding:6px 2px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;"); 
-            saveBtn.textContent = "💾 Save prompt";
+            saveBtn.textContent = "💾 SAVE PROMPT";
             const selectBtn = mkEl("button", "flex:1;padding:6px 2px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;"); 
-            selectBtn.textContent = "📂 Select prompt";
+            selectBtn.textContent = "📂 SELECT PROMPT";
             btnRow.append(saveBtn, selectBtn);
             
             const actionRow = mkEl("div", "display:flex;gap:4px;width:100%;margin-top:2px;");
             const acceptEditBtn = mkEl("button", "flex:1;padding:6px 2px;font-size:11px;border:1px solid #28a745;border-radius:5px;background:#1a3a1a;color:#aaffaa;cursor:pointer;transition:all 0.2s;");
             acceptEditBtn.textContent = "✔️ APPROVE & CONTINUE";
             const rejectEditBtn = mkEl("button", "flex:1;padding:6px 2px;font-size:11px;border:1px solid #dc3545;border-radius:5px;background:#3a1a1a;color:#ffaaaa;cursor:pointer;transition:all 0.2s;");
-            rejectEditBtn.textContent = "❌ REJECT (use original)";
+            rejectEditBtn.textContent = "❌ SKIP (use original)";
             actionRow.append(acceptEditBtn, rejectEditBtn);
             
             buttonsWrapper.append(clearRow, btnRow, actionRow);
@@ -298,9 +345,30 @@ app.registerExtension({
                 updateStatusAndUI();
             };
 
+            node.updateToggleUI = () => {
+                const enableState = enableWidget ? enableWidget.value : false;
+                const pauseState = pauseWidget ? pauseWidget.value : false;
+                
+                if (enableState) {
+                    enableToggleBtn.textContent = "🟢 TEXT INPUT ON";
+                    enableToggleBtn.className = "rs-toggle-btn on-enable";
+                } else {
+                    enableToggleBtn.textContent = "🔴 TEXT INPUT OFF";
+                    enableToggleBtn.className = "rs-toggle-btn off";
+                }
+                
+                if (pauseState) {
+                    pauseToggleBtn.textContent = "🟢 PAUSE FOR EDIT ON";
+                    pauseToggleBtn.className = "rs-toggle-btn on-pause";
+                } else {
+                    pauseToggleBtn.textContent = "🔴 PAUSE FOR EDIT OFF";
+                    pauseToggleBtn.className = "rs-toggle-btn off";
+                }
+            };
+
             const updateStatusAndUI = () => {
                 const isWaiting = node.properties.rs_is_waiting;
-                const isDisabled = node.properties.rs_disable_state;
+                const isDisabled = !enableWidget || !enableWidget.value;
                 const hasConnection = hasTextInputConnection();
 
                 removeWaitingOverlay();
@@ -367,13 +435,16 @@ app.registerExtension({
                         pauseWidget.value = node.properties.rs_pause_state;
                         needsRedraw = true;
                     }
-                    if (disableWidget && disableWidget.value !== node.properties.rs_disable_state) {
-                        disableWidget.value = node.properties.rs_disable_state;
+                    if (enableWidget && enableWidget.value !== node.properties.rs_enable_state) {
+                        enableWidget.value = node.properties.rs_enable_state;
                         needsRedraw = true;
                     }
                     
-                    if (needsRedraw && node.graph) {
-                        node.graph.setDirtyCanvas(true, true);
+                    if (needsRedraw) {
+                        node.updateToggleUI();
+                        if (node.graph) {
+                            node.graph.setDirtyCanvas(true, true);
+                        }
                     }
                 }, 200);
             };
@@ -414,6 +485,8 @@ app.registerExtension({
 
             const textKey = `rs_prompt_${instanceUid}`;
 
+            node.updateToggleUI();
+            
             setTimeout(() => {
                 if (node.properties.rs_is_waiting && node.properties.rs_waiting_prompt) {
                     customTextarea.value = node.properties.rs_waiting_prompt;
@@ -430,31 +503,31 @@ app.registerExtension({
                     }
                 }
                 
-                if (pauseWidget) {
-                    const originalPauseCallback = pauseWidget.callback;
-                    pauseWidget.callback = function(v) {
-                        node.properties.rs_pause_state = v;
-                        if (!v) {
-                            node.properties.rs_is_waiting = false;
-                            node.properties.rs_waiting_prompt = "";
-                        }
-                        if (originalPauseCallback) originalPauseCallback(v);
-                        updateStatusAndUI();
-                    };
-                }
-                
-                if (disableWidget) {
-                    const originalDisableCallback = disableWidget.callback;
-                    disableWidget.callback = function(v) {
-                        node.properties.rs_disable_state = v;
-                        if (originalDisableCallback) originalDisableCallback(v);
-                        updateStatusAndUI();
-                    };
-                }
-                
                 startEnforcement();
                 updateStatusAndUI();
             }, 100);
+            
+            enableToggleBtn.addEventListener("click", () => {
+                if (!enableWidget) return;
+                const newValue = !enableWidget.value;
+                enableWidget.value = newValue;
+                node.properties.rs_enable_state = newValue;
+                node.updateToggleUI();
+                updateStatusAndUI();
+            });
+            
+            pauseToggleBtn.addEventListener("click", () => {
+                if (!pauseWidget) return;
+                const newValue = !pauseWidget.value;
+                pauseWidget.value = newValue;
+                node.properties.rs_pause_state = newValue;
+                if (!newValue) {
+                    node.properties.rs_is_waiting = false;
+                    node.properties.rs_waiting_prompt = "";
+                }
+                node.updateToggleUI();
+                updateStatusAndUI();
+            });
             
             customTextarea.addEventListener("input", () => {
                 if (textWidget) {
@@ -674,7 +747,7 @@ app.registerExtension({
                     localStorage.setItem(currentTextKey, textWidget.value);
                 }
                 if (pauseWidget) node.properties.rs_pause_state = pauseWidget.value;
-                if (disableWidget) node.properties.rs_disable_state = disableWidget.value;
+                if (enableWidget) node.properties.rs_enable_state = enableWidget.value;
             });
             
             return result;

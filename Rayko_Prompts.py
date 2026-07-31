@@ -40,7 +40,7 @@ class RSPrompts:
             "required": {
                 "clip": ("CLIP",),
                 "text": ("STRING", {"multiline": True, "default": "", "hidden": True}),
-                "disable_text_input": ("BOOLEAN", {"default": False, "label": "🔘 Disable text input"}),
+                "enable_text_input": ("BOOLEAN", {"default": False, "label": "🔘 Enable text input"}),
                 "pause_for_edit": ("BOOLEAN", {"default": False, "label": "⏸️ Pause for manual edit"}),
             },
             "optional": {
@@ -58,10 +58,10 @@ class RSPrompts:
     CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = "Text encoder with visual prompt controls and pause-for-edit mode."
 
-    def encode_prompts(self, clip, disable_text_input=False, pause_for_edit=False, 
+    def encode_prompts(self, clip, enable_text_input=False, pause_for_edit=False, 
                        text="", text_input=None, unique_id=None, instance_uid=""):
         
-        if disable_text_input:
+        if not enable_text_input:
             current_text = text
             effective_text_input = None
         else:

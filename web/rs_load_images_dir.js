@@ -19,7 +19,7 @@ app.registerExtension({
                 custom_filter: "*.png"
             };
             
-            const filters = ["*.*", "*.png", "*.jpg", "*.jpeg", "*.webp", "*.gif", "custom"];
+            const filters = ["*.*", "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.gif", "custom"];
             
             const NODE_WIDTH = 260;
             node.targetWidth = NODE_WIDTH;
@@ -144,6 +144,63 @@ app.registerExtension({
                     display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;
                 `;
 
+                const btnPaste = document.createElement("div");
+                btnPaste.setAttribute("role", "button");
+                btnPaste.setAttribute("tabindex", "0");
+                btnPaste.textContent = " Paste";
+                btnPaste.style.cssText = `
+                    padding: 6px 16px; background: #2a2a2a; border: 1px solid #888;
+                    border-radius: 3px; color: #ddd; font-size: 12px; cursor: pointer;
+                    font-family: sans-serif; min-width: 80px; transition: all 0.2s;
+                    user-select: none; -moz-user-select: none;
+                    display: inline-flex; align-items: center; justify-content: center;
+                `;
+                
+                btnPaste.onmousedown = (e) => e.preventDefault();
+                btnPaste.onmouseup = (e) => e.preventDefault();
+                btnPaste.oncontextmenu = (e) => e.preventDefault();
+                
+                btnPaste.onmouseover = () => { if (!btnPaste.disabled) btnPaste.style.background = "#3a3a3a"; };
+                btnPaste.onmouseout = () => { if (!btnPaste.disabled) btnPaste.style.background = "#2a2a2a"; };
+                
+                btnPaste.onclick = async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    btnPaste.disabled = true;
+                    btnPaste.style.opacity = "0.7";
+                    btnPaste.style.cursor = "wait";
+                    btnPaste.textContent = "⏳ ...";
+
+                    try {
+                        const text = await navigator.clipboard.readText();
+                        if (text) {
+                            input.value = text;
+                            input.focus();
+                            btnPaste.textContent = "✅ Done";
+                            btnPaste.style.borderColor = "#4CAF50";
+                            btnPaste.style.color = "#4CAF50";
+                        }
+                    } catch (err) {
+                        console.log("Clipboard read blocked by browser:", err);
+                        btnPaste.textContent = "⌨️ Ctrl+V";
+                        btnPaste.style.borderColor = "#FF9800";
+                        btnPaste.style.color = "#FF9800";
+                        input.focus();
+                        input.select();
+                    }
+
+                    setTimeout(() => {
+                        btnPaste.disabled = false;
+                        btnPaste.style.opacity = "1";
+                        btnPaste.style.cursor = "pointer";
+                        btnPaste.textContent = " Paste";
+                        btnPaste.style.borderColor = "#888";
+                        btnPaste.style.color = "#ddd";
+                        btnPaste.style.background = "#2a2a2a";
+                    }, 600);
+                };
+
                 const btnCancel = document.createElement("button");
                 btnCancel.textContent = "Cancel";
                 btnCancel.style.cssText = `
@@ -164,6 +221,7 @@ app.registerExtension({
                 btnOk.onmouseover = () => { btnOk.style.background = "#1976D2"; };
                 btnOk.onmouseout = () => { btnOk.style.background = "#2196F3"; };
 
+                btnContainer.appendChild(btnPaste);
                 btnContainer.appendChild(btnCancel);
                 btnContainer.appendChild(btnOk);
                 modal.appendChild(btnContainer);
@@ -336,16 +394,16 @@ app.registerExtension({
                     this.uiElements.push({ type: `btn_${dataType}_plus`, x: btnX2, y: yPos, w: btnW, h: rowHeight });
                 };
 
-                drawNumberInput("Start", node.data.start_index, currentY, "start");
+                drawNumberInput("Start:", node.data.start_index, currentY, "start");
                 currentY += rowHeight + 5;
 
-                drawNumberInput("End", node.data.end_index, currentY, "end");
+                drawNumberInput("End:", node.data.end_index, currentY, "end");
                 currentY += rowHeight + 12;
 
                 if (node.data.filter_type === "custom") {
                     ctx.fillStyle = "#aaa";
                     ctx.textAlign = "left";
-                    ctx.fillText("Custom", padding, currentY + rowHeight / 2);
+                    ctx.fillText("Custom:", padding, currentY + rowHeight / 2);
                     
                     const custValW = w - padding * 2 - 45;
                     const custX = padding + 45;
@@ -370,7 +428,7 @@ app.registerExtension({
                     if (x >= el.x && x <= el.x + el.w && y >= el.y && y <= el.y + el.h) {
                         if (el.type === "btn_folder") {
                             showCustomPrompt(
-                                "Введите путь к папке",
+                                "Enter folder path",
                                 this.data.folder_path,
                                 (result) => {
                                     if (result !== null) {
@@ -439,7 +497,7 @@ app.registerExtension({
                         }
                         if (el.type === "val_start") {
                             showCustomPrompt(
-                                "Начальный индекс (мин. 1)",
+                                "Start index (min 1)",
                                 String(this.data.start_index),
                                 (result) => {
                                     if (result !== null) {
@@ -463,7 +521,7 @@ app.registerExtension({
                         }
                         if (el.type === "val_end") {
                             showCustomPrompt(
-                                "Конечный индекс",
+                                "End index",
                                 String(this.data.end_index),
                                 (result) => {
                                     if (result !== null) {
@@ -477,7 +535,7 @@ app.registerExtension({
 
                         if (el.type === "val_custom") {
                             showCustomPrompt(
-                                "Пользовательский фильтр (например, *_mask.png)",
+                                "Custom filter (e.g. *_mask.png)",
                                 this.data.custom_filter,
                                 (result) => {
                                     if (result !== null) {

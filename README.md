@@ -1092,7 +1092,8 @@ is three tags.
 # 🦊 RS Prompts  
 **Node that provides enhanced prompt management with visual controls, pause-for-edit mode, and external input toggling**  
 
-<img width="1008" height="774" alt="Screenshot_1" src="https://github.com/user-attachments/assets/1b912d1f-ccea-41b7-9f13-c63e0a2ca2bd" />
+<img width="570" height="580" alt="Screenshot_1" src="https://github.com/user-attachments/assets/b9bced5d-bd97-4025-ac51-eb4b551ea531" />
+<img width="552" height="565" alt="Screenshot_3" src="https://github.com/user-attachments/assets/a650fdeb-75f4-4b43-8e6b-da3d3993098c" />
 
 ### 🔥 Features  
 - **Dual prompt sources** - Use internal textarea or external text input

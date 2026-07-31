@@ -47,9 +47,9 @@ styleBlock.innerHTML = `
     }
     
     .rs-toggle-btn.off {
-        background: #1a1a1a;
-        border: 1px solid #444;
-        color: #888;
+        background: #1a3a5a;
+        border: 1px solid #99c0ee;
+        color: #aadaff;
     }
     
     .rs-toggle-btn.on-enable {
@@ -391,7 +391,7 @@ app.registerExtension({
                 customTextarea.style.border = "1px solid #444";
 
                 if (isWaiting && hasConnection && !isDisabled) {
-                    statusBar.style.background = "#3a2a1a";
+                    statusBar.style.background = "transparent";
                     statusBar.style.color = "#fbbf24";
                     statusBar.innerHTML = "🟠 WAITING FOR EDIT - Edit prompt and click APPROVE";
                     
@@ -414,11 +414,11 @@ app.registerExtension({
                     
                     showWaitingOverlay();
                 } else if (hasConnection && !isDisabled) {
-                    statusBar.style.background = "#1a2a3a";
+                    statusBar.style.background = "transparent";
                     statusBar.style.color = "#60a5fa";
                     statusBar.innerHTML = "🔵 EXTERNAL INPUT";
                 } else {
-                    statusBar.style.background = "#1a3a1a";
+                    statusBar.style.background = "transparent";
                     statusBar.style.color = "#4ade80";
                     statusBar.innerHTML = "🟢 LOCAL PROMPT";
                 }

@@ -22,8 +22,9 @@ from aiohttp import web
 
 WEB_DIRECTORY = "./web"
 
-KNOWN_PROMPT_NODES = {"CLIPTextEncode", "RSPrompts", "RS_ImagePrompt"}
-TEXT_KEYS = ["text", "string", "parameters", "Comment", "Description", "Title"]
+KNOWN_PROMPT_NODES = {"CLIPTextEncode", "RSPrompts", "RS_ImagePrompt", "PromptStashPassthrough"}
+TEXT_KEYS = ["prompt_text", "text", "string", "parameters", "Comment", "Description", "Title"]
+
 
 def get_image_files():
     input_dir = folder_paths.get_input_directory()
@@ -33,6 +34,11 @@ def get_image_files():
             files.append(f)
     files.sort()
     return files
+
+
+# =========================================================
+#  Граф ComfyUI, чанк "prompt" (API-формат)
+# =========================================================
 
 def _get_text_from_node(prompt_data, node_id, visited):
     node_id = str(node_id)
@@ -44,6 +50,7 @@ def _get_text_from_node(prompt_data, node_id, visited):
     inputs = node.get("inputs", {})
     class_type = node.get("class_type", "")
 
+    # RS Prompts: если включён и подключён text_input — идём вверх по нему
     if inputs.get("enable_text_input"):
         ti = inputs.get("text_input")
         if isinstance(ti, list) and len(ti) >= 1:
@@ -51,15 +58,25 @@ def _get_text_from_node(prompt_data, node_id, visited):
             if upstream:
                 return upstream
 
+    # Прямой виджет "text" (только если это строка, а не ссылка)
     text = inputs.get("text")
     if isinstance(text, str) and text:
         return text
 
+    # RS_ImagePrompt: промпт в виджете "prompt_preview"
     if class_type == "RS_ImagePrompt":
         prompt_preview = inputs.get("prompt_preview")
         if isinstance(prompt_preview, str) and prompt_preview:
             return prompt_preview
 
+    # PromptStashPassthrough: если use_input_text=false — берём prompt_text
+    if class_type == "PromptStashPassthrough":
+        if not inputs.get("use_input_text", False):
+            prompt_text = inputs.get("prompt_text")
+            if isinstance(prompt_text, str) and prompt_text:
+                return prompt_text
+
+    # Идём глубже по типичным входам (только если это ссылки, а не строки)
     for key in ("conditioning", "conditioning_1", "conditioning_2", "clip", "text_input", "text"):
         ref = inputs.get(key)
         if isinstance(ref, list) and len(ref) >= 1:
@@ -67,6 +84,7 @@ def _get_text_from_node(prompt_data, node_id, visited):
             if result:
                 return result
     return ""
+
 
 def _extract_prompt_from_dict(prompt_data):
     if not isinstance(prompt_data, dict):
@@ -80,6 +98,7 @@ def _extract_prompt_from_dict(prompt_data):
         if isinstance(ref, list) and len(ref) >= 1:
             negative_refs.add((str(ref[0]), ref[1] if len(ref) > 1 else 0))
 
+    # Проход 1: от сэмплера по positive-связи
     for node_id, node_data in prompt_data.items():
         if not isinstance(node_data, dict):
             continue
@@ -91,20 +110,31 @@ def _extract_prompt_from_dict(prompt_data):
                 if text:
                     return text
 
+    # Проход 2 (фолбэк): известные промпт-ноды, кроме негативных
     for node_id, node_data in prompt_data.items():
         if not isinstance(node_data, dict):
             continue
         if node_data.get("class_type", "") in KNOWN_PROMPT_NODES:
             if (str(node_id), 0) in negative_refs:
                 continue
-            text = node_data.get("inputs", {}).get("text")
+            inputs = node_data.get("inputs", {})
+
+            text = inputs.get("text")
             if isinstance(text, str) and text:
                 return text
-            prompt_preview = node_data.get("inputs", {}).get("prompt_preview")
+
+            prompt_preview = inputs.get("prompt_preview")
             if isinstance(prompt_preview, str) and prompt_preview:
                 return prompt_preview
 
+            if node_data.get("class_type", "") == "PromptStashPassthrough":
+                if not inputs.get("use_input_text", False):
+                    prompt_text = inputs.get("prompt_text")
+                    if isinstance(prompt_text, str) and prompt_text:
+                        return prompt_text
+
     return ""
+
 
 def _extract_prompt(prompt_json_str):
     try:
@@ -112,6 +142,11 @@ def _extract_prompt(prompt_json_str):
     except (json.JSONDecodeError, TypeError):
         return ""
     return _extract_prompt_from_dict(data)
+
+
+# =========================================================
+#  Граф ComfyUI, чанк "workflow" (UI-формат) — запасной
+# =========================================================
 
 def _extract_prompt_from_workflow(workflow_json_str):
     try:
@@ -180,6 +215,11 @@ def _extract_prompt_from_workflow(workflow_json_str):
                 return t
     return ""
 
+
+# =========================================================
+#  Сырые текстовые ключи (text / string / parameters / ...)
+# =========================================================
+
 def _looks_like_settings(line):
     keys = ("Steps:", "Sampler:", "CFG scale:", "Seed:", "Size:", "Model hash:",
             "Model:", "Denoising strength:", "Clip skip:", "ENSAM:", "TI_hashes:")
@@ -209,6 +249,11 @@ def _clean_text_prompt(text):
     while lines and _looks_like_settings(lines[-1]):
         lines.pop()
     return "\n".join(lines).strip()
+
+
+# =========================================================
+#  EXIF UserComment (A1111 JPG / WebP)
+# =========================================================
 
 def _decode_user_comment(data):
     if isinstance(data, str):
@@ -247,6 +292,11 @@ def _extract_a1111_from_exif(pil_img):
         print(f"[RS Image-Prompt] EXIF error: {e}")
         return ""
 
+
+# =========================================================
+#  Главная точка входа
+# =========================================================
+
 def extract_prompt_from_file(input_path):
     try:
         with Image.open(input_path) as pil_img:
@@ -256,18 +306,21 @@ def extract_prompt_from_file(input_path):
         print(f"[RS Image-Prompt] Cannot open image: {e}")
         return ""
 
+    # 1) ComfyUI API-граф
     prompt_json = info.get("prompt", "")
     if prompt_json:
         result = _extract_prompt(prompt_json)
         if result:
             return result
 
+    # 2) ComfyUI UI-граф
     workflow_json = info.get("workflow", "")
     if workflow_json:
         result = _extract_prompt_from_workflow(workflow_json)
         if result:
             return result
 
+    # 3) Сырые текстовые ключи
     for key in TEXT_KEYS:
         value = info.get(key)
         if isinstance(value, str) and value.strip():
@@ -275,6 +328,7 @@ def extract_prompt_from_file(input_path):
             if result:
                 return result
 
+    # 4) EXIF UserComment (A1111 JPG / WebP)
     if exif_text:
         result = _clean_text_prompt(exif_text)
         if result:
@@ -283,6 +337,7 @@ def extract_prompt_from_file(input_path):
     return ""
 
 
+# ---------- API-роут для мгновенного чтения в UI ----------
 @PromptServer.instance.routes.get("/rayko/get_prompt")
 async def rayko_get_prompt(request):
     filename = request.rel_url.query.get("filename", "")
@@ -298,7 +353,6 @@ async def rayko_get_prompt(request):
 class RS_ImagePrompt:
     @classmethod
     def INPUT_TYPES(cls):
-        files = get_image_files()
         return {
             "required": {
                 "image": ("STRING", {"default": ""}),
@@ -314,7 +368,7 @@ class RS_ImagePrompt:
     RETURN_NAMES = ("prompt",)
     FUNCTION = "process"
     CATEGORY = "🦊 RaykoStudio"
-    DESCRIPTION = "Extracts the positive prompt from image metadata (ComfyUI, RS Prompts, RS Image-Prompt, A1111 PNG/JPG/WebP)."
+    DESCRIPTION = "Extracts the positive prompt from image metadata (ComfyUI, RS Prompts, RS Image-Prompt, PromptStash, A1111 PNG/JPG/WebP)."
 
     def process(self, image, prompt_preview=""):
         try:

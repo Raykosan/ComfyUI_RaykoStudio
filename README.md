@@ -104,7 +104,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 # 🦊 RS Collage Node  
 **Interactive node for overlaying images with real-time positioning, scaling, rotation, and edge feathering directly on the canvas.**  
 
-https://youtu.be/nPSujGTI_7s
+[![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/nPSujGTI_7s)
 
 **Normal Mode**  
 <img width="446" height="708" alt="Screenshot_1" src="https://github.com/user-attachments/assets/cd7da099-511a-4f28-a71e-54612f0c7f30" />  
@@ -225,6 +225,8 @@ In any case, you can always paste the path using the keyboard shortcut Ctrl+V.
 **A ComfyUI node that extracts the positive prompt from image metadata — instantly, without running the queue.**  
 Load a generated image and `RS Image-Prompt` reads back the prompt that was used to create it. It understands metadata written by ComfyUI, Automatic1111, Forge, and the rest of the RaykoStudio suite.  
 
+[![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/mu4X7wdGvrM)
+
 <img width="451" height="611" alt="Screenshot_3" src="https://github.com/user-attachments/assets/f0cfe847-4a15-41cc-8f66-3411e0719397" />
 
 ### 🔥 Features  
@@ -289,7 +291,7 @@ The prompt is extracted from a wide range of metadata formats, in priority order
 # 🦊 RS Bypass Manager  
 **A powerful node for managing the states of Bypass nodes and groups in complex ComfyUI circuits. If your workflow has turned into a "spaghetti monster" and you need to quickly disable entire modules (for example, switch between txt2img, inpaint and upscale), this node will save you dozens of clicks and nerves.**  
 
-https://youtu.be/Ockp2SpuFSY
+[![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/Ockp2SpuFSY)
 
 <img width="623" height="583" alt="Screenshot_5" src="https://github.com/user-attachments/assets/c4193648-0e3b-4499-bb14-aff6d59e0345" />
 

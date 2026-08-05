@@ -265,7 +265,7 @@ app.registerExtension({
                     ctx.stroke();
 
                     ctx.fillStyle = "#4CAF50";
-                    ctx.font = "10px monospace";
+                    ctx.font = "12px sans-serif";
                     ctx.textAlign = "center";
                     ctx.fillText(widget.format(widget.value), valueX + valueW / 2, rowY + ROW_HEIGHT / 2);
 
@@ -311,7 +311,7 @@ app.registerExtension({
                 ctx.fillStyle = "#C0C0C0";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillText("🔄️ Reset All Parameters", padding + buttonWidth / 2, resetAllY + resetAllHeight / 2);
+                ctx.fillText("🔄️ RESET ALL PARAMETERS", padding + buttonWidth / 2, resetAllY + resetAllHeight / 2);
                 
                 this.rs_resetAllRect = { x: padding, y: resetAllY, w: buttonWidth, h: resetAllHeight };
                 

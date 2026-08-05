@@ -76,12 +76,12 @@ app.registerExtension({
                     };
                 }
                 
-                self.setSize([220, 180]);
+                self.setSize([240, 180]);
                 
                 self.computeSize = function() {
                     const count = self.data.bypassedNodes.length + self.data.bypassedGroups.length;
                     const calculatedHeight = 63 + (count * 28);
-                    return [220, Math.max(80, calculatedHeight)];
+                    return [240, Math.max(80, calculatedHeight)];
                 };
                 
                 self.drawLabel = function(ctx, text, x, y, w, h) {

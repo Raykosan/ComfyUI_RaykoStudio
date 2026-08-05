@@ -18,7 +18,7 @@ app.registerExtension({
 
             const MIN_WIDTH = 360;
             const MIN_HEIGHT = 460;
-            const PREVIEW_FIXED_HEIGHT = 250;
+            const PREVIEW_FIXED_HEIGHT = 150;
 
             node.MIN_WIDTH = MIN_WIDTH;
             node.MIN_HEIGHT = MIN_HEIGHT;
@@ -431,7 +431,7 @@ app.registerExtension({
                 const titleBarHeight = 30;
                 const topPadding = 18;
                 const gap = 8;
-                const bottomPadding = 20;
+                const bottomPadding = 0;
                 const previewSpacing = 20;
 
                 const fixedElements = titleBarHeight + topPadding +

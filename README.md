@@ -90,7 +90,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.33.2 - Deep modification of the RS Outpaint node  
 - v0.34.0 - Adding the RS Load Images From Dir node
 - v0.34.1 - Added the 'Paste' button to the RS Load Images From Dir node
-- v0.35.0 - Added an RS Image-Prompt node  
+- v0.35.0 - Added an RS Image-Prompt node
+- v0.35.1 - Modification of interfaces in some nodes
 
 </details>
 

@@ -368,11 +368,15 @@ app.registerExtension({
                     ctx.fill();
                 };
 
+                // --- ИЗМЕНЕННАЯ ФУНКЦИЯ drawButton с закруглением ---
                 this.drawButton = function(ctx, text, x, y, w, h, iconColor = "#fff") {
+                    const radius = 5;
                     ctx.fillStyle = "#242427";
-                    ctx.fillRect(x, y, w, h);
+                    this.drawRoundedRect(ctx, x, y, w, h, radius);
+                    ctx.fill();
                     ctx.strokeStyle = "#3a3a3c";
-                    ctx.strokeRect(x, y, w, h);
+                    this.drawRoundedRect(ctx, x, y, w, h, radius);
+                    ctx.stroke();
                     
                     ctx.font = "bold 11px sans-serif";
                     ctx.textAlign = "center";
@@ -388,6 +392,7 @@ app.registerExtension({
                     ctx.fillStyle = "#fff";
                     ctx.fillText(label, x + w/2 + 8, y + h/2);
                 };
+                // ----------------------------------------------
 
                 this.drawRoundedRect = function(ctx, x, y, w, h, r) {
                     ctx.beginPath();

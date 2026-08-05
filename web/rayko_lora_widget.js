@@ -699,7 +699,7 @@ app.registerExtension({
                 this.clickZones = [];
                 const startY = this.getLoraListStartY();
                 const padding = 10;
-                const rightPanelWidth = 180;
+                const rightPanelWidth = 170;
 
                 const availableHeight = this.size[1] - startY - 10;
                 const maxVisibleStyles = Math.max(1, Math.floor(availableHeight / this.rowHeight));
@@ -756,7 +756,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "info", index: dataIdx, x: infoX, y: y, w: infoW, h: h });
 
                     const nameX = infoX + infoW + 5;
-                    const nameW = this.size[0] - (padding * 2) - 50 - rightPanelWidth - 20 - infoW - 5;
+                    const nameW = this.size[0] - (padding * 2) - 1 - rightPanelWidth - 20 - infoW - 5;
                     ctx.fillStyle = row.enabled ? "#fff" : "#777";
                     ctx.font = "12px sans-serif";
                     let displayName = row.name;

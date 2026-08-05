@@ -94,6 +94,8 @@ class LoadImageWithText:
         
         print(f"[WRITE] Saved in: {output_path}")
 
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
         if pil_img.mode not in ('RGB', 'RGBA'):
             pil_img = pil_img.convert('RGB')
         
@@ -120,5 +122,5 @@ NODE_CLASS_MAPPINGS = {
     "LoadImageWithText": LoadImageWithText,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "LoadImageWithText": "🦊 RS Image-Text ",
+    "LoadImageWithText": "🦊 RS Image-Text",
 }

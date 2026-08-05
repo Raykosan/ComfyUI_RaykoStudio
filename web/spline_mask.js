@@ -253,8 +253,10 @@ app.registerExtension({
                 const canvasRect = canvasEl.getBoundingClientRect();
                 const ds = app.canvas.ds;
                 const btnY = this.size[1] - 45;
-                const btnW = (this.size[0] - 50) / 3;
-                const btnX = 15 + (buttonIndex * (btnW + 5));
+                const padding = 15;
+                const gap = 10;
+                const btnW = (this.size[0] - 2 * padding - 2 * gap) / 3;
+                const btnX = padding + (buttonIndex * (btnW + gap));
                 
                 const nodeScreenX = canvasRect.left + ((this.pos[0] + ds.offset[0]) * ds.scale);
                 const nodeScreenY = canvasRect.top + ((this.pos[1] + ds.offset[1]) * ds.scale);
@@ -282,6 +284,7 @@ app.registerExtension({
                 syncData();
             };
             
+            // ---- ФУНКЦИЯ РАСЧЁТА ПОЛОЖЕНИЯ ИЗОБРАЖЕНИЯ (с учётом смещения вниз) ----
             const calculateImageRect = () => {
                 if (!app.canvas) return null;
                 
@@ -302,11 +305,13 @@ app.registerExtension({
                 }
                 
                 const titleBarHeight = LiteGraph.NODE_TITLE_HEIGHT || 30;
-                const padding = 10;
+                const leftRightPadding = 10;
+                const topPadding = 18;       // 10 (базовый) + 8 (дополнительный сдвиг вниз)
+                const bottomPadding = 10;
                 const footerHeight = 50;
                 
-                const availableHeight = (node.size[1] * scale) - (titleBarHeight * scale) - (widgetsHeight * scale) - (footerHeight * scale) - (padding * 2 * scale);
-                const availableWidth = (node.size[0] * scale) - (padding * 2 * scale);
+                const availableHeight = (node.size[1] * scale) - (titleBarHeight * scale) - (widgetsHeight * scale) - (footerHeight * scale) - (topPadding * scale) - (bottomPadding * scale);
+                const availableWidth = (node.size[0] * scale) - (leftRightPadding * 2 * scale);
                 
                 if (availableWidth <= 0 || availableHeight <= 0) return null;
                 
@@ -326,11 +331,12 @@ app.registerExtension({
                     contentScale = drawW / node.image.width;
                 }
                 
-                const drawX = nodeScreenX + (padding * scale) + ((availableWidth - drawW) / 2);
-                const drawY = nodeScreenY + (titleBarHeight * scale) + (widgetsHeight * scale) + (padding * scale) + ((availableHeight - drawH) / 2);
+                const drawX = nodeScreenX + (leftRightPadding * scale) + ((availableWidth - drawW) / 2);
+                const drawY = nodeScreenY + (titleBarHeight * scale) + (widgetsHeight * scale) + (topPadding * scale) + ((availableHeight - drawH) / 2);
                 
                 return { left: drawX, top: drawY, width: drawW, height: drawH, scale: contentScale };
             };
+            // ----------------------------------------------------------------
             
             const syncPosition = () => {
                 if (!_overlayCanvas) return;
@@ -478,6 +484,7 @@ app.registerExtension({
                 updateLoop();
             };
             
+            // ---- ОТРИСОВКА КНОПОК И ИЗОБРАЖЕНИЯ (с учётом смещения) ----
             node.onDrawForeground = function(ctx) {
                 if (this.flags.collapsed) return;
                 
@@ -490,16 +497,22 @@ app.registerExtension({
                 }
                 
                 const titleBarHeight = LiteGraph.NODE_TITLE_HEIGHT || 30;
-                const padding = 10;
+                const leftRightPadding = 10;
+                const topPadding = 18;      // 10 + 8
+                const bottomPadding = 10;
                 const footerHeight = 50;
                 const btnH = 28;
                 const btnY = h - 45;
-                const btnW = (w - 50) / 3;
+                
+                // Параметры кнопок (расстояние +10, закругление)
+                const btnPadding = 15;
+                const btnGap = 10;
+                const btnW = (w - 2 * btnPadding - 2 * btnGap) / 3;
                 
                 // === РАЗМЕРЫ ИЗОБРАЖЕНИЯ НАД ПРЕВЬЮ ===
                 if (this.imageLoaded && this.image) {
                     ctx.fillStyle = "#888";
-                    ctx.font = "11px sans-serif";
+                    ctx.font = "15px sans-serif";
                     ctx.textAlign = "center";
                     ctx.textBaseline = "top";
                     ctx.fillText(
@@ -510,9 +523,9 @@ app.registerExtension({
                 }
                 // ====================================
                 
-                const startY = titleBarHeight + widgetsHeight + padding;
-                const availableHeight = h - startY - footerHeight - padding;
-                const availableWidth = w - (padding * 2);
+                const startY = titleBarHeight + widgetsHeight + topPadding;
+                const availableHeight = h - startY - footerHeight - bottomPadding;
+                const availableWidth = w - (leftRightPadding * 2);
                 
                 if (this.imageLoaded && this.image) {
                     const imgRatio = this.image.width / this.image.height;
@@ -526,7 +539,7 @@ app.registerExtension({
                         drawH = drawW / imgRatio;
                     }
                     
-                    const drawX = padding + (availableWidth - drawW) / 2;
+                    const drawX = leftRightPadding + (availableWidth - drawW) / 2;
                     const drawY = startY + (availableHeight - drawH) / 2;
                     
                     ctx.drawImage(this.image, drawX, drawY, drawW, drawH);
@@ -534,7 +547,7 @@ app.registerExtension({
                     ctx.strokeRect(drawX, drawY, drawW, drawH);
                 } else {
                     ctx.fillStyle = "#222";
-                    ctx.fillRect(padding, startY, availableWidth, availableHeight);
+                    ctx.fillRect(leftRightPadding, startY, availableWidth, availableHeight);
                     ctx.fillStyle = "#555";
                     ctx.font = "14px Arial";
                     ctx.textAlign = "center";
@@ -542,17 +555,37 @@ app.registerExtension({
                     ctx.fillText("Select Image...", w / 2, startY + availableHeight / 2);
                 }
                 
+                // ---- РИСУЕМ КНОПКИ (скруглённые, с увеличенным расстоянием) ----
                 for (let i = 0; i < this.buttons.length; i++) {
                     const btn = this.buttons[i];
-                    btn.x = 15 + (i * (btnW + 5));
+                    btn.x = btnPadding + (i * (btnW + btnGap));
                     btn.y = btnY;
                     btn.w = btnW;
                     btn.h = btnH;
                     
+                    // Фон со скруглением
+                    const radius = 4;
+                    const x = btn.x, y = btn.y, w = btn.w, h = btn.h;
                     ctx.fillStyle = btn.hover ? "#444" : "#2a2a2a";
-                    ctx.fillRect(btn.x, btn.y, btn.w, btn.h);
+                    ctx.beginPath();
+                    ctx.moveTo(x + radius, y);
+                    ctx.lineTo(x + w - radius, y);
+                    ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+                    ctx.lineTo(x + w, y + h - radius);
+                    ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+                    ctx.lineTo(x + radius, y + h);
+                    ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+                    ctx.lineTo(x, y + radius);
+                    ctx.quadraticCurveTo(x, y, x + radius, y);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Обводка
                     ctx.strokeStyle = btn.color;
-                    ctx.strokeRect(btn.x, btn.y, btn.w, btn.h);
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    
+                    // Текст
                     ctx.fillStyle = btn.color;
                     ctx.font = "bold 11px Arial";
                     ctx.textAlign = "center";
@@ -560,6 +593,7 @@ app.registerExtension({
                     ctx.fillText(btn.label, btn.x + btn.w / 2, btn.y + btn.h / 2);
                 }
             };
+            // ------------------------------------------------------------
             
             node.onMouseMove = function(event, pos) {
                 const [x, y] = pos;

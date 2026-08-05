@@ -22,17 +22,17 @@ function drawImageFit(ctx, img, areaX, areaY, areaW, areaH, zoom, panX, panY) {
     ctx.restore();
 }
 
-function drawRoundedRect(ctx, x, y, w, h, r) {
+function drawRoundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
     ctx.lineTo(x + w - r, y);
-    ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
     ctx.lineTo(x + w, y + h - r);
-    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
     ctx.lineTo(x + r, y + h);
-    ctx.arcTo(x, y + h, x, y + h - r, r);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
     ctx.lineTo(x, y + r);
-    ctx.arcTo(x, y, x + r, y, r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
     ctx.closePath();
 }
 
@@ -40,7 +40,7 @@ function getImageArea(node) {
     const headerHeight = 50;
     const padding = 10;
     const yStart = headerHeight;
-    const widgetsHeight = 112;
+    const widgetsHeight = 122; // Обновлено под новые отступы (3*24 + 2*6 + 6 + 22 + 10)
     const widgetsGap = 10;
     const yEnd = node.size[1] - widgetsHeight - widgetsGap - padding;
     const w = Math.max(10, node.size[0] - padding * 2);
@@ -50,7 +50,7 @@ function getImageArea(node) {
 
 function getWidgetsArea(node) {
     const padding = 10;
-    const widgetsHeight = 112;
+    const widgetsHeight = 122; // Обновлено
     const y = node.size[1] - widgetsHeight - padding;
     return { y, height: widgetsHeight };
 }
@@ -89,6 +89,7 @@ app.registerExtension({
                 this.rs_hideImg2 = false;
                 this.rs_dragTarget = null;
                 this.rs_widgetRects = [];
+                this.rs_sliderHover = [];
                 this.setSize([450, 450]);
                 this.min_size = [450, 380];
                 
@@ -202,94 +203,92 @@ app.registerExtension({
                 }
                 
                 const ROW_HEIGHT = 24;
-                const ROW_GAP = 4;
-                const LABEL_WIDTH = 50;
-                const INFO_WIDTH = 35;
-                const RESET_WIDTH = 15;
-                const CORNER_RADIUS = 6;
-                const INNER_PADDING = 8;
-                const SLIDER_HEIGHT = 4;
-                const HANDLE_SIZE = 6;
+                const ROW_GAP = 6; // Уменьшено до 6 (как отступ до кнопки сброса)
                 
                 this.rs_widgetRects = [];
                 
                 const widgets = [
-                    { name: 'zoom', icon: '🔎', label: 'Zoom', value: zoom, format: (v) => v.toFixed(1), default: 1.0, min: 1.0, max: 10.0, step: 0.05 },
-                    { name: 'pan_x', icon: '↔️', label: 'Pan H', value: panPercentX, format: (v) => Math.round(v).toString(), default: 0, min: -100, max: 100, step: 0.5 },
-                    { name: 'pan_y', icon: '️↕️', label: 'Pan V', value: panPercentY, format: (v) => Math.round(v).toString(), default: 0, min: -100, max: 100, step: 0.5 }
+                    { name: 'zoom', label: 'ZOOM', value: zoom, format: (v) => v.toFixed(1), default: 1.0, min: 1.0, max: 10.0, step: 0.05 },
+                    { name: 'pan_x', label: 'PAN H', value: panPercentX, format: (v) => Math.round(v).toString(), default: 0, min: -100, max: 100, step: 0.5 },
+                    { name: 'pan_y', label: 'PAN V', value: panPercentY, format: (v) => Math.round(v).toString(), default: 0, min: -100, max: 100, step: 0.5 }
                 ];
                 
-                const buttonWidth = w;
-                const sliderWidth = buttonWidth - LABEL_WIDTH - INFO_WIDTH - RESET_WIDTH - 6 * INNER_PADDING;
-                
+                const widgetX = padding;
+                const widgetW = w;
+
                 widgets.forEach((widget, i) => {
                     const rowY = widgetsY + i * (ROW_HEIGHT + ROW_GAP);
-                    
-                    const labelX = padding + INNER_PADDING;
-                    const sliderX = labelX + LABEL_WIDTH + INNER_PADDING * 2;
-                    const infoX = sliderX + sliderWidth + INNER_PADDING;
-                    const resetX = infoX + INFO_WIDTH + INNER_PADDING;
-                    
-                    drawRoundedRect(ctx, padding, rowY, buttonWidth, ROW_HEIGHT, CORNER_RADIUS);
-                    ctx.fillStyle = "#252525";
-                    ctx.fill();
-                    ctx.strokeStyle = "#444444";
+                    const isHover = this.rs_sliderHover?.[i] || false;
+                    const isActive = this.rs_dragTarget?.widget === widget.name;
+
+                    ctx.fillStyle = isHover ? "#2a2a2a" : "#252525";
+                    ctx.strokeStyle = isActive ? "#4CAF50" : (isHover ? "#4CAF50" : "#444");
                     ctx.lineWidth = 1;
+                    drawRoundRect(ctx, widgetX, rowY, widgetW, ROW_HEIGHT, 4);
+                    ctx.fill();
                     ctx.stroke();
-                    
-                    ctx.font = "bold 12px Arial";
-                    ctx.fillStyle = "#C0C0C0";
+
+                    ctx.fillStyle = "#aaa";
+                    ctx.font = "10px sans-serif";
                     ctx.textAlign = "left";
                     ctx.textBaseline = "middle";
-                    const labelText = `${widget.icon} ${widget.label}`;
-                    ctx.fillText(labelText, labelX, rowY + ROW_HEIGHT / 2);
-                    
-                    const sliderTrackY = rowY + ROW_HEIGHT / 2;
+                    ctx.fillText(widget.label, widgetX + 8, rowY + ROW_HEIGHT / 2);
+
+                    // Gap уменьшен на 40: было 90, стало 50
+                    const trackX = widgetX + 50;
+                    // Ширина трека увеличена на 40: было 190, стало 150
+                    const trackW = widgetW - 142;
+                    const trackY = rowY + ROW_HEIGHT / 2;
+                    const trackH = 3;
+
+                    ctx.fillStyle = "#444";
+                    ctx.fillRect(trackX, trackY - trackH / 2, trackW, trackH);
+
+                    const ratio = Math.max(0, Math.min(1, (widget.value - widget.min) / (widget.max - widget.min)));
+                    const fillW = trackW * ratio;
+                    ctx.fillStyle = "#4CAF50";
+                    ctx.fillRect(trackX, trackY - trackH / 2, fillW, trackH);
+
+                    const handleX = trackX + fillW;
+                    const handleSize = 12;
+                    ctx.fillStyle = "#fff";
                     ctx.beginPath();
-                    ctx.moveTo(sliderX, sliderTrackY);
-                    ctx.lineTo(sliderX + sliderWidth, sliderTrackY);
-                    ctx.strokeStyle = "#444444";
-                    ctx.lineWidth = SLIDER_HEIGHT;
-                    ctx.stroke();
-                    
-                    const normalizedValue = (widget.value - widget.min) / (widget.max - widget.min);
-                    const handleX = sliderX + normalizedValue * sliderWidth;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(handleX, sliderTrackY - HANDLE_SIZE);
-                    ctx.lineTo(handleX + HANDLE_SIZE, sliderTrackY);
-                    ctx.lineTo(handleX, sliderTrackY + HANDLE_SIZE);
-                    ctx.lineTo(handleX - HANDLE_SIZE, sliderTrackY);
-                    ctx.closePath();
-                    ctx.fillStyle = "#000000";
+                    ctx.arc(handleX, trackY, handleSize / 2, 0, Math.PI * 2);
                     ctx.fill();
-                    ctx.strokeStyle = "#ffffff";
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                    
-                    const infoRect = { x: infoX, y: rowY + 2, w: INFO_WIDTH, h: ROW_HEIGHT - 4 };
-                    drawRoundedRect(ctx, infoX, rowY + 2, INFO_WIDTH, ROW_HEIGHT - 4, 4);
-                    ctx.fillStyle = "#3B3B3B";
+
+                    const valueW = 50;
+                    const valueX = widgetX + widgetW - valueW - 30;
+                    ctx.fillStyle = "#222";
+                    ctx.strokeStyle = "#444";
+                    drawRoundRect(ctx, valueX, rowY + 3, valueW, ROW_HEIGHT - 6, 3);
                     ctx.fill();
-                    
-                    ctx.font = "12px monospace";
-                    ctx.fillStyle = "#e0e0e0";
+                    ctx.stroke();
+
+                    ctx.fillStyle = "#4CAF50";
+                    ctx.font = "10px monospace";
+                    ctx.textAlign = "center";
+                    ctx.fillText(widget.format(widget.value), valueX + valueW / 2, rowY + ROW_HEIGHT / 2);
+
+                    const resetBtnSize = 24;
+                    const resetBtnX = widgetX + widgetW - resetBtnSize;
+                    const resetBtnY = rowY + (ROW_HEIGHT - resetBtnSize) / 2;
+                    ctx.fillStyle = "#252525";
+                    ctx.strokeStyle = "#444";
+                    drawRoundRect(ctx, resetBtnX, resetBtnY, resetBtnSize, resetBtnSize, 4);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.fillStyle = "#888";
+                    ctx.font = "14px sans-serif";
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
-                    ctx.fillText(widget.format(widget.value), infoX + INFO_WIDTH / 2, rowY + ROW_HEIGHT / 2);
-                    
-                    const resetRect = { x: resetX, y: rowY, w: RESET_WIDTH, h: ROW_HEIGHT };
-                    ctx.font = "12px Arial";
-                    ctx.textAlign = "center";
-                    ctx.fillText("🔃", resetX + RESET_WIDTH / 2, rowY + ROW_HEIGHT / 2);
-                    
+                    ctx.fillText("🔄", resetBtnX + resetBtnSize / 2, resetBtnY + resetBtnSize / 2);
+
                     this.rs_widgetRects.push({
                         widget: widget.name,
-                        sliderRect: { x: sliderX - HANDLE_SIZE, y: rowY - HANDLE_SIZE, w: sliderWidth + HANDLE_SIZE * 2, h: ROW_HEIGHT + HANDLE_SIZE * 2 },
-                        sliderTrackX: sliderX,
-                        sliderTrackWidth: sliderWidth,
-                        infoRect,
-                        resetRect,
+                        sliderRect: { x: trackX - 6, y: rowY, w: trackW + 12, h: ROW_HEIGHT },
+                        sliderTrackX: trackX,
+                        sliderTrackWidth: trackW,
+                        resetRect: { x: resetBtnX, y: resetBtnY, w: resetBtnSize, h: resetBtnSize },
                         default: widget.default,
                         min: widget.min,
                         max: widget.max,
@@ -299,11 +298,12 @@ app.registerExtension({
                 
                 const resetAllY = widgetsY + 2 * (ROW_HEIGHT + ROW_GAP) + ROW_HEIGHT + 6;
                 const resetAllHeight = 22;
+                const buttonWidth = w;
                 
-                drawRoundedRect(ctx, padding, resetAllY, buttonWidth, resetAllHeight, CORNER_RADIUS);
+                drawRoundRect(ctx, padding, resetAllY, buttonWidth, resetAllHeight, 4);
                 ctx.fillStyle = "#252525";
                 ctx.fill();
-                ctx.strokeStyle = "#444444";
+                ctx.strokeStyle = "#444";
                 ctx.lineWidth = 1;
                 ctx.stroke();
                 
@@ -400,6 +400,26 @@ app.registerExtension({
 
             const onMouseMove = nodeType.prototype.onMouseMove;
             nodeType.prototype.onMouseMove = function (e, pos, graphcanvas) {
+                if (this.rs_dragTarget && e && e.buttons === 0) {
+                        this.rs_dragTarget = null;
+                        graphcanvas.setDirty(true, true);
+                }
+                if (this.rs_widgetRects && pos && !this.rs_dragTarget) {
+                    let hoverChanged = false;
+                    for (let i = 0; i < this.rs_widgetRects.length; i++) {
+                        const rect = this.rs_widgetRects[i];
+                        const isOver = pos[0] >= rect.sliderRect.x && pos[0] <= rect.sliderRect.x + rect.sliderRect.w &&
+                                       pos[1] >= rect.sliderRect.y && pos[1] <= rect.sliderRect.y + rect.sliderRect.h;
+                        if ((this.rs_sliderHover[i] || false) !== isOver) {
+                            this.rs_sliderHover[i] = isOver;
+                            hoverChanged = true;
+                        }
+                    }
+                    if (hoverChanged) {
+                        graphcanvas.setDirty(true, true);
+                    }
+                }
+
                 if (this.rs_dragTarget) {
                     const delta = pos[0] - this.rs_dragTarget.startX;
                     const deltaValue = (delta / this.rs_dragTarget.sliderWidth) * (this.rs_dragTarget.max - this.rs_dragTarget.min);

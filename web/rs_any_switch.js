@@ -65,13 +65,19 @@ app.registerExtension({
                         widget.slotName = conn.name;
                         widget.draw = function(ctx, node, w, y, h) {
                             ctx.fillStyle = "#222";
-                            ctx.fillRect(0, y, w, h);
+                            ctx.beginPath();
+                            if (ctx.roundRect) {
+                                ctx.roundRect(10, y, w - 20, h, 6);
+                            } else {
+                                ctx.rect(10, y, w - 20, h);
+                            }
+                            ctx.fill();
                             ctx.fillStyle = "#aaa";
                             ctx.font = "13px Arial";
                             ctx.textAlign = "left";
-                            ctx.fillText(this.name, 10, y + h / 2 + 1);
+                            ctx.fillText(this.name, 20, y + h / 2 + 1);
                             const toggleW = 30, toggleH = 14;
-                            const toggleX = w - toggleW - 10;
+                            const toggleX = w - toggleW - 20;
                             const toggleY = y + (h - toggleH) / 2;
                             ctx.fillStyle = this.value ? "#4a4" : "#666";
                             ctx.beginPath();
@@ -200,8 +206,8 @@ app.registerExtension({
                         ctx.strokeStyle = this.value === "OFF" ? "#f44336" : "#4caf50";
                         ctx.lineWidth = 2;
                         ctx.beginPath();
-                        if (ctx.roundRect) ctx.roundRect(1, y, w - 2, h, 6);
-                        else ctx.rect(1, y, w - 2, h);
+                        if (ctx.roundRect) ctx.roundRect(10, y, w - 20, h, 6);
+                        else ctx.rect(10, y, w - 20, h);
                         ctx.stroke();
                         ctx.fillStyle = "#fff";
                         ctx.font = "bold 13px Arial";
@@ -270,13 +276,19 @@ app.registerExtension({
                         widget.slotName = inputName;
                         widget.draw = function(ctx, node, w, y, h) {
                             ctx.fillStyle = "#222";
-                            ctx.fillRect(0, y, w, h);
+                            ctx.beginPath();
+                            if (ctx.roundRect) {
+                                ctx.roundRect(10, y, w - 20, h, 6);
+                            } else {
+                                ctx.rect(10, y, w - 20, h);
+                            }
+                            ctx.fill();
                             ctx.fillStyle = "#aaa";
                             ctx.font = "14px Arial";
                             ctx.textAlign = "left";
-                            ctx.fillText(this.name, 10, y + h / 2 + 1);
+                            ctx.fillText(this.name, 20, y + h / 2 + 1);
                             const toggleW = 30, toggleH = 14;
-                            const toggleX = w - toggleW - 10;
+                            const toggleX = w - toggleW - 20;
                             const toggleY = y + (h - toggleH) / 2;
                             ctx.fillStyle = this.value ? "#4a4" : "#666";
                             ctx.beginPath();

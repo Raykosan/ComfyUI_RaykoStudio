@@ -6,6 +6,9 @@ app.registerExtension({
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
         if (nodeData.name !== "RS Image Selector") return;
 
+        const MIN_WIDTH = 300;
+        const MIN_HEIGHT = 400;
+
         const onNodeCreated = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function () {
             if (onNodeCreated) onNodeCreated.apply(this, arguments);
@@ -16,7 +19,8 @@ app.registerExtension({
             this.userResized = false;
             this.heartbeatInterval = null;
 
-            this.setSize([450, 500]);
+            this.setSize([MIN_WIDTH, MIN_HEIGHT]);
+            this.min_size = [MIN_WIDTH, MIN_HEIGHT];
 
             this.buttons = [
                 { label: "➕ SELECT ALL", key: "select_all", color: "#2196F3", hover: false, row: 0, col: 0 },
@@ -58,6 +62,10 @@ app.registerExtension({
         const onResize = nodeType.prototype.onResize;
         nodeType.prototype.onResize = function(size) {
             if (onResize) onResize.apply(this, arguments);
+            
+            if (this.size[0] < MIN_WIDTH) this.size[0] = MIN_WIDTH;
+            if (this.size[1] < MIN_HEIGHT) this.size[1] = MIN_HEIGHT;
+            
             this.userResized = true;
         };
 
@@ -93,9 +101,9 @@ app.registerExtension({
                 margin: 12,
                 topBarH: 10,
                 bottomBarH: 85,
-                minWidth: 400,
+                minWidth: MIN_WIDTH,
                 maxWidth: 1200,
-                minHeight: 300,
+                minHeight: MIN_HEIGHT,
                 maxHeight: 900
             };
 
@@ -222,7 +230,7 @@ app.registerExtension({
                 
                 const titleBarHeight = LiteGraph.NODE_TITLE_HEIGHT || 30;
                 const padding = 10;
-                const footerHeight = 70;
+                const footerHeight = 65;
                 let widgetsTotalHeight = 0;
                 
                 if (this.widgets) {
@@ -242,10 +250,10 @@ app.registerExtension({
 
             const titleBarHeight = LiteGraph.NODE_TITLE_HEIGHT || 30;
             const padding = 10;
-            const footerHeight = 70;
+            const footerHeight = 65;
             const btnH = 28;
             const btnGap = 5;
-            const btnY = this.size[1] - 65;
+            const btnY = this.size[1] - 70;
             
             let widgetsTotalHeight = 0;
             if (this.widgets) {
@@ -351,7 +359,7 @@ app.registerExtension({
                 ctx.fillText("Render Error", 10, 10);
             }
 
-            const totalBtnW = this.size[0] - 50;
+            const totalBtnW = this.size[0] - 30;
             const btnW = (totalBtnW - btnGap) / 2;
 
             this.btnRects = [];

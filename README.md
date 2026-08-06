@@ -328,6 +328,32 @@ Also, when using bypass using comfi's own methods (the context menu is bypass, b
 
 </details>
 <details>
+  <summary>🦊 RS Decode Save</summary>
+	
+# 🦊 RS Decode Save  
+**A lightweight ComfyUI custom node that combines native VAE Decode and Save Image into a single, streamlined unit.**  
+Decodes latent samples to image tensors and saves them to disk in one step, while preserving the decoded `IMAGE` output for downstream preview or processing.  
+
+<img width="1013" height="774" alt="Screenshot_3" src="https://github.com/user-attachments/assets/ca9d60cf-e9c9-4f83-ae8d-617046ba2904" />
+
+### 🔥 Features  
+**Unified Workflow** - Eliminates the need for separate decode and save nodes.  
+**Native Path Handling** - Uses ComfyUI's standard `folder_paths.get_save_image_path` logic. Supports subfolders via prefix (e.g., `project/render`).  
+**Format Support** - PNG, JPG, WEBP with automatic file numbering (`_00001`, `_00002`...).  
+**Metadata Embedding** - Automatically embeds workflow metadata into PNGs or saves sidecar JSON files for other formats.  
+**Minimal Interface** - Only two custom widgets (Prefix, Format). No cluttered settings panels.  
+
+### 🪛 Usage  
+| Input / Widget | Description |
+| :--- | :--- |
+| `samples` (LATENT) | Latent space data from KSampler or similar. |
+| `vae` (VAE) | VAE model used for decoding. |
+| **PREFIX** (Widget) | Filename prefix and optional subfolder path. Default: `ComfyUI`. Use `/` for subfolders (e.g., `batch1/test`). |
+| **FORMAT** (Widget) | Output format selector: PNG, JPG, or WEBP. |
+| `image` (Output) | Decoded IMAGE tensor. Connect to PreviewImage or further processing nodes. |
+
+</details>
+<details>
   <summary>🦊 RS rgb2rgba</summary>
 	
 # 🦊 RS rgb2rgba  

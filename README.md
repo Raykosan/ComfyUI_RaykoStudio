@@ -92,6 +92,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.34.1 - Added the 'Paste' button to the RS Load Images From Dir node
 - v0.35.0 - Added an RS Image-Prompt node
 - v0.35.1 - Modification of interfaces in some nodes
+- v0.36.0 - Added the RS Decode Save node
+- v0.36.1 - Fix error in the RS Models Loader node  
 
 </details>
 

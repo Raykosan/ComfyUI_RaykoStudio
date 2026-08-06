@@ -1434,6 +1434,9 @@ Toggle **ENABLE SHADOW** to activate.
 	
 # 🦊 RS Image Adjustments  
 **A powerful interactive image adjustment node with real-time preview and professional-grade controls.**  
+Inspired by industry standards like Adobe Lightroom and Photoshop, it offers real-time previews, advanced color grading, and an efficient batch processing mode.  
+
+[![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/ZSrZddAj1m0)
 
 <img width="524" height="821" alt="Screenshot_1" src="https://github.com/user-attachments/assets/20311eaf-f194-45c5-a50a-56acfa6f2d4f" />
 <img width="315" height="929" alt="Screenshot_6" src="https://github.com/user-attachments/assets/31bf377d-7515-4591-9430-f169143ca9d9" />

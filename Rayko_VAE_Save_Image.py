@@ -124,7 +124,11 @@ class RS_VAE_Decode_Save:
 
     def _save_workflow_json(self, image_path, workflow_data):
         try:
-            json_path = os.path.splitext(image_path)[0] + ".json"
+            json_path = os.path.realpath(os.path.splitext(image_path)[0] + ".json")
+            output_dir = os.path.realpath(self.output_dir)
+            if not json_path.startswith(output_dir + os.sep):
+                print(f"[RS] Blocked path traversal attempt in workflow JSON save")
+                return
             with open(json_path, 'w', encoding='utf-8') as f:
                 json.dump(workflow_data, f, ensure_ascii=False, indent=2)
         except Exception as e:

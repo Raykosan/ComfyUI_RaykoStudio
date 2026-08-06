@@ -2,7 +2,7 @@
 # Copyright 2025-2026 Raykosan (RaykoStudio)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use th is file except in compliance with the License.
+# you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
@@ -50,6 +50,7 @@ class LRUCache:
 PENDING_ADJUSTMENTS = LRUCache(max_size=50)
 PREVIEW_CACHE = LRUCache(max_size=20)
 LUT_CACHE = LRUCache(max_size=10)
+BATCH_PARAMS = {}  # Глобальное хранилище для параметров батча {node_id: adjustments}
 
 def tensor2pil(tensor):
     arr = (tensor.cpu().numpy() * 255.0).astype(np.uint8)
@@ -380,9 +381,9 @@ def apply_selective_color(img_bgr, color_name, cyan, magenta, yellow, black):
 
     c, m, y, k = cyan / 100.0, magenta / 100.0, yellow / 100.0, black / 100.0
     
-    img_rgb[:, :, 0] += mask * (-c - k)  # Red: Cyan уменьшает Red, Black уменьшает все
-    img_rgb[:, :, 1] += mask * (-m - k)  # Green: Magenta уменьшает Green
-    img_rgb[:, :, 2] += mask * (-y - k)  # Blue: Yellow уменьшает Blue
+    img_rgb[:, :, 0] += mask * (-c - k)
+    img_rgb[:, :, 1] += mask * (-m - k)
+    img_rgb[:, :, 2] += mask * (-y - k)
     
     img_rgb = np.clip(img_rgb, 0, 1)
     result_bgr = (cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR) * 255).astype(np.uint8)
@@ -496,10 +497,15 @@ async def adjustments_handler(request):
         data = await request.json()
         node_id = str(data.get("id"))
         adjustments = data.get("adjustments", {})
+        is_batch = data.get("is_batch", False)
         
         if node_id is None or adjustments is None:
             return web.json_response({"error": "Missing data"}, status=400)
         
+        # Если включен Batch - сохраняем параметры глобально
+        if is_batch:
+            BATCH_PARAMS[node_id] = adjustments
+            
         PENDING_ADJUSTMENTS.put(node_id, {
             "status": "completed",
             "adjustments": adjustments
@@ -519,6 +525,8 @@ async def cancel_handler(request):
         node_id = str(data.get("node_id"))
         if node_id:
             PENDING_ADJUSTMENTS.put(node_id, {"status": "cancelled"})
+            # Очищаем batch-параметры при отмене
+            BATCH_PARAMS.pop(node_id, None)
             temp_dir = folder_paths.get_temp_directory()
             cleanup_temp_files(node_id, temp_dir)
         return web.json_response({"status": "cancelled"})
@@ -653,12 +661,15 @@ class RS_ImageAdjustments:
     def apply_adjustments(self, image, brightness, contrast, sharpen, hue, saturation, unique_id=None, advanced_params=None):
         unique_id = str(unique_id) if unique_id is not None else "unknown"
         
+        # Создаем безопасный fallback-тензор на случай ошибок/отмены
+        safe_fallback = torch.zeros((1, 512, 512, 3)) 
+        
         if image.numel() == 0:
-            return (image,)
+            return (safe_fallback,)
         
         h, w = image.shape[1], image.shape[2]
         if h < 8 or w < 8:
-            return (image,)
+            return (safe_fallback,)
         
         PENDING_ADJUSTMENTS.cache.pop(unique_id, None)
         
@@ -673,6 +684,32 @@ class RS_ImageAdjustments:
         
         cleanup_temp_files(unique_id, td, exclude_file=bfn)
         
+        # === BATCH MODE CHECK ===
+        # Проверяем ДО входа в режим ожидания
+        if unique_id in BATCH_PARAMS:
+            print(f"[RS Adjustments] Node {unique_id}: Applying saved BATCH parameters...")
+            adjustments = BATCH_PARAMS[unique_id].copy()
+            
+            # Гарантируем наличие базовых параметров
+            adjustments["brightness"] = adjustments.get("brightness", brightness)
+            adjustments["contrast"] = adjustments.get("contrast", contrast)
+            adjustments["sharpen"] = adjustments.get("sharpen", sharpen)
+            adjustments["hue"] = adjustments.get("hue", hue)
+            adjustments["saturation"] = adjustments.get("saturation", saturation)
+            
+            img_bgr = cv2.cvtColor(np.array(bg_pil), cv2.COLOR_RGB2BGR)
+            result_bgr = process_image(img_bgr, adjustments)
+            
+            result_pil = Image.fromarray(cv2.cvtColor(result_bgr, cv2.COLOR_BGR2RGB))
+            cleanup_temp_files(unique_id, td)
+            
+            # Удаляем batch-параметры ТОЛЬКО после успешной обработки
+            # Это гарантирует, что следующий кадр уже не будет batch
+            BATCH_PARAMS.pop(unique_id, None)
+            
+            return (pil2tensor(result_pil),)
+        
+        # === ОБЫЧНЫЙ РЕЖИМ ===
         PENDING_ADJUSTMENTS.put(unique_id, {"status": "pending"})
         
         time.sleep(0.5)
@@ -702,15 +739,16 @@ class RS_ImageAdjustments:
             if PENDING_ADJUSTMENTS.cache[unique_id].get("status") == "cancelled":
                 print(f"[RS Image Adjustments] Cancelled by user for node {unique_id}")
                 PENDING_ADJUSTMENTS.cache.pop(unique_id, None)
+                BATCH_PARAMS.pop(unique_id, None)  # Очищаем batch при отмене
                 cleanup_temp_files(unique_id, td)
-                return (image,)
+                return (safe_fallback,)
         
         print(f"[RS Image Adjustments] Input received for node {unique_id}")
         
         data = PENDING_ADJUSTMENTS.cache.pop(unique_id, None)
         if data is None:
             cleanup_temp_files(unique_id, td)
-            return (image,)
+            return (safe_fallback,)
         
         adjustments = data.get("adjustments", {})
         

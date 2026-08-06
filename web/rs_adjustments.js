@@ -182,6 +182,15 @@ app.registerExtension({
       this._lastHeavyRenderTime = 0;
       this._isHeavyRenderPending = false;
 
+      // BATCH MODE VARIABLES
+      this.isBatchMode = false;
+      this._batchParams = null;
+      this.btnBatchHover = false;
+      this._queueWasRunning = false;
+      this._batchResetTimer = null;
+
+      console.log(`[RS Adjustments] Node ${this.id} created. Registering status listener.`);
+
       this.displayWidth = 420;
       this.displayHeight = 420;
       this.canvasPixelSize = 420;
@@ -283,6 +292,34 @@ app.registerExtension({
 
       api.addEventListener("interrupted", () => {
         this._cleanup();
+      });
+
+      // STATUS LISTENER FOR BATCH RESET (moved inside onNodeCreated for correct 'this')
+      api.addEventListener("status", (event) => {
+        const remaining = event.detail?.exec_info?.queue_remaining;
+        console.log(`[RS Adjustments] Status event received. queue_remaining=${remaining}, this.id=${this.id}, isBatchMode=${this.isBatchMode}`);
+        
+        if (remaining > 0) {
+          this._queueWasRunning = true;
+          if (this._batchResetTimer) { 
+            clearTimeout(this._batchResetTimer); 
+            this._batchResetTimer = null; 
+          }
+        } else if (remaining === 0 && this._queueWasRunning) {
+          if (!this._batchResetTimer) {
+            console.log(`[RS Adjustments] Node ${this.id}: Queue finished. Starting batch reset timer (3s)...`);
+            this._batchResetTimer = setTimeout(() => {
+              console.log(`[RS Adjustments] Node ${this.id}: Timer fired! Resetting batch. isBatchMode was: ${this.isBatchMode}`);
+              this.isBatchMode = false;
+              this._batchParams = null;
+              this.setDirtyCanvas(true);
+              
+              this._batchResetTimer = null;
+              this._queueWasRunning = false;
+              console.log(`[RS Adjustments] Node ${this.id}: Batch reset complete. isBatchMode is now: ${this.isBatchMode}`);
+            }, 500);
+          }
+        }
       });
     };
 
@@ -495,11 +532,11 @@ app.registerExtension({
         return b;
       };
 
-      const btnNormalMode = makeBtn(" NORMAL MODE", "#2196F3", () => { this._toggleAdvancedMode(); });
+      const btnNormalMode = makeBtn("🔵 NORMAL MODE", "#2196F3", () => { this._toggleAdvancedMode(); });
       buttonContainer.appendChild(btnNormalMode);
       const btnApply = makeBtn("✔️ APPLY", "#4CAF50", () => { this._sendAdjustments(); this._toggleAdvancedMode(); });
       buttonContainer.appendChild(btnApply);
-      const btnCancel = makeBtn(" CANCEL", "#dc3545", () => { this._cancelEditing(); this._toggleAdvancedMode(); });
+      const btnCancel = makeBtn("❌ CANCEL", "#dc3545", () => { this._cancelEditing(); this._toggleAdvancedMode(); });
       buttonContainer.appendChild(btnCancel);
 
       const bottomRow = document.createElement('div');
@@ -629,7 +666,7 @@ app.registerExtension({
         };
         
         const resetBtn = document.createElement('button');
-        resetBtn.textContent = '🔄️';
+        resetBtn.textContent = '🔄';
         resetBtn.style.cssText = 'width:28px;height:28px;background:#252525;color:#888;border:1px solid #444;border-radius:4px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:0.15s;flex-shrink:0;';
         resetBtn.onmouseenter = () => { resetBtn.style.background = '#2a2a2a'; resetBtn.style.color = '#fff'; resetBtn.style.borderColor = '#4CAF50'; };
         resetBtn.onmouseleave = () => { resetBtn.style.background = '#252525'; resetBtn.style.color = '#888'; resetBtn.style.borderColor = '#444'; };
@@ -739,7 +776,7 @@ app.registerExtension({
         browseBtn.onmouseleave = () => { browseBtn.style.background = '#252525'; browseBtn.style.color = '#aaa'; browseBtn.style.borderColor = '#444'; };
         browseBtn.onclick = (e) => { e.stopPropagation(); fileInput.click(); };
         const resetBtn = document.createElement('button');
-        resetBtn.textContent = '🔄';
+        resetBtn.textContent = '';
         resetBtn.style.cssText = 'width:28px;height:28px;background:#252525;color:#888;border:1px solid #444;border-radius:4px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:0.15s;flex-shrink:0;';
         resetBtn.onmouseenter = () => { resetBtn.style.background = '#2a2a2a'; resetBtn.style.color = '#fff'; resetBtn.style.borderColor = '#4CAF50'; };
         resetBtn.onmouseleave = () => { resetBtn.style.background = '#252525'; resetBtn.style.color = '#888'; resetBtn.style.borderColor = '#444'; };
@@ -1074,6 +1111,17 @@ app.registerExtension({
     };
 
     nodeType.prototype._openDeferredEditor = function() {
+      // BATCH MODE: SKIP EDITOR AND AUTO-APPLY SAVED PARAMS
+      if (this.isBatchMode && this._batchParams) {
+        this.adjustments = JSON.parse(JSON.stringify(this._batchParams));
+        this._syncWidgetsFromAdjustments();
+        this.previewImage = null;
+        this.setDirtyCanvas(true);
+        this._scheduleHeavyRender();
+        setTimeout(() => this._sendAdjustments(), 100);
+        return;
+      }
+
       if (!this.pendingEditorData) return;
       this.backgroundImage = null;
       this.previewImage = null;
@@ -1250,7 +1298,7 @@ app.registerExtension({
         this.currentRenderAbortController.abort();
         this.currentRenderAbortController = null;
       }
-      const payload = { id: String(this.id), adjustments: this.adjustments };
+      const payload = { id: String(this.id), adjustments: this.adjustments, is_batch: this.isBatchMode };
       try {
         await api.fetchApi("/rayko/rs_adjustments", {
           method: "POST",
@@ -1540,29 +1588,48 @@ app.registerExtension({
         }
       });
 
+      // THREE BUTTON ROW: BATCH | APPLY | CANCEL
       const buttonsY = slidersY + 5 * (sliderH + gapSlider) + 10;
       const btnH2 = 30;
-      const btnGap2 = 10;
-      const btnW2 = (this.size[0] - 35) / 2;
+      const btnGap2 = 8;
+      const btnW3 = (this.size[0] - 46) / 3;
 
-      ctx.fillStyle = this.btnApplyHover ? "#444" : "#2a2a2a";
-      this._roundRect(ctx, 15, buttonsY, btnW2, btnH2, 6);
+      // BATCH BUTTON
+      const batchBtnX = 15;
+      const isBatchActive = this.isBatchMode;
+      ctx.fillStyle = isBatchActive ? "#2196F3" : (this.btnBatchHover ? "#3a3a3a" : "#2a2a2a");
+      ctx.strokeStyle = isBatchActive ? "#2196F3" : "#666";
+      ctx.lineWidth = isBatchActive ? 2 : 1;
+      this._roundRect(ctx, batchBtnX, buttonsY, btnW3, btnH2, 6);
       ctx.fill();
-      ctx.strokeStyle = "#4CAF50";
       ctx.stroke();
-      ctx.fillStyle = "#4CAF50";
+      ctx.fillStyle = isBatchActive ? "#fff" : "#aaa";
       ctx.font = "bold 11px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "alphabetic";
-      ctx.fillText("✔️ APPLY", 15 + btnW2 / 2, buttonsY + btnH2 / 2 + 4);
+      ctx.fillText(isBatchActive ? "⚪ BATCH ON" : "️🔘 BATCH OFF", batchBtnX + btnW3/2, buttonsY + btnH2/2 + 4);
 
+      // APPLY BUTTON
+      const applyBtnX = batchBtnX + btnW3 + btnGap2;
+      ctx.fillStyle = this.btnApplyHover ? "#444" : "#2a2a2a";
+      this._roundRect(ctx, applyBtnX, buttonsY, btnW3, btnH2, 6);
+      ctx.fill();
+      ctx.strokeStyle = "#4CAF50";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = "#4CAF50";
+      ctx.fillText("✔️ APPLY", applyBtnX + btnW3/2, buttonsY + btnH2/2 + 4);
+
+      // CANCEL BUTTON
+      const cancelBtnX = applyBtnX + btnW3 + btnGap2;
       ctx.fillStyle = this.btnCancelHover ? "#444" : "#2a2a2a";
-      this._roundRect(ctx, 15 + btnW2 + btnGap2, buttonsY, btnW2, btnH2, 6);
+      this._roundRect(ctx, cancelBtnX, buttonsY, btnW3, btnH2, 6);
       ctx.fill();
       ctx.strokeStyle = "#dc3545";
+      ctx.lineWidth = 2;
       ctx.stroke();
       ctx.fillStyle = "#dc3545";
-      ctx.fillText(" CANCEL", 15 + btnW2 + btnGap2 + btnW2 / 2, buttonsY + btnH2 / 2 + 4);
+      ctx.fillText("❌ CANCEL", cancelBtnX + btnW3/2, buttonsY + btnH2/2 + 4);
     };
 
     nodeType.prototype.onMouseDown = function(event, pos) {
@@ -1624,16 +1691,37 @@ app.registerExtension({
 
       if (pos && this.slidersY !== undefined) {
         const btnH2 = 30;
-        const btnGap2 = 10;
-        const btnW2 = (this.size[0] - 35) / 2;
+        const btnGap2 = 8;
+        const btnW3 = (this.size[0] - 46) / 3;
         const buttonsY = this.slidersY + 5 * 38 + 10;
-        const y1 = buttonsY;
 
-        if (pos[0] >= 15 && pos[0] <= 15 + btnW2 && pos[1] >= y1 && pos[1] <= y1 + btnH2) {
+        // BATCH CLICK
+        const batchBtnX = 15;
+        if (pos[0] >= batchBtnX && pos[0] <= batchBtnX + btnW3 && pos[1] >= buttonsY && pos[1] <= buttonsY + btnH2) {
+          this.isBatchMode = !this.isBatchMode;
+          console.log(`[RS Adjustments] Node ${this.id}: Batch toggled to ${this.isBatchMode}`);
+          if (!this.isBatchMode) {
+            this._batchParams = null;
+          }
+          this.setDirtyCanvas(true);
+          return true;
+        }
+
+        // APPLY CLICK
+        const applyBtnX = batchBtnX + btnW3 + btnGap2;
+        if (pos[0] >= applyBtnX && pos[0] <= applyBtnX + btnW3 && pos[1] >= buttonsY && pos[1] <= buttonsY + btnH2) {
+          if (this.isBatchMode) {
+            this._batchParams = JSON.parse(JSON.stringify(this.adjustments));
+          }
           this._sendAdjustments();
           return true;
         }
-        if (pos[0] >= 15 + btnW2 + btnGap2 && pos[0] <= 15 + btnW2 + btnGap2 + btnW2 && pos[1] >= y1 && pos[1] <= y1 + btnH2) {
+
+        // CANCEL CLICK
+        const cancelBtnX = applyBtnX + btnW3 + btnGap2;
+        if (pos[0] >= cancelBtnX && pos[0] <= cancelBtnX + btnW3 && pos[1] >= buttonsY && pos[1] <= buttonsY + btnH2) {
+          this.isBatchMode = false;
+          this._batchParams = null;
           this._cancelEditing();
           return true;
         }
@@ -1696,17 +1784,24 @@ app.registerExtension({
 
       if (pos && this.slidersY !== undefined) {
         const btnH2 = 30;
-        const btnGap2 = 10;
-        const btnW2 = (this.size[0] - 35) / 2;
+        const btnGap2 = 8;
+        const btnW3 = (this.size[0] - 46) / 3;
         const buttonsY = this.slidersY + 5 * 38 + 10;
-        const y1 = buttonsY;
+
+        const prevBatch = this.btnBatchHover;
+        const batchBtnX = 15;
+        this.btnBatchHover = pos[0] >= batchBtnX && pos[0] <= batchBtnX + btnW3 && pos[1] >= buttonsY && pos[1] <= buttonsY + btnH2;
 
         const prevApply = this.btnApplyHover;
         const prevCancel = this.btnCancelHover;
-        this.btnApplyHover = pos[0] >= 15 && pos[0] <= 15 + btnW2 && pos[1] >= y1 && pos[1] <= y1 + btnH2;
-        this.btnCancelHover = pos[0] >= 15 + btnW2 + btnGap2 && pos[0] <= 15 + btnW2 + btnGap2 + btnW2 && pos[1] >= y1 && pos[1] <= y1 + btnH2;
+        const applyBtnX = batchBtnX + btnW3 + btnGap2;
+        const cancelBtnX = applyBtnX + btnW3 + btnGap2;
+        this.btnApplyHover = pos[0] >= applyBtnX && pos[0] <= applyBtnX + btnW3 && pos[1] >= buttonsY && pos[1] <= buttonsY + btnH2;
+        this.btnCancelHover = pos[0] >= cancelBtnX && pos[0] <= cancelBtnX + btnW3 && pos[1] >= buttonsY && pos[1] <= buttonsY + btnH2;
 
-        if (prevApply !== this.btnApplyHover || prevCancel !== this.btnCancelHover) this.setDirtyCanvas(true);
+        if (prevBatch !== this.btnBatchHover || prevApply !== this.btnApplyHover || prevCancel !== this.btnCancelHover) {
+          this.setDirtyCanvas(true);
+        }
       }
     };
 

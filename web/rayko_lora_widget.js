@@ -228,7 +228,7 @@ app.registerExtension({
                 
                 const inputCancel = document.createElement("button");
                 inputCancel.style.cssText = "flex:1;padding:4px;background:#2a2a2a;color:#ccc;border:1px solid #444;border-radius:3px;cursor:pointer;font-size:11px;";
-                inputCancel.textContent = "CANCEL";
+                inputCancel.textContent = "Cancel";
                 
                 inputBtns.append(inputOk, inputCancel);
                 presetNameInput.append(inputLabel, inputField, inputBtns);
@@ -249,7 +249,7 @@ app.registerExtension({
                 
                 const deleteCancel = document.createElement("button");
                 deleteCancel.style.cssText = "flex:1;padding:4px;background:#2a2a2a;color:#ccc;border:1px solid #444;border-radius:3px;cursor:pointer;font-size:11px;";
-                deleteCancel.textContent = "CANCEL";
+                deleteCancel.textContent = "Cancel";
                 
                 deleteBtns.append(deleteOk, deleteCancel);
                 deleteConfirmOverlay.append(deleteText, deleteBtns);
@@ -267,11 +267,11 @@ app.registerExtension({
                 presetsRoot.style.cssText = "display:flex;gap:4px;width:100%;align-items:center;height:30px;";
                 
                 const savePresetBtn = document.createElement("button");
-                savePresetBtn.textContent = " 💾 SAVE MODELS PRESET";
+                savePresetBtn.textContent = " 💾 Save models preset";
                 savePresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;height:26px;margin:0;";
                 
                 const selectPresetBtn = document.createElement("button");
-                selectPresetBtn.textContent = " 📂 SELECT MODELS PRESET";
+                selectPresetBtn.textContent = " 📂 Select models preset";
                 selectPresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #99c0ee;border-radius:5px;background:#1a3a5a;color:#aadaff;cursor:pointer;height:26px;margin:0;";
                 presetsRoot.append(savePresetBtn, selectPresetBtn);
 
@@ -279,11 +279,11 @@ app.registerExtension({
                 loraPresetsRoot.style.cssText = "display:flex;gap:4px;width:100%;align-items:center;height:30px;";
                 
                 const saveLoraPresetBtn = document.createElement("button");
-                saveLoraPresetBtn.textContent = " 💾 SAVE LoRA PRESET";
+                saveLoraPresetBtn.textContent = " 💾 Save LoRA preset";
                 saveLoraPresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #50cc90;border-radius:5px;background:#1a3a2a;color:#aaffcc;cursor:pointer;height:26px;margin:0;";
                 
                 const selectLoraPresetBtn = document.createElement("button");
-                selectLoraPresetBtn.textContent = " 📂 SELECT LoRA PRESET";
+                selectLoraPresetBtn.textContent = " 📂 Select LoRA preset";
                 selectLoraPresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #50cc90;border-radius:5px;background:#1a3a2a;color:#aaffcc;cursor:pointer;height:26px;margin:0;";
                 loraPresetsRoot.append(saveLoraPresetBtn, selectLoraPresetBtn);
                 
@@ -446,13 +446,13 @@ app.registerExtension({
                     if (!deleteConfirmOverlay?.contains(e.target)) deleteConfirmOverlay.style.display = "none";
                 });
 
-                this.addWidget("button", "🆙 UPDATE LoRA LIST", "", async () => {
+                this.addWidget("button", "✔️ Update LoRA list", "", async () => {
                     await this.loadLoraList();
                     if (this.graph) this.graph.setDirtyCanvas(true, true);
                 });
 
-                this.addWidget("button", "➕ ADD LoRA", "", () => {
-                    const btnWidget = this.widgets.find(w => w.name === "➕ ADD LoRA");
+                this.addWidget("button", "➕ Add LoRA", "", () => {
+                    const btnWidget = this.widgets.find(w => w.name === "➕ Add LoRA");
                     this.showLoraTreeSelector(btnWidget);
                 });
 
@@ -699,7 +699,7 @@ app.registerExtension({
                 this.clickZones = [];
                 const startY = this.getLoraListStartY();
                 const padding = 10;
-                const rightPanelWidth = 170;
+                const rightPanelWidth = 180;
 
                 const availableHeight = this.size[1] - startY - 10;
                 const maxVisibleStyles = Math.max(1, Math.floor(availableHeight / this.rowHeight));
@@ -756,7 +756,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "info", index: dataIdx, x: infoX, y: y, w: infoW, h: h });
 
                     const nameX = infoX + infoW + 5;
-                    const nameW = this.size[0] - (padding * 2) - 1 - rightPanelWidth - 20 - infoW - 5;
+                    const nameW = this.size[0] - (padding * 2) - 50 - rightPanelWidth - 20 - infoW - 5;
                     ctx.fillStyle = row.enabled ? "#fff" : "#777";
                     ctx.font = "12px sans-serif";
                     let displayName = row.name;
@@ -1512,7 +1512,7 @@ app.registerExtension({
                     btnsDiv.appendChild(saveBtn);
                     
                     const cancelBtn = document.createElement("button");
-                    cancelBtn.textContent = "❌ CANCEL";
+                    cancelBtn.textContent = "❌ Cancel";
                     cancelBtn.style.cssText = `flex: 1; background: #2a2a2a; color: #ccc; border: 1px solid #555; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 11px;`;
                     cancelBtn.onmouseenter = () => cancelBtn.style.background = "#3a3a3a";
                     cancelBtn.onmouseleave = () => cancelBtn.style.background = "#2a2a2a";

@@ -1435,7 +1435,7 @@ Toggle **ENABLE SHADOW** to activate.
 # 🦊 RS Image Adjustments  
 **A powerful interactive image adjustment node with real-time preview and professional-grade controls.**  
 
-<img width="566" height="905" alt="Screenshot_5" src="https://github.com/user-attachments/assets/b329aa14-58e4-41a1-a382-94e09cdd61e8" />
+<img width="524" height="821" alt="Screenshot_1" src="https://github.com/user-attachments/assets/20311eaf-f194-45c5-a50a-56acfa6f2d4f" />
 <img width="315" height="929" alt="Screenshot_6" src="https://github.com/user-attachments/assets/31bf377d-7515-4591-9430-f169143ca9d9" />
 
 ### 🔥 Features  
@@ -1444,7 +1444,8 @@ Toggle **ENABLE SHADOW** to activate.
 - **Interactive UI** - Custom sidebar interface with collapsible sections  
 - **Smart Caching** - Efficient preview system with LRU cache  
 - **Batch Processing** - Full support for image sequences  
-- **LUT Support** - Import and apply .cube color lookup tables  
+- **LUT Support** - Import and apply .cube color lookup tables
+- **Batch Mode** - Automate your workflow! Apply the same adjustments to an entire queue of images with a single click. The node automatically detects the end of the queue and resets itself  
 - **Non-Destructive** - Preview changes before applying to your workflow
 
 ### 🎛️ Available Adjustments  
@@ -1493,12 +1494,22 @@ Toggle **ENABLE SHADOW** to activate.
 ### 🪛 Usage  
 1. **Add Node**: Add `RS Image Adjustments` to your workflow  
 2. **Connect Image**: Connect your input image  
-3. **Base Parameters**: Use the node interface to change the basic parameters  
-4. **Open Editor**: Click `✨ ADVANCED` button to open the sidebar with advanced correction options  
-5. **Adjust**: Use sliders or click values for manual input  
-6. **Preview**: Changes appear in real-time  
-7. **Apply**: Click `✔️ APPLY` to finalize and pass to next node  
-8. **Cancel**: Click `❌ CANCEL` to discard changes  
+3. **Run the queue**: The node will pause on the first image   
+4. **Base Parameters**: Use the node interface to change the basic parameters  
+5. **Open Editor**: Click `✨ ADVANCED` button to open the sidebar with advanced correction options  
+6. **Adjust**: Use sliders or click values for manual input  
+7. **Preview**: Changes appear in real-time  
+8. **Apply**: Click `✔️ APPLY` to finalize and pass to next node  
+9. **Cancel**: Click `❌ CANCEL` to discard process  
+
+**Using Batch Mode**  
+1. **Add Node**: Add `RS Image Adjustments` to your workflow  
+2. **Connect a batch image loader**: e.g., "Load Images from Directory"  
+3. **Run the queue**: The node will pause on the first image  
+4. **Batch**: Adjust your settings and click the BATCH button (it will turn blue)  
+5. **Apply**: Click `✔️ APPLY` to finalize and pass to next node  
+6. The node will now automatically apply these exact settings to all remaining images in the queue without pausing. The button will automatically reset once the queue is finished  
+7. **Cancel**: Click `❌ CANCEL` to discard process  
 
 ### Quick Controls  
 - **Node Interface**: 4 basic sliders (Brightness, Contrast, Hue, Saturation)  

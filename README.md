@@ -94,7 +94,9 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.35.1 - Modification of interfaces in some nodes
 - v0.36.0 - Added the RS Decode Save node
 - v0.36.1 - Fix error in the RS Models Loader node
-- v0.36.2 - Security Hardening: Path Traversal Prevention in RS_VAE_Decode_Save  
+- v0.36.2 - Security Hardening: Path Traversal Prevention in RS_VAE_Decode_Save
+- v0.36.3 - Adding batch image processing mode to the RS Image Adjustments node  
+- v0.36.4 - Added drag and drop image loading to the RS Image-Text node  
 
 </details>
 

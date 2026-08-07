@@ -699,7 +699,7 @@ app.registerExtension({
                 this.clickZones = [];
                 const startY = this.getLoraListStartY();
                 const padding = 10;
-                const rightPanelWidth = 180;
+                const rightPanelWidth = 145;
 
                 const availableHeight = this.size[1] - startY - 10;
                 const maxVisibleStyles = Math.max(1, Math.floor(availableHeight / this.rowHeight));
@@ -720,7 +720,7 @@ app.registerExtension({
                     }
                 }
 
-                const visibleStart = this.scrollOffset;
+               const visibleStart = this.scrollOffset;
                 const visibleEnd = Math.min(visibleStart + maxVisibleStyles, this.loraRows.length);
 
                 for (let i = 0; i < visibleEnd - visibleStart; i++) {
@@ -756,7 +756,7 @@ app.registerExtension({
                     this.clickZones.push({ type: "info", index: dataIdx, x: infoX, y: y, w: infoW, h: h });
 
                     const nameX = infoX + infoW + 5;
-                    const nameW = this.size[0] - (padding * 2) - 50 - rightPanelWidth - 20 - infoW - 5;
+                    const nameW = this.size[0] - (padding * 2) - 10 - rightPanelWidth - 5 - infoW - 5;
                     ctx.fillStyle = row.enabled ? "#fff" : "#777";
                     ctx.font = "12px sans-serif";
                     let displayName = row.name;
@@ -778,8 +778,8 @@ app.registerExtension({
                     ctx.fill();
                     this.clickZones.push({ type: "left", index: dataIdx, x: arrowLX, y: y, w: 28, h: h });
 
-                    const strInputX = arrowLX + 33;
-                    const strInputW = 55;
+                    const strInputX = arrowLX + 25;
+                    const strInputW = 50;
                     ctx.fillStyle = "#222";
                     ctx.fillRect(strInputX, y + 5, strInputW, h - 10);
                     ctx.strokeStyle = row.enabled ? "#4CAF50" : "#555";
@@ -793,15 +793,16 @@ app.registerExtension({
                     const arrowRX = strInputX + strInputW + 5;
                     ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
                     ctx.beginPath();
-                    ctx.moveTo(arrowRX + 10, y + 8);
-                    ctx.lineTo(arrowRX + 20, toggleY);
-                    ctx.lineTo(arrowRX + 10, y + 22);
+                    ctx.moveTo(arrowRX + 2, y + 8);
+                    ctx.lineTo(arrowRX + 12, toggleY);
+                    ctx.lineTo(arrowRX + 2, y + 22);
                     ctx.fill();
-                    this.clickZones.push({ type: "right", index: dataIdx, x: arrowRX, y: y, w: 28, h: h });
+                    this.clickZones.push({ type: "right", index: dataIdx, x: arrowRX, y: y, w: 18, h: h });
 
+                    const deleteX = arrowRX + 22; // теперь совпадает с рисованием
                     ctx.fillStyle = "#f44336";
-                    ctx.fillText("❌️", arrowRX + 35, toggleY + 4);
-                    this.clickZones.push({ type: "delete", index: dataIdx, x: arrowRX + 35, y: y, w: 30, h: h });
+                    ctx.fillText("❌️", deleteX, toggleY + 4);
+                    this.clickZones.push({ type: "delete", index: dataIdx, x: deleteX, y: y, w: 30, h: h });
                 }
 
                 if (this.draggingIndex !== null && this.dragCurrentY !== null) {

@@ -20,7 +20,7 @@ app.registerExtension({
 
             const MIN_WIDTH = 360;
             const MIN_HEIGHT = 520;
-            const PREVIEW_FIXED_HEIGHT = 250;
+            const PREVIEW_FIXED_HEIGHT = 150;
 
             node.MIN_WIDTH = MIN_WIDTH;
             node.MIN_HEIGHT = MIN_HEIGHT;
@@ -75,7 +75,6 @@ app.registerExtension({
             node.imageLoaded = false;
             node.imageLoading = false;
 
-            // --- DOM UI ---
             const mainContainer = document.createElement("div");
             mainContainer.style.cssText = `
                 width: 100%;
@@ -88,7 +87,6 @@ app.registerExtension({
                 pointer-events: none;
             `;
 
-            // Mode buttons
             const modeContainer = document.createElement("div");
             modeContainer.style.cssText = "display:flex; gap:8px; width:100%; pointer-events: auto;";
 
@@ -120,7 +118,6 @@ app.registerExtension({
             };
             updateModeVisuals();
 
-            // Prefix input
             const prefixContainer = document.createElement("div");
             prefixContainer.style.cssText = "display:flex; align-items:center; gap:8px; width:100%; pointer-events: auto;";
 
@@ -142,7 +139,6 @@ app.registerExtension({
             prefixContainer.appendChild(prefixLabel);
             prefixContainer.appendChild(prefixInput);
 
-            // Text area
             const textContainer = document.createElement("div");
             textContainer.style.cssText = "width:100%; pointer-events: auto;";
 
@@ -158,7 +154,6 @@ app.registerExtension({
             };
             textContainer.appendChild(customTextArea);
 
-            // Buttons
             const buttonsContainer = document.createElement("div");
             buttonsContainer.style.cssText = "display:flex; gap:8px; width:100%; pointer-events: auto;";
 
@@ -200,7 +195,6 @@ app.registerExtension({
                 cursor: pointer;
                 box-sizing: border-box;
                 flex-shrink: 0;
-                margin-top: 28px;
             `;
 
             const placeholder = document.createElement("div");
@@ -213,20 +207,15 @@ app.registerExtension({
             previewImg.alt = "Image preview";
             previewWrap.appendChild(previewImg);
 
-            const imgInfo = document.createElement("div");
-            imgInfo.style.cssText = "width:100%; text-align:center; color:#888; font-size:13px; font-family:sans-serif; pointer-events:none; user-select:none; display:none; margin-top:-1px; margin-bottom:-28px;";
-
             mainContainer.appendChild(modeContainer);
             mainContainer.appendChild(prefixContainer);
             mainContainer.appendChild(textContainer);
             mainContainer.appendChild(buttonsContainer);
-            mainContainer.appendChild(imgInfo);
             mainContainer.appendChild(previewWrap);
 
             node.addDOMWidget("custom_widgets", "customtext", mainContainer);
             node.customTextArea = customTextArea;
 
-            // --- LOAD / UPLOAD ---
             const buildViewUrl = (imagePath) => {
                 let filename = imagePath;
                 let subfolder = "";
@@ -240,7 +229,6 @@ app.registerExtension({
                 return url + `&t=${Date.now()}`;
             };
 
-            // Запрос текста с бэкенда для режима Read
             let promptRequestId = 0;
             const fetchTextForRead = async (imagePath) => {
                 if (node.data.mode !== "read" || !imagePath) return;
@@ -282,11 +270,8 @@ app.registerExtension({
                     node.imageLoaded = true;
                     previewImg.style.display = "block";
                     placeholder.style.display = "none";
-                    imgInfo.style.display = "block";
-                    imgInfo.textContent = `${previewImg.naturalWidth} × ${previewImg.naturalHeight}`;
                     node.syncData();
 
-                    // В режиме Read автоматически извлекаем текст
                     fetchTextForRead(imagePath);
                 };
                 previewImg.onerror = () => {
@@ -294,7 +279,6 @@ app.registerExtension({
                     node.imageLoaded = false;
                     previewImg.style.display = "none";
                     placeholder.style.display = "block";
-                    imgInfo.style.display = "none";
                     node.syncData();
                 };
                 previewImg.src = buildViewUrl(imagePath);
@@ -336,7 +320,6 @@ app.registerExtension({
                 fileInput.click();
             };
 
-            // --- DRAG & DROP (из примера) ---
             const onDocumentDragOver = (e) => {
                 if (e.dataTransfer && e.dataTransfer.types.includes('Files')) {
                     e.preventDefault();
@@ -382,9 +365,7 @@ app.registerExtension({
             previewWrap.addEventListener('click', () => {
                 node.triggerFileUpload();
             });
-            // --------------------------------------
 
-            // Serialize / Configure
             node.onSerialize = function (o) {
                 syncWidget(w_mode, 'mode');
                 syncWidget(w_prefix, 'prefix');
@@ -428,7 +409,6 @@ app.registerExtension({
             };
             document.addEventListener("visibilitychange", node.visibilityHandler);
 
-            // Resize
             const originalOnResize = node.onResize;
             node.onResize = function (size) {
                 if (size[0] < MIN_WIDTH) size[0] = MIN_WIDTH;
@@ -437,7 +417,7 @@ app.registerExtension({
                 const titleBarHeight = 30;
                 const topPadding = 18;
                 const gap = 8;
-                const bottomPadding = 20;
+                const bottomPadding = 5;
                 const previewSpacing = 35;
 
                 const fixedElements = titleBarHeight + topPadding +
@@ -457,7 +437,6 @@ app.registerExtension({
                 node.setDirtyCanvas(true, true);
             };
 
-            // Cleanup
             const originalOnRemoved = node.onRemoved;
             node.onRemoved = function () {
                 document.removeEventListener("visibilitychange", node.visibilityHandler);
@@ -466,7 +445,6 @@ app.registerExtension({
                 if (originalOnRemoved) originalOnRemoved.apply(this, arguments);
             };
 
-            // Background only (preview is now DOM)
             node.onDrawBackground = function (ctx) {
                 const w = this.size[0];
                 const h = this.size[1];

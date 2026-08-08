@@ -96,7 +96,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.36.1 - Fix error in the RS Models Loader node
 - v0.36.2 - Security Hardening: Path Traversal Prevention in RS_VAE_Decode_Save
 - v0.36.3 - Adding batch image processing mode to the RS Image Adjustments node  
-- v0.36.4 - Added drag and drop image loading to the RS Image-Text node  
+- v0.36.4 - Added drag and drop image loading to the RS Image-Text node
+- v0.37.0 - Added an RS Upscaler node
 
 </details>
 
@@ -456,6 +457,27 @@ Upscale Method 3 ──→ input_3
                         ↓
                   Final Output
 ``` 
+
+</details>
+<details>
+  <summary>🦊 RS Upscaler</summary>
+	
+# 🦊 RS Upscaler  
+**A node for that combines upscale model loading and image upscaling into a single, compact node with a custom UI.**   
+
+<img width="1547" height="731" alt="Screenshot_2" src="https://github.com/user-attachments/assets/ab1e806f-cf8c-49f9-a76f-1f08f82a62d2" />
+
+### 🔥 Features  
+- **All-in-one** - No need for a separate `Load Upscale Model` node — the model is selected and loaded directly inside the node  
+- **Two-stage upscaling** - First applies the neural upscale model (ESRGAN/RealESRGAN/etc.), then resizes to the exact target factor using the chosen interpolation method  
+- **Tiled processing** - Uses `tiled_scale` internally to handle large images without VRAM overflow  
+
+### Compatibility  
+Tested with ComfyUI core upscaler models including:  
+- `4x_Foolhardy_Remacri.pth`  
+- `4x-UltraSharp.pth`  
+- `RealESRGAN_x4plus.pth`  
+- Any model loadable by `comfy_extras.chainner_models`  
 
 </details>
 <details>

@@ -322,108 +322,114 @@ app.registerExtension({
             node.onDrawForeground = function(ctx) {
                 if (this.flags.collapsed) return;
                 
-                const [w, h] = this.size;
-                const padding = 10;
-                const rowHeight = 23;
-                const borderRadius = 3;
-                let currentY = 35 + 60;
-
-                ctx.font = "12px sans-serif";
-                ctx.textBaseline = "middle";
-
-                const pathDisplayHeight = 20;
-                ctx.fillStyle = "#1a1a1a";
-                ctx.strokeStyle = "#333";
-                drawRoundedRect(ctx, padding, currentY, w - padding * 2, pathDisplayHeight, borderRadius);
+                ctx.save(); // ← ДОБАВЛЕНО
                 
-                const pathText = node.data.folder_path || "Folder not selected";
-                const displayPath = truncatePath(ctx, pathText, w - padding * 2 - 10);
-                ctx.fillStyle = node.data.folder_path ? "#aaa" : "#666";
-                ctx.textAlign = "left";
-                ctx.fillText(displayPath, padding + 5, currentY + pathDisplayHeight / 2);
-                currentY += pathDisplayHeight + 7;
+                try {
+                    const [w, h] = this.size;
+                    const padding = 10;
+                    const rowHeight = 23;
+                    const borderRadius = 3;
+                    let currentY = 35 + 60;
 
-                ctx.fillStyle = "#2a2a2a";
-                ctx.strokeStyle = "#2196F3";
-                drawRoundedRect(ctx, padding, currentY, w - padding * 2, rowHeight, borderRadius);
-                ctx.fillStyle = "#2196F3";
-                ctx.textAlign = "center";
-                ctx.fillText("📁 Select folder", w / 2, currentY + rowHeight / 2);
-                this.uiElements.push({ type: "btn_folder", x: padding, y: currentY, w: w - padding * 2, h: rowHeight });
-                currentY += rowHeight + 7;
+                    ctx.font = "12px sans-serif";
+                    ctx.textBaseline = "middle";
 
-                const filterLabel = `▼ ${node.data.filter_type}`;
-                ctx.fillStyle = "#2a2a2a";
-                ctx.strokeStyle = "#4CAF50";
-                drawRoundedRect(ctx, padding, currentY, w - padding * 2, rowHeight, borderRadius);
-                ctx.fillStyle = "#4CAF50";
-                ctx.textAlign = "center";
-                ctx.fillText(filterLabel, w / 2, currentY + rowHeight / 2);
-                this.uiElements.push({ type: "btn_filter", x: padding, y: currentY, w: w - padding * 2, h: rowHeight });
-                currentY += rowHeight + 7;
-
-                const drawNumberInput = (label, value, yPos, dataType) => {
-                    const labelW = 40;
-                    const btnW = 20;
-                    const gap = 4;
-                    const totalW = w - padding * 2;
-                    const valW = totalW - labelW - (btnW * 2) - (gap * 2);
+                    const pathDisplayHeight = 20;
+                    ctx.fillStyle = "#1a1a1a";
+                    ctx.strokeStyle = "#333";
+                    drawRoundedRect(ctx, padding, currentY, w - padding * 2, pathDisplayHeight, borderRadius);
                     
-                    ctx.fillStyle = "#aaa";
+                    const pathText = node.data.folder_path || "Folder not selected";
+                    const displayPath = truncatePath(ctx, pathText, w - padding * 2 - 10);
+                    ctx.fillStyle = node.data.folder_path ? "#aaa" : "#666";
                     ctx.textAlign = "left";
-                    ctx.fillText(label, padding, yPos + rowHeight / 2);
-                    
-                    const btnX1 = padding + labelW + gap;
-                    ctx.fillStyle = "#333";
-                    ctx.strokeStyle = "#888";
-                    drawRoundedRect(ctx, btnX1, yPos, btnW, rowHeight, borderRadius);
-                    ctx.fillStyle = "#fff";
+                    ctx.fillText(displayPath, padding + 5, currentY + pathDisplayHeight / 2);
+                    currentY += pathDisplayHeight + 7;
+
+                    ctx.fillStyle = "#2a2a2a";
+                    ctx.strokeStyle = "#2196F3";
+                    drawRoundedRect(ctx, padding, currentY, w - padding * 2, rowHeight, borderRadius);
+                    ctx.fillStyle = "#2196F3";
                     ctx.textAlign = "center";
-                    ctx.fillText("-", btnX1 + btnW / 2, yPos + rowHeight / 2);
-                    
-                    const valX = btnX1 + btnW + gap;
-                    ctx.fillStyle = "#222";
-                    ctx.strokeStyle = "#666";
-                    drawRoundedRect(ctx, valX, yPos, valW, rowHeight, borderRadius);
-                    ctx.fillStyle = "#fff";
+                    ctx.fillText("📁 Select folder", w / 2, currentY + rowHeight / 2);
+                    this.uiElements.push({ type: "btn_folder", x: padding, y: currentY, w: w - padding * 2, h: rowHeight });
+                    currentY += rowHeight + 7;
+
+                    const filterLabel = `▼ ${node.data.filter_type}`;
+                    ctx.fillStyle = "#2a2a2a";
+                    ctx.strokeStyle = "#4CAF50";
+                    drawRoundedRect(ctx, padding, currentY, w - padding * 2, rowHeight, borderRadius);
+                    ctx.fillStyle = "#4CAF50";
                     ctx.textAlign = "center";
-                    ctx.fillText(String(value), valX + valW / 2, yPos + rowHeight / 2);
-                    
-                    const btnX2 = valX + valW + gap;
-                    ctx.fillStyle = "#333";
-                    ctx.strokeStyle = "#888";
-                    drawRoundedRect(ctx, btnX2, yPos, btnW, rowHeight, borderRadius);
-                    ctx.fillStyle = "#fff";
-                    ctx.textAlign = "center";
-                    ctx.fillText("+", btnX2 + btnW / 2, yPos + rowHeight / 2);
+                    ctx.fillText(filterLabel, w / 2, currentY + rowHeight / 2);
+                    this.uiElements.push({ type: "btn_filter", x: padding, y: currentY, w: w - padding * 2, h: rowHeight });
+                    currentY += rowHeight + 7;
 
-                    this.uiElements.push({ type: `btn_${dataType}_minus`, x: btnX1, y: yPos, w: btnW, h: rowHeight });
-                    this.uiElements.push({ type: `val_${dataType}`, x: valX, y: yPos, w: valW, h: rowHeight });
-                    this.uiElements.push({ type: `btn_${dataType}_plus`, x: btnX2, y: yPos, w: btnW, h: rowHeight });
-                };
+                    const drawNumberInput = (label, value, yPos, dataType) => {
+                        const labelW = 40;
+                        const btnW = 20;
+                        const gap = 4;
+                        const totalW = w - padding * 2;
+                        const valW = totalW - labelW - (btnW * 2) - (gap * 2);
+                        
+                        ctx.fillStyle = "#aaa";
+                        ctx.textAlign = "left";
+                        ctx.fillText(label, padding, yPos + rowHeight / 2);
+                        
+                        const btnX1 = padding + labelW + gap;
+                        ctx.fillStyle = "#333";
+                        ctx.strokeStyle = "#888";
+                        drawRoundedRect(ctx, btnX1, yPos, btnW, rowHeight, borderRadius);
+                        ctx.fillStyle = "#fff";
+                        ctx.textAlign = "center";
+                        ctx.fillText("-", btnX1 + btnW / 2, yPos + rowHeight / 2);
+                        
+                        const valX = btnX1 + btnW + gap;
+                        ctx.fillStyle = "#222";
+                        ctx.strokeStyle = "#666";
+                        drawRoundedRect(ctx, valX, yPos, valW, rowHeight, borderRadius);
+                        ctx.fillStyle = "#fff";
+                        ctx.textAlign = "center";
+                        ctx.fillText(String(value), valX + valW / 2, yPos + rowHeight / 2);
+                        
+                        const btnX2 = valX + valW + gap;
+                        ctx.fillStyle = "#333";
+                        ctx.strokeStyle = "#888";
+                        drawRoundedRect(ctx, btnX2, yPos, btnW, rowHeight, borderRadius);
+                        ctx.fillStyle = "#fff";
+                        ctx.textAlign = "center";
+                        ctx.fillText("+", btnX2 + btnW / 2, yPos + rowHeight / 2);
 
-                drawNumberInput("Start:", node.data.start_index, currentY, "start");
-                currentY += rowHeight + 5;
+                        this.uiElements.push({ type: `btn_${dataType}_minus`, x: btnX1, y: yPos, w: btnW, h: rowHeight });
+                        this.uiElements.push({ type: `val_${dataType}`, x: valX, y: yPos, w: valW, h: rowHeight });
+                        this.uiElements.push({ type: `btn_${dataType}_plus`, x: btnX2, y: yPos, w: btnW, h: rowHeight });
+                    };
 
-                drawNumberInput("End:", node.data.end_index, currentY, "end");
-                currentY += rowHeight + 12;
+                    drawNumberInput("Start:", node.data.start_index, currentY, "start");
+                    currentY += rowHeight + 5;
 
-                if (node.data.filter_type === "custom") {
-                    ctx.fillStyle = "#aaa";
-                    ctx.textAlign = "left";
-                    ctx.fillText("Custom:", padding, currentY + rowHeight / 2);
-                    
-                    const custValW = w - padding * 2 - 45;
-                    const custX = padding + 45;
-                    
-                    ctx.fillStyle = "#222";
-                    ctx.strokeStyle = "#FF9800";
-                    drawRoundedRect(ctx, custX, currentY, custValW, rowHeight, borderRadius);
-                    ctx.fillStyle = "#FF9800";
-                    ctx.textAlign = "left";
-                    ctx.fillText(node.data.custom_filter, custX + 5, currentY + rowHeight / 2);
+                    drawNumberInput("End:", node.data.end_index, currentY, "end");
+                    currentY += rowHeight + 12;
 
-                    this.uiElements.push({ type: "val_custom", x: custX, y: currentY, w: custValW, h: rowHeight });
+                    if (node.data.filter_type === "custom") {
+                        ctx.fillStyle = "#aaa";
+                        ctx.textAlign = "left";
+                        ctx.fillText("Custom:", padding, currentY + rowHeight / 2);
+                        
+                        const custValW = w - padding * 2 - 45;
+                        const custX = padding + 45;
+                        
+                        ctx.fillStyle = "#222";
+                        ctx.strokeStyle = "#FF9800";
+                        drawRoundedRect(ctx, custX, currentY, custValW, rowHeight, borderRadius);
+                        ctx.fillStyle = "#FF9800";
+                        ctx.textAlign = "left";
+                        ctx.fillText(node.data.custom_filter, custX + 5, currentY + rowHeight / 2);
+
+                        this.uiElements.push({ type: "val_custom", x: custX, y: currentY, w: custValW, h: rowHeight });
+                    }
+                } finally {
+                    ctx.restore(); // ← ДОБАВЛЕНО
                 }
             };
 

@@ -1,6 +1,6 @@
 {
   "name": "ComfyUI_RaykoStudio",
-  "version": "0.36.4",
+  "version": "0.37.0",
   "description": "Set of custom nodes for ComfyUI providing additional image processing capabilities",
   "author": "Raykosan",
   "license": "Apache License 2.0",
@@ -39,6 +39,7 @@
       "Rayko_Spline_Mask.py"
       "Rayko_Styles_Loader.py"
       "Rayko_Text_Overlay_Pro.py"
+      "Rayko_Upscaler.py"
       "Rayko_VAE_Save_Image.py"
       "settings_manager_api.py"
     ]

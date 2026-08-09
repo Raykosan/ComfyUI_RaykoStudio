@@ -720,7 +720,7 @@ app.registerExtension({
                     }
                 }
 
-               const visibleStart = this.scrollOffset;
+                const visibleStart = this.scrollOffset;
                 const visibleEnd = Math.min(visibleStart + maxVisibleStyles, this.loraRows.length);
 
                 for (let i = 0; i < visibleEnd - visibleStart; i++) {
@@ -799,7 +799,7 @@ app.registerExtension({
                     ctx.fill();
                     this.clickZones.push({ type: "right", index: dataIdx, x: arrowRX, y: y, w: 18, h: h });
 
-                    const deleteX = arrowRX + 22; // теперь совпадает с рисованием
+                    const deleteX = arrowRX + 22;
                     ctx.fillStyle = "#f44336";
                     ctx.fillText("❌️", deleteX, toggleY + 4);
                     this.clickZones.push({ type: "delete", index: dataIdx, x: deleteX, y: y, w: 30, h: h });

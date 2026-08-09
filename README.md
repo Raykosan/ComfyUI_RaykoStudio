@@ -477,7 +477,7 @@ Tested with ComfyUI core upscaler models including:
 - `4x_Foolhardy_Remacri.pth`  
 - `4x-UltraSharp.pth`  
 - `RealESRGAN_x4plus.pth`  
-- Any model loadable by `comfy_extras.chainner_models`  
+- And on other models  
 
 </details>
 <details>

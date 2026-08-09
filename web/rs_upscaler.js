@@ -10,7 +10,6 @@ const NODE_HEIGHT = 130;
 
 function getScopedStyles(scopeId) {
     return `
-        /* === Контейнер === */
         .${scopeId} .rs-row {
             display: flex;
             align-items: center;
@@ -42,7 +41,6 @@ function getScopedStyles(scopeId) {
         .${scopeId} .rs-row select:hover { border-color: #ff9800; }
         .${scopeId} .rs-row select:focus { border-color: #ff9800; box-shadow: 0 0 0 1px rgba(255,152,0,0.3); }
 
-        /* === Слайдер-строка === */
         .${scopeId} .rs-slider-row {
             display: flex;
             align-items: center;
@@ -58,7 +56,6 @@ function getScopedStyles(scopeId) {
             font-family: sans-serif;
         }
 
-        /* Слайдер: зелёный fill + белый хэндл */
         .${scopeId} .rs-slider-row input[type="range"] {
             flex: 1;
             min-width: 0;
@@ -103,7 +100,6 @@ function getScopedStyles(scopeId) {
             box-shadow: 0 1px 3px rgba(0,0,0,0.4);
         }
 
-        /* === Кнопки +/- === */
         .${scopeId} .rs-step-btn {
             width: 20px;
             height: 26px;
@@ -131,7 +127,6 @@ function getScopedStyles(scopeId) {
             background: #333;
         }
 
-        /* === Value input === */
         .${scopeId} .rs-value-input {
             width: 35px;
             min-width: 35px;
@@ -164,7 +159,6 @@ function getScopedStyles(scopeId) {
     `;
 }
 
-// Popup стили — глобальные (popup рендерится в document.body вне контейнера ноды)
 const POPUP_STYLES = `
     .rs-value-popup {
         position: fixed;
@@ -250,10 +244,8 @@ app.registerExtension({
         nodeType.prototype.onNodeCreated = function () {
             const result = onNodeCreated?.apply(this, arguments);
 
-            // === УНИКАЛЬНЫЙ SCOPE ID ДЛЯ ЭТОЙ НОДЫ ===
             const scopeId = `rs-upscaler-${this.id}`;
 
-            // Инжектируем скоупированные стили один раз для этого ID
             if (!document.getElementById(`style-${scopeId}`)) {
                 const style = document.createElement("style");
                 style.id = `style-${scopeId}`;
@@ -261,7 +253,6 @@ app.registerExtension({
                 document.head.appendChild(style);
             }
 
-            // === РАЗМЕР НОДЫ ===
             this.setSize([NODE_WIDTH, NODE_HEIGHT]);
 
             this.onResize = function (size) {
@@ -269,7 +260,6 @@ app.registerExtension({
                 if (size[1] < NODE_HEIGHT) size[1] = NODE_HEIGHT;
             };
 
-            // === АГРЕССИВНОЕ СКРЫТИЕ НАТИВНЫХ ВИДЖЕТОВ ===
             const widgetsToHide = ["upscale_model", "upscale_method", "upscale_x"];
             this.widgets.forEach((w) => {
                 if (widgetsToHide.includes(w.name)) {
@@ -284,11 +274,9 @@ app.registerExtension({
                 }
             });
 
-            // === КОНТЕЙНЕР С УНИКАЛЬНЫМ SCOPE ===
             const container = document.createElement("div");
             container.className = scopeId;
 
-            // --- Строка 1: Model ---
             const row1 = document.createElement("div");
             row1.className = "rs-row";
             const modelLabel = document.createElement("label");
@@ -309,7 +297,6 @@ app.registerExtension({
                 if (currentModel) modelSelect.value = currentModel;
             });
 
-            // --- Строка 2: Method ---
             const row2 = document.createElement("div");
             row2.className = "rs-row";
             const methodLabel = document.createElement("label");
@@ -326,7 +313,6 @@ app.registerExtension({
             row2.appendChild(methodSelect);
             container.appendChild(row2);
 
-            // --- Строка 3: [Label][Slider][◀][Value][▶] ---
             const row3 = document.createElement("div");
             row3.className = "rs-slider-row";
 
@@ -361,13 +347,11 @@ app.registerExtension({
 
             container.appendChild(row3);
 
-            // === ОБНОВЛЕНИЕ ЗЕЛЁНОГО FILL ===
             const updateFill = () => {
                 const pct = ((parseFloat(slider.value) - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)) * 100;
                 slider.style.setProperty("--rs-fill", pct + "%");
             };
 
-            // === ОБНОВЛЕНИЕ ЗНАЧЕНИЙ ===
             const setValue = (rawVal) => {
                 const v = clampScale(Math.round(parseFloat(rawVal) / SCALE_STEP) * SCALE_STEP);
                 slider.value = String(v);
@@ -395,7 +379,6 @@ app.registerExtension({
                 setValue(parseFloat(slider.value) + SCALE_STEP);
             });
 
-            // === РУЧНОЙ ВВОД ПО КЛИКУ НА VALUE ===
             valueDisplay.addEventListener("click", (e) => {
                 e.stopPropagation();
 
@@ -459,10 +442,8 @@ app.registerExtension({
                 }, 100);
             });
 
-            // === DOM-ВИДЖЕТ ===
             this.addDOMWidget("rs_custom_widgets", "div", container);
 
-            // === СИНХРОНИЗАЦИЯ ===
             const syncToNative = () => {
                 const mw = this.widgets.find((w) => w.name === "upscale_model");
                 const mtw = this.widgets.find((w) => w.name === "upscale_method");
@@ -481,7 +462,6 @@ app.registerExtension({
                 updateFill();
             }, 100);
 
-            // === ВОССТАНОВЛЕНИЕ ПРИ ЗАГРУЗКЕ WORKFLOW ===
             const onConfigure = this.onConfigure;
             this.onConfigure = function (info) {
                 const r = onConfigure?.apply(this, arguments);
@@ -505,7 +485,6 @@ app.registerExtension({
                 return r;
             };
 
-            // === ОЧИСТКА СТИЛЕЙ ПРИ УДАЛЕНИИ НОДЫ ===
             const onRemoved = this.onRemoved;
             this.onRemoved = function () {
                 const styleEl = document.getElementById(`style-${scopeId}`);

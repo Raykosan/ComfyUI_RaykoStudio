@@ -98,6 +98,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.36.3 - Adding batch image processing mode to the RS Image Adjustments node  
 - v0.36.4 - Added drag and drop image loading to the RS Image-Text node
 - v0.37.0 - Added an RS Upscaler node
+- v0.38.0 - Added an RS LoRA Tester node
 
 </details>
 
@@ -457,6 +458,42 @@ Upscale Method 3 ──→ input_3
                         ↓
                   Final Output
 ``` 
+
+</details>
+<details>
+  <summary>🦊 RS LoRA Tester</summary>
+	
+# 🦊 RS LoRA Tester  
+**Node for batch-testing LoRA models. Load multiple LoRAs and automatically queue one generation session per LoRA — or test the same LoRA at different strengths.**  
+
+<img width="671" height="575" alt="Screenshot_2" src="https://github.com/user-attachments/assets/5c10cfe4-de82-4f1d-b14b-1287f82f44a0" />
+<img width="673" height="629" alt="Screenshot_3" src="https://github.com/user-attachments/assets/d57309d5-ac00-4443-bfbf-b3815981cb5e" />
+
+### 🔥 Features  
+- **Batch Mode** — Select N LoRAs, press Queue once → N separate sessions are created in the ComfyUI queue, each with exactly one LoRA applied  
+- **Strength Testing** — Add the same LoRA multiple times with different strength values to A/B test in a single batch  
+- **CLIP Toggle** — Enable/disable CLIP application independently per node instance  
+- **Custom Strength Editor** — Click any strength value to open an inline editor (Enter/OK to apply, Escape/click outside to cancel)  
+- **Fine-tune Controls** — Arrow buttons for ±0.05 adjustments, direct numeric input  
+- **Drag & Drop** — Reorder LoRAs by dragging the ⋮⋮ handle  
+- **Searchable Tree Selector** — Browse your LoRA folder structure with real-time search  
+- **Persistent State** — LoRA list is saved per-node and restored across sessions  
+- **Queue Tracking** — Batch button shows running state and auto-resets when the queue completes  
+
+### 🪛 Usage  
+- **Click the **✅ CLIP ON / ❌ CLIP OFF** button to toggle whether LoRAs are applied to the CLIP model. The clip input slot is visually disabled when CLIP is off.**
+
+**Basic Batch**  
+1. Add **🦊 RS LoRA Batch** node to your workflow  
+2. Click **✔️ UPDATE LoRA LIST** to load available LoRAs  
+3. Click **➕ ADD LoRA** and select LoRAs from the tree selector  
+4. Press **⚙️ LoRA Batch** → button turns green showing count  
+5. Press ComfyUI's **Queue Prompt** → one session per LoRA is created  
+
+**Strength Testing**  
+1. Add the same LoRA multiple times (duplicates allowed)  
+2. Set different strength values using arrows (±0.05) or click the value to type manually  
+3. Arm batch mode and queue — each strength gets its own session    
 
 </details>
 <details>

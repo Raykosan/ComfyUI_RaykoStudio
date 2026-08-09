@@ -172,7 +172,7 @@ const POPUP_STYLES = `
         align-items: center;
         gap: 8px;
     }
-    .rs-value-popup input {
+    .rs-value-popup input[type="number"] {
         width: 80px;
         background: #222;
         color: #fff;
@@ -182,9 +182,24 @@ const POPUP_STYLES = `
         font-size: 12px;
         outline: none;
         font-family: sans-serif;
+        text-align: center;
+        -webkit-appearance: auto !important;
+        -moz-appearance: auto !important;
+        appearance: auto !important;
     }
-    .rs-value-popup input:focus {
+    .rs-value-popup input[type="number"]:focus {
         border-color: #ff9800;
+    }
+    /* Force spinner arrows visible in Chrome/Edge */
+    .rs-value-popup input[type="number"]::-webkit-inner-spin-button,
+    .rs-value-popup input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: inner-spin-button !important;
+        opacity: 1 !important;
+        height: 28px;
+    }
+    /* Firefox */
+    .rs-value-popup input[type="number"] {
+        -moz-appearance: auto !important;
     }
     .rs-value-popup button {
         background: #4CAF50;
@@ -390,10 +405,25 @@ app.registerExtension({
 
                 const input = document.createElement("input");
                 input.type = "number";
-                input.value = formatScale(slider.value);
+                input.value = parseFloat(slider.value).toFixed(2);
                 input.min = String(SCALE_MIN);
                 input.max = String(SCALE_MAX);
                 input.step = String(SCALE_STEP);
+                input.style.cssText = [
+                    "width: 80px",
+                    "background: #222",
+                    "color: #fff",
+                    "border: 1px solid #444",
+                    "border-radius: 4px",
+                    "padding: 6px 10px",
+                    "font-size: 12px",
+                    "outline: none",
+                    "font-family: sans-serif",
+                    "text-align: center",
+                    "-webkit-appearance: auto",
+                    "-moz-appearance: auto",
+                    "appearance: auto",
+                ].join(";") + ";";
 
                 const saveBtn = document.createElement("button");
                 saveBtn.textContent = "OK";
@@ -406,7 +436,10 @@ app.registerExtension({
                 };
 
                 saveBtn.onclick = (ev) => { ev.stopPropagation(); ev.preventDefault(); doSave(); };
-                input.onkeydown = (ev) => { if (ev.key === "Enter") { ev.preventDefault(); doSave(); } };
+                input.onkeydown = (ev) => {
+                    if (ev.key === "Enter") { ev.preventDefault(); doSave(); }
+                    if (ev.key === "Escape") { popup.remove(); }
+                };
 
                 popup.appendChild(input);
                 popup.appendChild(saveBtn);

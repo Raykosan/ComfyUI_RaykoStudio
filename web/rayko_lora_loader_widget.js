@@ -141,16 +141,16 @@ app.registerExtension({
                 clipButtonRoot.style.cssText = "display:flex;flex-direction:column;gap:4px;width:100%;margin:0;padding:0;box-sizing:border-box;";
 
                 const clipToggleBtn = document.createElement("button");
-                clipToggleBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border-radius:5px;cursor:pointer;height:26px;margin:0;font-weight:bold;";
+                clipToggleBtn.style.cssText = "flex:1;padding:4px 2px;font-size:12px;border-radius:5px;cursor:pointer;height:28px;margin:0;";
                 
                 const updateClipButton = () => {
                     const isEnabled = useClipWidget ? useClipWidget.value : true;
                     if (isEnabled) {
                         clipToggleBtn.textContent = "CLIP ON (model and clip mode)";
-                        clipToggleBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #4CAF50;border-radius:5px;background:#1a3a1a;color:#aaffaa;cursor:pointer;height:26px;margin:0;font-weight:bold;";
+                        clipToggleBtn.style.cssText = "flex:1;padding:4px 2px;font-size:12px;border:1px solid #4CAF50;border-radius:5px;background:#1a3a1a;color:#aaffaa;cursor:pointer;height:26px;margin:0;";
                     } else {
                         clipToggleBtn.textContent = "CLIP OFF (model only mode)";
-                        clipToggleBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #00B0B0;border-radius:5px;background:#1E5986;color:#ffaaaa;cursor:pointer;height:26px;margin:0;font-weight:bold;";
+                        clipToggleBtn.style.cssText = "flex:1;padding:4px 2px;font-size:12px;border:1px solid #00B0B0;border-radius:5px;background:#1E5986;color:#ffaaaa;cursor:pointer;height:26px;margin:0;";
                     }
                 };
 
@@ -178,12 +178,12 @@ app.registerExtension({
                 loraPresetsRoot.style.cssText = "display:flex;gap:4px;width:100%;align-items:center;height:30px;";
                 
                 const saveLoraPresetBtn = document.createElement("button");
-                saveLoraPresetBtn.textContent = "💾 Save LoRA preset";
-                saveLoraPresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #50cc90;border-radius:5px;background:#1a3a2a;color:#aaffcc;cursor:pointer;height:26px;margin:0;";
+                saveLoraPresetBtn.textContent = "💾 SAVE LoRA PRESET";
+                saveLoraPresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:12px;border:1px solid #50cc90;border-radius:5px;background:#1a3a2a;color:#aaffcc;cursor:pointer;height:26px;margin:0;";
                 
                 const selectLoraPresetBtn = document.createElement("button");
-                selectLoraPresetBtn.textContent = "📂 Select LoRA preset";
-                selectLoraPresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:11px;border:1px solid #50cc90;border-radius:5px;background:#1a3a2a;color:#aaffcc;cursor:pointer;height:26px;margin:0;";
+                selectLoraPresetBtn.textContent = "📂 SELECT LoRA PRESET";
+                selectLoraPresetBtn.style.cssText = "flex:1;padding:4px 2px;font-size:12px;border:1px solid #50cc90;border-radius:5px;background:#1a3a2a;color:#aaffcc;cursor:pointer;height:26px;margin:0;";
                 loraPresetsRoot.append(saveLoraPresetBtn, selectLoraPresetBtn);
                 
                 presetsWrapper.append(loraPresetsRoot);
@@ -419,13 +419,13 @@ app.registerExtension({
                     if (!deleteConfirmOverlay?.contains(e.target)) deleteConfirmOverlay.style.display = "none";
                 });
 
-                this.addWidget("button", "✔️ Update LoRA list", "", async () => {
+                this.addWidget("button", "✔️ UPDATE LoRA LIST", "", async () => {
                     await this.loadLoraList();
                     if (this.graph) this.graph.setDirtyCanvas(true, true);
                 });
 
-                this.addWidget("button", "➕ Add LoRA", "", () => {
-                    const btnWidget = this.widgets.find(w => w.name === "➕ Add LoRA");
+                this.addWidget("button", "➕ ADD LoRA", "", () => {
+                    const btnWidget = this.widgets.find(w => w.name === "➕ ADD LoRA");
                     this.showLoraTreeSelector(btnWidget);
                 });
 
@@ -659,7 +659,7 @@ app.registerExtension({
             };
 
             nodeType.prototype.getLoraListStartY = function() {
-                const addButton = this.widgets.find(w => w.name === "➕ Add LoRA");
+                const addButton = this.widgets.find(w => w.name === "➕ ADD LoRA");
                 if (!addButton) return 40;
                 return addButton.y + addButton.height + 15;
             };
@@ -1052,7 +1052,7 @@ app.registerExtension({
                     if (Object.keys(self.loraTree).length === 0) {
                         if (!filterText) {
                             const emptyMsg = document.createElement("div");
-                            emptyMsg.textContent = " List is empty (Click Update LoRA list)";
+                            emptyMsg.textContent = " List is empty (Click UPDATE LoRA LIST)";
                             emptyMsg.style.cssText = `padding: 20px; color: #f44336; text-align: center;`;
                             listContainer.appendChild(emptyMsg);
                         }

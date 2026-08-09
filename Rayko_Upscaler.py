@@ -1,3 +1,18 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025-2026 Raykosan (RaykoStudio)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import torch
 import comfy.utils
 import comfy.model_management
@@ -5,23 +20,19 @@ import folder_paths
 
 
 class RSUpscaler:
-    """
-    🦊 RS Upscaler
-    Комбинирует загрузку модели и апскейл в одной ноде.
-    """
-
     @classmethod
     def INPUT_TYPES(cls):
+        model_list = folder_paths.get_filename_list("upscale_models")
+        default_model = model_list[0] if model_list else ""
+
         return {
             "required": {
                 "image": ("IMAGE",),
-                # Эти виджеты будут скрыты JS и заменены на кастомные
-                "upscale_model": (folder_paths.get_filename_list("upscale_models"),),
-                "upscale_method": (["nearest-exact", "bilinear", "area", "bicubic", "lanczos"],),
+                "upscale_model": (model_list, {"default": default_model}),
+                "upscale_method": (["nearest-exact", "bilinear", "area", "bicubic", "lanczos"], {"default": "nearest-exact"}),
                 "upscale_x": ("FLOAT", {"default": 2.0, "min": 0.1, "max": 8.0, "step": 0.05}),
             },
             "hidden": {
-                # Маркер для JS-расширения
                 "rs_node_type": ("STRING", {"default": "RSUpscaler"}),
             }
         }
@@ -29,33 +40,40 @@ class RSUpscaler:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "upscale"
     CATEGORY = "🦊 RaykoStudio"
+    DESCRIPTION = "Node for that combines upscale model loading and image upscaling into a single compact node"
 
     def upscale(self, image, upscale_model, upscale_method, upscale_x, rs_node_type=None):
-        # 1. Загрузка модели
+        if not upscale_model:
+            model_list = folder_paths.get_filename_list("upscale_models")
+            if model_list:
+                upscale_model = model_list[0]
+            else:
+                raise ValueError("No upscale models found in models/upscale_models/")
+
         model_path = folder_paths.get_full_path("upscale_models", upscale_model)
 
         try:
+            from spandrel import ModelLoader
+
             sd = comfy.utils.load_torch_file(model_path, safe_load=True)
-            from comfy_extras.chainner_models import model_loading
+            upscale_model_obj = ModelLoader().load_from_state_dict(sd).eval()
+        except ImportError:
+            try:
+                from comfy_extras.chainner_models import model_loading
 
-            is_chainner = False
-            for key in sd.keys():
-                if "module.layers" in key or "model.0.weight" in key or "conv_first.weight" in key:
-                    is_chainner = True
-                    break
-
-            if is_chainner:
+                sd = comfy.utils.load_torch_file(model_path, safe_load=True)
                 upscale_model_obj = model_loading.load_state_dict(sd).eval()
-            else:
-                raise ValueError("Не удалось определить архитектуру модели")
-
+            except Exception as e:
+                raise ValueError(
+                    f"Failed to load model '{upscale_model}': {str(e)}\n"
+                    f"Could not load via spandrel or chainner_models"
+                )
         except Exception as e:
             raise ValueError(
-                f"Ошибка загрузки модели '{upscale_model}': {str(e)}\n"
-                f"Убедитесь, что файл является корректной upscale-моделью"
+                f"Failed to load model '{upscale_model}': {str(e)}\n"
+                f"Make sure the file is a valid upscale model (ESRGAN/RealESRGAN/SwinIR)"
             )
 
-        # 2. Применение модели с тайлингом
         device = comfy.model_management.get_torch_device()
         upscale_model_obj.to(device)
 
@@ -76,7 +94,6 @@ class RSUpscaler:
 
         upscaled = torch.clamp(upscaled_tensor.movedim(-3, -1), min=0, max=1.0)
 
-        # 3. Финальный ресайз
         orig_height = image.shape[1]
         orig_width = image.shape[2]
 

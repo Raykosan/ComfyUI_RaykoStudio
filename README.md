@@ -472,16 +472,21 @@ Upscale Method 3 ──→ input_3
 ### 🔥 Features  
 - **Batch Mode** — Select N LoRAs, press Queue once → N separate sessions are created in the ComfyUI queue, each with exactly one LoRA applied  
 - **Strength Testing** — Add the same LoRA multiple times with different strength values to A/B test in a single batch  
-- **CLIP Toggle** — Enable/disable CLIP application independently per node instance  
-- **Custom Strength Editor** — Click any strength value to open an inline editor (Enter/OK to apply, Escape/click outside to cancel)  
-- **Fine-tune Controls** — Arrow buttons for ±0.05 adjustments, direct numeric input  
-- **Drag & Drop** — Reorder LoRAs by dragging the ⋮⋮ handle  
+- **CLIP Toggle** — A dedicated, visually distinct button to enable/disable CLIP application per node. When the clip input is turned off, the node operates in the "model only" mode  
+- **Custom Strength Editor** — Adjust LoRA strength using + / - buttons or direct numeric input  
+- **Precision Strength Control** — Arrow buttons for ±0.05 adjustments, direct numeric input  
+- **Visual Multi-LoRA Management** — Visual Multi-LoRA Management - Add, remove, and reorder multiple LoRAs with drag-and-drop support  
 - **Searchable Tree Selector** — Browse your LoRA folder structure with real-time search  
-- **Persistent State** — LoRA list is saved per-node and restored across sessions  
-- **Queue Tracking** — Batch button shows running state and auto-resets when the queue completes  
+- **Persistent State** — LoRA list is saved per-node and restored across sessions
+- **Quick update** - When adding a new LoRA to the 'loras' folder, you do not need to reload ComfyUI or the browser page. Just click the ✔️ Update LoRA list button  
+- **Queue Tracking** — Batch button shows running state and auto-resets when the queue completes
+
+**Adding and Managing LoRAs**  
+Click ➕ Add LoRA to open the selector. Search or browse the tree, and click a LoRA to add it.
+Use the ⋮⋮ handle on the left of each row to drag and drop LoRAs into your desired order.
 
 ### 🪛 Usage  
-- **Click the **✅ CLIP ON / ❌ CLIP OFF** button to toggle whether LoRAs are applied to the CLIP model. The clip input slot is visually disabled when CLIP is off.**
+- **Click the ✅ CLIP ON / ❌ CLIP OFF button to toggle whether LoRAs are applied to the CLIP model. The clip input slot is visually disabled when CLIP is off.**
 
 **Basic Batch**  
 1. Add **🦊 RS LoRA Batch** node to your workflow  

@@ -471,7 +471,8 @@ Upscale Method 3 ──→ input_3
 
 ### 🔥 Features  
 - **Batch Mode** — Select N LoRAs, press Queue once → N separate sessions are created in the ComfyUI queue, each with exactly one LoRA applied  
-- **Strength Testing** — Add the same LoRA multiple times with different strength values to A/B test in a single batch  
+- **Strength Testing** — Add the same LoRA multiple times with different strength values to A/B test in a single batch
+- **Enabling/disabling LoRA** - the disabled LoRA is ignored by the workflow  
 - **CLIP Toggle** — A dedicated, visually distinct button to enable/disable CLIP application per node. When the clip input is turned off, the node operates in the "model only" mode  
 - **Custom Strength Editor** — Adjust LoRA strength using + / - buttons or direct numeric input  
 - **Precision Strength Control** — Arrow buttons for ±0.05 adjustments, direct numeric input  
@@ -1155,6 +1156,7 @@ Single frame tensor with shape [1, H, W, C] — ready for VAE encoding, preview,
 ### 🎨 Advanced Custom UI  
 - **Visual Multi-LoRA Management** - Add, remove, and reorder multiple LoRAs with drag-and-drop support.  
 - **Custom CLIP Toggle** - A dedicated, visually distinct button to enable/disable CLIP application per node. When the clip input is turned off, the node operates in the "model only" mode.  
+- **Enabling/disabling LoRA** - the disabled LoRA is ignored by the workflow  
 - **Precision Strength Control** - Adjust LoRA strength using `+` / `-` buttons or direct numeric input.  
 - **Auto-Resizing & Scrollable List** - The node automatically adjusts its height, with smooth scrolling for long lists.  
 - **Quick update** - When adding a new LoRA to the 'loras' folder, you do not need to reload ComfyUI or the browser page. Just click the ✔️ Update LoRA list button.
@@ -1209,7 +1211,8 @@ is three tags.
 - **Unified Loading** - Load UNET, CLIP, VAE, and multiple LoRAs in one node  
 - **Dual CLIP Support** - Toggle between single CLIP mode (CLIPLoader) and dual CLIP mode (DualCLIPLoader) for models like Flux, SD3, Hunyuan DiT, and PixArt  
 - **Visual Multi-LoRA Management** - Add, remove, and reorder multiple LoRAs with drag-and-drop support. 
-- **LoRA Management** - Add, enable/disable, and adjust strengths for multiple LoRAs with an intuitive visual interface  
+- **LoRA Management** - Add, enable/disable, and adjust strengths for multiple LoRAs with an intuitive visual interface
+- **Enabling/disabling LoRA** - the disabled LoRA is ignored by the workflow  
 - **Persistent Storage** - LoRA configurations are saved per node and persist across sessions  
 - **Folder Structure** - Browse LoRAs with folder tree navigation  
 - **Search Functionality** - Quickly find LoRAs by name  

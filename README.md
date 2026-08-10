@@ -503,6 +503,35 @@ Use the ⋮⋮ handle on the left of each row to drag and drop LoRAs into your d
 
 </details>
 <details>
+  <summary>🦊 RS Save Image LoRA</summary>
+	
+# 🦊 RS Save Image LoRA  
+**A drop-in replacement for `SaveImage` that automatically puts the names and strengths of all LoRAs used in the generation right into the output file name.**  
+No more guessing which LoRA produced which image. Your files name themselves.  
+
+<img width="483" height="573" alt="Screenshot_1" src="https://github.com/user-attachments/assets/ce4604b6-1198-406c-9627-08fe99de16b3" />
+
+### 🔥 Features  
+- **Automatic LoRA detection** — reads the execution payload sent to the ComfyUI server and collects every LoRA participating in the current generation. No extra wiring required  
+- **Multiple LoRAs supported** — listed in chain order, separated by `; `  
+- **Disabled slots are skipped** — LoRAs switched off in the loader (e.g. `on: false`) never appear in the name  
+- **Clean names** — subfolder paths (`QWEN\my_lora.safetensors`) and extensions (`.safetensors`, `.ckpt`, …) are stripped automatically  
+- **Metadata preserved** — just like the stock `SaveImage`, the full prompt and workflow are embedded into the PNG. Drag & drop the image back into ComfyUI to restore everything  
+- **Subfolders still work** — a `/` in the prefix still creates subfolders in `output/` (only the auto-generated LoRA suffix is sanitized)  
+- **Batch-aware** — supports the `%batch_num%` placeholder, same as the original node  
+- **Model-agnostic** — works with any architecture (SD 1.5 / SDXL / Flux / Qwen Image / Z-Image / Wan / Lumina …), because it reads the workflow, not the model
+
+### 🪛 Usage  
+1. Add the node: **Add Node → 🦊 RaykoStudio → 🦊 RS Save Image LoRA**  
+   (or double-click the canvas and search for `RS Save`).  
+2. Connect your `IMAGE` input exactly as you would for a regular `SaveImage`.  
+3. Click the **PREFIX** field on the node to open the popup editor, type your prefix, press **Enter** or **OK**.  
+4. Generate. The LoRA names and strengths are appended automatically.  
+
+✨ **It is convenient to use with the RS LoRA Tester node in batch mode**  
+
+</details>
+<details>
   <summary>🦊 RS Upscaler</summary>
 	
 # 🦊 RS Upscaler  

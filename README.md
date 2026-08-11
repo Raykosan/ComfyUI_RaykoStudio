@@ -466,6 +466,8 @@ Upscale Method 3 ──→ input_3
 # 🦊 RS LoRA Tester  
 **Node for batch-testing LoRA models. Load multiple LoRAs and automatically queue one generation session per LoRA — or test the same LoRA at different strengths.**  
 
+[![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/QW6NVT45O6Y)
+
 <img width="671" height="575" alt="Screenshot_2" src="https://github.com/user-attachments/assets/5c10cfe4-de82-4f1d-b14b-1287f82f44a0" />
 <img width="673" height="629" alt="Screenshot_3" src="https://github.com/user-attachments/assets/d57309d5-ac00-4443-bfbf-b3815981cb5e" />
 
@@ -508,6 +510,8 @@ Use the ⋮⋮ handle on the left of each row to drag and drop LoRAs into your d
 # 🦊 RS Save Image LoRA  
 **A drop-in replacement for `SaveImage` that automatically puts the names and strengths of all LoRAs used in the generation right into the output file name.**  
 No more guessing which LoRA produced which image. Your files name themselves.  
+
+[![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/QW6NVT45O6Y)
 
 <img width="483" height="573" alt="Screenshot_1" src="https://github.com/user-attachments/assets/ce4604b6-1198-406c-9627-08fe99de16b3" />
 

@@ -129,16 +129,19 @@ app.registerExtension({
 
                 this.setSize([this.targetWidth, this.size[1]]);
 
-                const collectPresetData = () => ({
-                    unet_name: this.widgets.find(w => w.name === "unet_name")?.value || "",
-                    weight_dtype: this.widgets.find(w => w.name === "weight_dtype")?.value || "default",
-                    use_clip2: this.widgets.find(w => w.name === "use_clip2")?.value || false,
-                    clip_name: this.widgets.find(w => w.name === "clip_name")?.value || "",
-                    clip_name2: this.widgets.find(w => w.name === "clip_name2")?.value || "",
-                    clip_type: this.widgets.find(w => w.name === "clip_type")?.value || "stable_diffusion",
-                    clip_device: this.widgets.find(w => w.name === "clip_device")?.value || "default",
-                    vae_name: this.widgets.find(w => w.name === "vae_name")?.value || ""
-                });
+                const collectPresetData = () => {
+                    const useClip2 = this.widgets.find(w => w.name === "use_clip2")?.value || false;
+                    return {
+                        unet_name: this.widgets.find(w => w.name === "unet_name")?.value || "",
+                        weight_dtype: this.widgets.find(w => w.name === "weight_dtype")?.value || "default",
+                        use_clip2: useClip2,
+                        clip_name: this.widgets.find(w => w.name === "clip_name")?.value || "",
+                        clip_name2: useClip2 ? (this.widgets.find(w => w.name === "clip_name2")?.value || "") : "",
+                        clip_type: this.widgets.find(w => w.name === "clip_type")?.value || "stable_diffusion",
+                        clip_device: this.widgets.find(w => w.name === "clip_device")?.value || "default",
+                        vae_name: this.widgets.find(w => w.name === "vae_name")?.value || ""
+                    };
+                };
 
                 const applyPresetData = (data) => {
                     const setWidgetValue = (name, value) => {

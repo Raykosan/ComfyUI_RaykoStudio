@@ -151,7 +151,24 @@ app.registerExtension({
                             if (widget.callback) widget.callback(value);
                         }
                     };
-                    ["unet_name", "weight_dtype", "use_clip2", "clip_name", "clip_name2", "clip_type", "clip_device", "vae_name"].forEach(k => setWidgetValue(k, data[k]));
+                    
+                    // Если use_clip2 выключен и clip_name2 пустой или невалидный,
+                    // подставляем первый доступный клип для корректного отображения
+                    let safeClip2 = data.clip_name2;
+                    if (!data.use_clip2 && (!safeClip2 || safeClip2 === "")) {
+                        const clip1Value = data.clip_name || "";
+                        safeClip2 = clip1Value;
+                    }
+
+                    setWidgetValue("unet_name", data.unet_name);
+                    setWidgetValue("weight_dtype", data.weight_dtype);
+                    setWidgetValue("use_clip2", data.use_clip2);
+                    setWidgetValue("clip_name", data.clip_name);
+                    setWidgetValue("clip_name2", safeClip2);
+                    setWidgetValue("clip_type", data.clip_type);
+                    setWidgetValue("clip_device", data.clip_device);
+                    setWidgetValue("vae_name", data.vae_name);
+                    
                     this.loraRows = [];
                     this.scrollOffset = 0;
                     this.manual_size = false;

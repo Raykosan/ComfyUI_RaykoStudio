@@ -19,32 +19,15 @@ window.showRaykoToast = function(message, type = "error", node = null) {
     document.body.appendChild(toast);
     
     const toastRect = toast.getBoundingClientRect();
-    
     let left, top;
     
     if (node && app && app.canvas) {
         const canvasRect = app.canvas.canvas.getBoundingClientRect();
         const scale = app.canvas.ds.scale;
-        const offsetX = app.canvas.ds.offset[0];
-        const offsetY = app.canvas.ds.offset[1];
-        
-        const nodeCenterGraphX = node.pos[0] + node.size[0] / 2;
-        const nodeCenterGraphY = node.pos[1] + node.size[1] / 2;
-        
-        const nodeCenterScreenX = canvasRect.left + (nodeCenterGraphX + offsetX) * scale;
-        const nodeCenterScreenY = canvasRect.top + (nodeCenterGraphY + offsetY) * scale;
-        
-        left = nodeCenterScreenX - (toastRect.width / 2);
-        top = nodeCenterScreenY - (toastRect.height / 2);
-        
-        if (left < 10) left = 10;
-        if (top < 10) top = 10;
-        if (left + toastRect.width > window.innerWidth - 10) {
-            left = window.innerWidth - toastRect.width - 10;
-        }
-        if (top + toastRect.height > window.innerHeight - 10) {
-            top = window.innerHeight - toastRect.height - 10;
-        }
+        const nodeCenterScreenX = canvasRect.left + ((node.pos[0] + node.size[0] / 2 + app.canvas.ds.offset[0]) * scale);
+        const nodeCenterScreenY = canvasRect.top + ((node.pos[1] + node.size[1] / 2 + app.canvas.ds.offset[1]) * scale);
+        left = Math.max(10, Math.min(nodeCenterScreenX - (toastRect.width / 2), window.innerWidth - toastRect.width - 10));
+        top = Math.max(10, Math.min(nodeCenterScreenY - (toastRect.height / 2), window.innerHeight - toastRect.height - 10));
     } else {
         left = window.innerWidth - toastRect.width - 20;
         top = 20;
@@ -52,7 +35,6 @@ window.showRaykoToast = function(message, type = "error", node = null) {
     
     toast.style.left = left + "px";
     toast.style.top = top + "px";
-    
     void toast.offsetWidth;
     toast.style.opacity = "1";
     toast.style.transform = "translateY(0)";
@@ -65,9 +47,9 @@ window.showRaykoToast = function(message, type = "error", node = null) {
 };
 
 app.registerExtension({
-    name: "RaykoLoraWidget",
+    name: "RaykoLoraWidgetPro",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
-        if (nodeData.name === "RaykoModelsLoader") {
+        if (nodeData.name === "RaykoModelsLoaderPro") {
             const originalOnNodeCreated = nodeType.prototype.onNodeCreated;
             const originalOnConfigure = nodeType.prototype.onConfigure;
             const originalOnSerialize = nodeType.prototype.onSerialize;
@@ -78,7 +60,7 @@ app.registerExtension({
                 this.loraRows = [];
                 this.loraOptions = [];
                 this.loraTree = {};
-                this.targetWidth = 400;
+                this.targetWidth = 450;
                 this.rowHeight = 30;
                 this.clickZones = [];
                 this.storageKey = null;
@@ -86,7 +68,7 @@ app.registerExtension({
                 this.isInitialized = false;
                 this.manual_size = false;
                 this.isAutoResizing = false;
-                this.MIN_WIDTH = 400;
+                this.MIN_WIDTH = 450;
                 this.scrollOffset = 0;
                 this.oldWheelCanvas = null;
                 this.oldWheelHandler = null;
@@ -108,64 +90,38 @@ app.registerExtension({
                     };
                 }
 
-                const useClip2Widget = this.widgets.find(w => w.name === "use_clip2");
-                const clipName2Widget = this.widgets.find(w => w.name === "clip_name2");
-                
-                if (useClip2Widget && clipName2Widget) {
-                    clipName2Widget.disabled = !useClip2Widget.value;
-                    if (clipName2Widget.element) {
-                        clipName2Widget.element.classList.toggle("comfy-disabled", clipName2Widget.disabled);
-                    }
-                    const originalCallback = useClip2Widget.callback;
-                    useClip2Widget.callback = function(value) {
-                        if (originalCallback) originalCallback(value);
-                        clipName2Widget.disabled = !value;
-                        if (clipName2Widget.element) {
-                            clipName2Widget.element.classList.toggle("comfy-disabled", clipName2Widget.disabled);
-                        }
-                        nodeRef.graph?.setDirtyCanvas(true, true);
-                    };
-                }
-
+                this.resizable = true;
                 this.setSize([this.targetWidth, this.size[1]]);
 
-                const collectPresetData = () => {
-                    const useClip2 = this.widgets.find(w => w.name === "use_clip2")?.value || false;
-                    return {
-                        unet_name: this.widgets.find(w => w.name === "unet_name")?.value || "",
-                        weight_dtype: this.widgets.find(w => w.name === "weight_dtype")?.value || "default",
-                        use_clip2: useClip2,
-                        clip_name: this.widgets.find(w => w.name === "clip_name")?.value || "",
-                        clip_name2: useClip2 ? (this.widgets.find(w => w.name === "clip_name2")?.value || "") : "",
-                        clip_type: this.widgets.find(w => w.name === "clip_type")?.value || "stable_diffusion",
-                        clip_device: this.widgets.find(w => w.name === "clip_device")?.value || "default",
-                        vae_name: this.widgets.find(w => w.name === "vae_name")?.value || ""
-                    };
-                };
+                const collectPresetData = () => ({
+                    unet_name: this.widgets.find(w => w.name === "unet_name")?.value || "None",
+                    unet_name2: this.widgets.find(w => w.name === "unet_name2")?.value || "None",
+                    weight_dtype: this.widgets.find(w => w.name === "weight_dtype")?.value || "default",
+                    clip_name: this.widgets.find(w => w.name === "clip_name")?.value || "None",
+                    clip_name2: this.widgets.find(w => w.name === "clip_name2")?.value || "None",
+                    clip_type: this.widgets.find(w => w.name === "clip_type")?.value || "stable_diffusion",
+                    clip_device: this.widgets.find(w => w.name === "clip_device")?.value || "default",
+                    vae_name: this.widgets.find(w => w.name === "vae_name")?.value || "None",
+                    vae_name2: this.widgets.find(w => w.name === "vae_name2")?.value || "None"
+                });
 
                 const applyPresetData = (data) => {
                     const setWidgetValue = (name, value) => {
                         const widget = this.widgets.find(w => w.name === name);
                         if (widget) {
-                            widget.value = value;
-                            if (widget.callback) widget.callback(value);
+                            widget.value = value || "None";
+                            if (widget.callback) widget.callback(widget.value);
                         }
                     };
-                    
-                    let safeClip2 = data.clip_name2;
-                    if (!data.use_clip2 && (!safeClip2 || safeClip2 === "")) {
-                        const clip1Value = data.clip_name || "";
-                        safeClip2 = clip1Value;
-                    }
-
                     setWidgetValue("unet_name", data.unet_name);
+                    setWidgetValue("unet_name2", data.unet_name2);
                     setWidgetValue("weight_dtype", data.weight_dtype);
-                    setWidgetValue("use_clip2", data.use_clip2);
                     setWidgetValue("clip_name", data.clip_name);
-                    setWidgetValue("clip_name2", safeClip2);
+                    setWidgetValue("clip_name2", data.clip_name2);
                     setWidgetValue("clip_type", data.clip_type);
                     setWidgetValue("clip_device", data.clip_device);
                     setWidgetValue("vae_name", data.vae_name);
+                    setWidgetValue("vae_name2", data.vae_name2);
                     
                     this.loraRows = [];
                     this.scrollOffset = 0;
@@ -551,7 +507,7 @@ app.registerExtension({
 
                 setTimeout(() => {
                     if (this.id) {
-                        this.storageKey = `rayko_lora_${this.id}`;
+                        this.storageKey = `rayko_lora_pro_${this.id}`;
                         this.loadLoraList().then(() => {
                             this.restoreData();
                             this.isInitialized = true;
@@ -613,15 +569,6 @@ app.registerExtension({
                         }
                     });
                 });
-                
-                const useClip2Widget = this.widgets.find(w => w.name === "use_clip2");
-                const clipName2Widget = this.widgets.find(w => w.name === "clip_name2");
-                if (useClip2Widget && clipName2Widget) {
-                    clipName2Widget.disabled = !useClip2Widget.value;
-                    if (clipName2Widget.element) {
-                        clipName2Widget.element.classList.toggle("comfy-disabled", clipName2Widget.disabled);
-                    }
-                }
                 return originalOnConfigure ? originalOnConfigure.apply(this, arguments) : undefined;
             };
 
@@ -836,7 +783,7 @@ app.registerExtension({
                     
                     ctx.fillStyle = "#fff";
                     ctx.font = "14px sans-serif";
-                    ctx.fillText("⋮⋮", padding + 2, toggleY + 5);
+                    ctx.fillText("⋮", padding + 2, toggleY + 5);
                     
                     ctx.font = "12px sans-serif";
                     ctx.fillText(row.name, padding + 25, toggleY + 4);
@@ -1290,20 +1237,14 @@ app.registerExtension({
                     yesBtn.style.cssText = `flex: 1; background: #3a1a1a; color: #f44336; border: 1px solid #f44336; border-radius: 4px; padding: 8px; cursor: pointer; font-size: 12px;`;
                     yesBtn.onmouseenter = () => yesBtn.style.background = "#4a2a2a";
                     yesBtn.onmouseleave = () => yesBtn.style.background = "#3a1a1a";
-                    yesBtn.onclick = () => {
-                        overlay.remove();
-                        callback(true);
-                    };
+                    yesBtn.onclick = () => { overlay.remove(); callback(true); };
                     
                     const noBtn = document.createElement("button");
                     noBtn.textContent = "No";
                     noBtn.style.cssText = `flex: 1; background: #2a2a2a; color: #ccc; border: 1px solid #555; border-radius: 4px; padding: 8px; cursor: pointer; font-size: 12px;`;
                     noBtn.onmouseenter = () => noBtn.style.background = "#3a3a3a";
                     noBtn.onmouseleave = () => noBtn.style.background = "#2a2a2a";
-                    noBtn.onclick = () => {
-                        overlay.remove();
-                        callback(false);
-                    };
+                    noBtn.onclick = () => { overlay.remove(); callback(false); };
                     
                     btnsDiv.appendChild(yesBtn);
                     btnsDiv.appendChild(noBtn);
@@ -1603,7 +1544,7 @@ document.addEventListener("visibilitychange", () => {
     if (!document.hidden && app && app.graph) {
         setTimeout(() => {
             app.graph._nodes.forEach(node => {
-                if (node.type === "RaykoModelsLoader" && node.restoreData) {
+                if (node.type === "RaykoModelsLoaderPro" && node.restoreData) {
                     node.restoreData();
                     node.updateUI();
                 }
@@ -1616,7 +1557,7 @@ window.addEventListener("focus", () => {
     if (app && app.graph) {
         setTimeout(() => {
             app.graph._nodes.forEach(node => {
-                if (node.type === "RaykoModelsLoader" && node.restoreData) {
+                if (node.type === "RaykoModelsLoaderPro" && node.restoreData) {
                     node.restoreData();
                     node.updateUI();
                 }

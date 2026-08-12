@@ -1287,6 +1287,69 @@ is three tags.
 
 </details> 
 <details>
+  <summary>🦊 RS Models Loader Pro</summary>
+
+# 🦊 RS Models Loader Pro  
+**The ultimate all-in-one loader for ComfyUI.**  
+`RS Models Loader Pro` is an advanced, extended version of the standard `RS Models Loader`. It combines UNET, CLIP, VAE, and a powerful LoRA management system into a single, highly customizable node.  
+Designed for complex workflows, the Pro version introduces **dual model and dual VAE support**, making it the perfect hub for multimodal pipelines, refiner setups, and advanced video/audio generation.  
+
+<img width="1875" height="688" alt="Screenshot_3" src="https://github.com/user-attachments/assets/1de98c19-b45e-483e-a56b-8390c44fa890" />
+
+### 🔥 Features  
+- **Unified Loading** - Load UNET, CLIP, VAE, and multiple LoRAs in one node  
+- **Dual UNET Support** - Load up to two diffusion models simultaneously  
+- **Dual CLIP Support** - Load up to two clip simultaneously for models like Flux, SD3, Hunyuan DiT, and PixArt  
+  - **Use Case 1:** Base + Refiner workflows (e.g., SDXL Base + SDXL Refiner) without needing extra loader nodes  
+  - **Use Case 2:** Complex multimodal architectures (e.g., Wan2.1 that require separate High noise and Low noise models)  
+- **Dual VAE Support** - Load up to two independent VAEs  
+  - **Use Case 1:** Mix a high-quality standard VAE for the final render with a fast preview VAE (like TAESD) for quick iterations  
+  - **Use Case 2:** Handle separate Video and Audio VAEs for advanced multimodal generation  
+- **Visual Multi-LoRA Management** - Add, remove, and reorder multiple LoRAs with drag-and-drop support  
+- **LoRA Management** - Add, enable/disable, and adjust strengths for multiple LoRAs with an intuitive visual interface  
+- **Enabling/disabling LoRA** - the disabled LoRA is ignored by the workflow  
+- **Persistent Storage** - LoRA configurations are saved per node and persist across sessions  
+- **Folder Structure** - Browse LoRAs with folder tree navigation  
+- **Search Functionality** - Quickly find LoRAs by name  
+- **Presets of model sets** - Save model sets to presets for quick switching between models  
+- **Presets of LoRA sets** - Save LoRA sets to presets for quick switching between models  
+- **Quick update** - When adding a new LoRA to the 'loras' folder, you do not need to reload ComfyUI or the browser page. Just click the ✔️ Update LoRA list button  
+- **Tag Editing** - Many loras rely on resources other than Civitai. You can register the tags for such loras manually  
+- **Pop-up messages** - Confirmation of successful or unsuccessful processes in the node  
+
+### 🧹 Clean Slate Defaults  
+All model, CLIP, and VAE slots now default to `"None"`. This gives you a clean, uncluttered interface to build your exact pipeline from scratch  
+
+### 🌐 Civitai Metadata Integration (Info Popup)  
+- **Instant Info** - Click the `ℹ️` icon on any LoRA row to open a detailed popup.  
+- **Fetch from Civitai** - Automatically fetches the model's true name, description, and tags directly from Civitai.  
+- **Getting metadata** - If no data is found, click the **🌐 Fetch from Civitai** button.  
+   - *Note: This may take a few seconds on the first run.*  
+- **Local Caching** - Fetched metadata is saved locally in the `rayko_lora_data` folder. Subsequent views are instant and require no internet connection.  
+
+### 📋 One-Click Tag Copying  
+- **Click to Copy** - Click on any individual green tag chip in the Info popup to instantly copy it to your clipboard and auto-close the window.  
+- **📋 Copy All** - A dedicated button to copy all trained words/tags at once.  
+
+**The principle of adding a tag:**  
+One line is one tag.  
+If it is written in one line, even separated by commas:  
+(1tag, 2tag, 3tag) is one tag.  
+If it is written in several lines, there are several tags:  
+1tag  
+2tag  
+3tag  
+is three tags.  
+
+### 🔔 Visual Feedback  
+- Custom toast notifications for successful actions, errors, and clipboard events  
+
+### 📃 Notes  
+- LoRA strengths can be set independently for model and CLIP  
+- All settings are saved with your workflow and persist across ComfyUI sessions  
+
+</details> 
+<details>
   <summary>🦊 RS Prompts</summary>
 
 # 🦊 RS Prompts  

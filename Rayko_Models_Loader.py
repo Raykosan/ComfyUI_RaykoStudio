@@ -104,7 +104,7 @@ class RaykoModelsLoader:
             "weight_dtype": (weight_dtype_opts, {"default": "default"}),
             "use_clip2": ("BOOLEAN", {"default": False, "label": "Enable second CLIP"}),
             "clip_name": (clip_files, {"tooltip": "First CLIP model (or primary CLIP for dual mode)"}),
-            "clip_name2": (clip_files, {"tooltip": "Second CLIP model (for dual-clip models like Flux, SD3)"}),
+            "clip_name2": ([""] + clip_files, {"tooltip": "Second CLIP model (for dual-clip models like Flux, SD3)"}),
             "clip_type": (clip_type_opts, {"default": "stable_diffusion"}),
             "clip_device": (device_opts, {"default": "default"}),
             "vae_name": (vae_files_with_pixel, {"tooltip": "model VAE (includes pixel_space for direct pixel manipulation)"}),

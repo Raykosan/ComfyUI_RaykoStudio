@@ -183,8 +183,12 @@ app.registerExtension({
             
             node.showImageSelector = function() {
                 const self = this;
+                
+                // Удаляем старое меню, если есть
                 const existingMenu = document.querySelector('.spline-image-menu');
-                if (existingMenu) existingMenu.remove();
+                if (existingMenu) {
+                    existingMenu.remove();
+                }
                 
                 fetch("/rayko/spline/images")
                     .then(response => response.json())
@@ -209,6 +213,42 @@ app.registerExtension({
                             min-width: 200px;
                         `;
                         
+                        // Header с кнопкой закрытия
+                        const header = document.createElement("div");
+                        header.style.cssText = `
+                            height: 28px;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            border-bottom: 1px solid #333;
+                            cursor: pointer;
+                            background: #2a2a2a;
+                        `;
+                        header.onmouseover = () => header.style.background = "#444";
+                        header.onmouseout = () => header.style.background = "#2a2a2a";
+                        
+                        const closeText = document.createElement("span");
+                        closeText.textContent = "CLOSE ✕";
+                        closeText.style.cssText = `
+                            color: #dc3545;
+                            font-size: 11px;
+                            font-weight: bold;
+                            font-family: Arial, sans-serif;
+                        `;
+                        
+                        header.appendChild(closeText);
+                        menu.appendChild(header);
+                        
+                        // Обработчик клика на header
+                        header.onclick = (e) => {
+                            e.stopPropagation();
+                            menu.remove();
+                        };
+                        
+                        // Content area для элементов списка
+                        const content = document.createElement("div");
+                        content.className = 'menu-content';
+                        
                         self.imageList.forEach(imgPath => {
                             const item = document.createElement("div");
                             const displayName = imgPath.split('/').pop();
@@ -223,21 +263,20 @@ app.registerExtension({
                             `;
                             item.onmouseover = () => item.style.background = "#444";
                             item.onmouseout = () => item.style.background = imgPath === self.data.selected_image ? '#333' : "#1a1a1a";
+                            
                             item.onclick = (e) => {
                                 e.stopPropagation();
                                 self.loadImage(imgPath);
                                 menu.remove();
                             };
-                            menu.appendChild(item);
+                            
+                            content.appendChild(item);
                         });
+                        
+                        menu.appendChild(content);
                         
                         self.positionMenu(menu, 0);
                         document.body.appendChild(menu);
-                        
-                        const closeHandler = (e) => {
-                            if (!menu.contains(e.target)) menu.remove();
-                        };
-                        setTimeout(() => document.addEventListener("mousedown", closeHandler), 100);
                     })
                     .catch(err => console.error(err));
             };

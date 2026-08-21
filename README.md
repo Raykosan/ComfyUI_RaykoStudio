@@ -562,7 +562,7 @@ Tested with ComfyUI core upscaler models including:
 <details>
   <summary>🦊 RS Ref Encode</summary>
 	
-# 🦊 RS RS Ref Encode  
+# 🦊 RS Ref Encode  
 **A node that combines VAE Encode and Set Reference Latent into a single efficient operation.**   
 
 <img width="1291" height="364" alt="Screenshot_4" src="https://github.com/user-attachments/assets/ad405491-a83f-4ee0-8a47-634e3343edc8" />

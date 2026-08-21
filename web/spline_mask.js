@@ -454,17 +454,32 @@ app.registerExtension({
                 
                 const canvasRect = canvasEl.getBoundingClientRect();
                 const ds = app.canvas.ds;
-                const btnY = this.size[1] - 45;
+                const scale = ds.scale;
+                
+                // Экранная позиция левого верхнего угла ноды
+                const nodeScreenX = canvasRect.left + ((this.pos[0] + ds.offset[0]) * scale);
+                const nodeScreenY = canvasRect.top + ((this.pos[1] + ds.offset[1]) * scale);
+                
+                // Параметры кнопок (должны быть идентичны тем, что в onDrawForeground)
                 const padding = 15;
                 const gap = 10;
                 const btnW = (this.size[0] - 2 * padding - 2 * gap) / 3;
+                const btnH = 28;
+                const btnYOffset = 45; // Отступ от низа ноды до ВЕРХНЕГО края кнопок
+                
+                // Рассчитываем позицию конкретной кнопки (INPUT = 0)
                 const btnX = padding + (buttonIndex * (btnW + gap));
                 
-                const nodeScreenX = canvasRect.left + ((this.pos[0] + ds.offset[0]) * ds.scale);
-                const nodeScreenY = canvasRect.top + ((this.pos[1] + ds.offset[1]) * ds.scale);
+                // Y-координата ВЕРХНЕГО края кнопки в графовых координатах
+                const btnGraphY = this.size[1] - btnYOffset;
                 
-                menu.style.left = (nodeScreenX + btnX) + "px";
-                menu.style.top = (nodeScreenY + btnY + 30) + "px";
+                // Переводим в экранные координаты
+                const screenLeft = nodeScreenX + (btnX * scale);
+                const screenTop = nodeScreenY + (btnGraphY * scale) + (btnH * scale);
+                
+                // Добавляем небольшой отступ (5px) чтобы меню не прилипало к кнопке
+                menu.style.left = screenLeft + "px";
+                menu.style.top = (screenTop + 5) + "px";
             };
             
             node.triggerFileUpload = function() {

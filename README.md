@@ -99,6 +99,9 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.36.4 - Added drag and drop image loading to the RS Image-Text node
 - v0.37.0 - Added an RS Upscaler node
 - v0.38.0 - Added an RS LoRA Tester node
+- v0.39.0 - Added an RS Save Image LoRA node
+- v0.40.0 - Added RS Models Loader Pro node
+- v0.41.0 - Added RS Ref Encode node  
 
 </details>
 
@@ -554,6 +557,38 @@ Tested with ComfyUI core upscaler models including:
 - `4x-UltraSharp.pth`  
 - `RealESRGAN_x4plus.pth`  
 - And on other models  
+
+</details>
+<details>
+  <summary>🦊 RS Ref Encode</summary>
+	
+# 🦊 RS RS Ref Encode  
+**A node that combines VAE Encode and Set Reference Latent into a single efficient operation.**   
+
+<img width="1291" height="364" alt="Screenshot_4" src="https://github.com/user-attachments/assets/ad405491-a83f-4ee0-8a47-634e3343edc8" />
+<br>
+<img width="451" height="271" alt="Screenshot_3" src="https://github.com/user-attachments/assets/8e2fff78-0d46-490c-a94c-db5f69109cc2" />
+
+### 🔥 Features  
+- **Unified Workflow** - Replaces the 3-node chain (`VAE Encode` → `Set Reference Latent` ×2) with a single node  
+- **Memory Efficient** - Encodes pixels only once and reuses the latent for both positive and negative conditioning  
+- **Native Compatibility** - Uses ComfyUI's internal `node_helpers.conditioning_set_values` to ensure 100% compatibility with edit models and reference-based generation  
+- **Safe VAE Handling** - Automatically handles different return formats from `vae.encode()` across various ComfyUI builds  
+- **Clean API** - No extra widgets or presets. Just inputs and outputs  
+
+### 🔌 Inputs & Outputs
+
+| Input | Type | Description |
+| :--- | :--- | :--- |
+| `positive` | CONDITIONING | Positive prompt conditioning |
+| `negative` | CONDITIONING | Negative prompt conditioning |
+| `pixels` | IMAGE | Reference image to encode |
+| `vae` | VAE | VAE model for encoding |
+
+| Output | Type | Description |
+| :--- | :--- | :--- |
+| `positive` | CONDITIONING | Conditioning with applied reference latent |
+| `negative` | CONDITIONING | Conditioning with applied reference latent |
 
 </details>
 <details>

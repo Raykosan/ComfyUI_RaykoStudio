@@ -10,6 +10,7 @@ const NODE_HEIGHT = 130;
 
 function getScopedStyles(scopeId) {
     return `
+        /* === Container === */
         .${scopeId} .rs-row {
             display: flex;
             align-items: center;
@@ -41,6 +42,7 @@ function getScopedStyles(scopeId) {
         .${scopeId} .rs-row select:hover { border-color: #ff9800; }
         .${scopeId} .rs-row select:focus { border-color: #ff9800; box-shadow: 0 0 0 1px rgba(255,152,0,0.3); }
 
+        /* === Slider row === */
         .${scopeId} .rs-slider-row {
             display: flex;
             align-items: center;
@@ -56,6 +58,7 @@ function getScopedStyles(scopeId) {
             font-family: sans-serif;
         }
 
+        /* Slider: green fill + white handle */
         .${scopeId} .rs-slider-row input[type="range"] {
             flex: 1;
             min-width: 0;
@@ -100,6 +103,7 @@ function getScopedStyles(scopeId) {
             box-shadow: 0 1px 3px rgba(0,0,0,0.4);
         }
 
+        /* === Step buttons +/- === */
         .${scopeId} .rs-step-btn {
             width: 20px;
             height: 26px;
@@ -127,6 +131,7 @@ function getScopedStyles(scopeId) {
             background: #333;
         }
 
+        /* === Value input === */
         .${scopeId} .rs-value-input {
             width: 35px;
             min-width: 35px;
@@ -305,7 +310,7 @@ app.registerExtension({
                 models.forEach((m) => {
                     const opt = document.createElement("option");
                     opt.value = m;
-                    opt.textContent = m.replace(/\.(pth|bin|pt)$/i, "");
+                    opt.textContent = m.replace(/\.(pth|bin|pt|safetensors)$/i, "");
                     modelSelect.appendChild(opt);
                 });
                 const currentModel = this.widgets.find((w) => w.name === "upscale_model")?.value;

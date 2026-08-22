@@ -40,11 +40,25 @@ class RSUpscaler:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "upscale"
     CATEGORY = "🦊 RaykoStudio"
-    DESCRIPTION = "Node for that combines upscale model loading and image upscaling into a single compact node"
+
+    @classmethod
+    def VALIDATE_INPUTS(cls, upscale_model, upscale_method, upscale_x, **kwargs):
+        model_list = folder_paths.get_filename_list("upscale_models")
+
+        if not upscale_model or upscale_model not in model_list:
+            if model_list:
+                return True
+            return "No upscale models found in models/upscale_models/"
+
+        valid_methods = ["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]
+        if upscale_method not in valid_methods:
+            return True
+
+        return True
 
     def upscale(self, image, upscale_model, upscale_method, upscale_x, rs_node_type=None):
-        if not upscale_model:
-            model_list = folder_paths.get_filename_list("upscale_models")
+        model_list = folder_paths.get_filename_list("upscale_models")
+        if not upscale_model or upscale_model not in model_list:
             if model_list:
                 upscale_model = model_list[0]
             else:

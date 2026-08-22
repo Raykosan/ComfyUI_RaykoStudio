@@ -181,7 +181,6 @@ app.registerExtension({
             app.canvas.canvas.addEventListener('dragover', handleCanvasDragOver, { capture: true });
             app.canvas.canvas.addEventListener('drop', handleCanvasDrop, { capture: true });
             
-            // Переменные для превью
             let _previewContainer = null;
             let _previewImg = null;
             let _previewTimeout = null;
@@ -222,7 +221,6 @@ app.registerExtension({
             const showPreview = (imgPath, targetElement) => {
                 if (!_previewContainer) createPreviewContainer();
                 
-                // Проверяем кэш
                 if (_previewCache[imgPath]) {
                     _previewImg.src = _previewCache[imgPath];
                     positionPreview(targetElement);
@@ -233,10 +231,8 @@ app.registerExtension({
                     return;
                 }
                 
-                // Загружаем изображение
                 const img = new Image();
                 
-                // Пробуем с параметрами размера
                 let filename = imgPath;
                 let subfolder = "";
                 if (imgPath.includes("/")) {
@@ -260,7 +256,6 @@ app.registerExtension({
                 };
                 
                 img.onerror = () => {
-                    // Fallback: пробуем без параметров размера
                     let fallbackUrl = `/view?filename=${encodeURIComponent(filename)}&type=input`;
                     if (subfolder) fallbackUrl += `&subfolder=${encodeURIComponent(subfolder)}`;
                     fallbackUrl += `&t=${Date.now()}`;
@@ -291,17 +286,13 @@ app.registerExtension({
                 const previewWidth = 200;
                 const gap = 10;
                 
-                // Пробуем справа
                 let left = rect.right + gap;
-                let top = rect.top + (rect.height / 2) - 100; // Центрируем по вертикали
+                let top = rect.top + (rect.height / 2) - 100;
                 
-                // Проверяем, хватает ли места справа
                 if (left + previewWidth > window.innerWidth) {
-                    // Если нет - показываем слева
                     left = rect.left - previewWidth - gap;
                 }
                 
-                // Проверяем границы экрана по вертикали
                 if (top < 0) top = 0;
                 if (top + 200 > window.innerHeight) top = window.innerHeight - 200;
                 
@@ -322,7 +313,6 @@ app.registerExtension({
             node.showImageSelector = function() {
                 const self = this;
                 
-                // Удаляем старое меню и превью, если есть
                 const existingMenu = document.querySelector('.spline-image-menu');
                 if (existingMenu) {
                     existingMenu.remove();
@@ -340,7 +330,6 @@ app.registerExtension({
                         
                         const menu = document.createElement("div");
                         menu.className = 'spline-image-menu';
-                        // Убрали max-height и overflow-y отсюда, добавили flex
                         menu.style.cssText = `
                             position: fixed;
                             background: #1a1a1a;
@@ -353,7 +342,6 @@ app.registerExtension({
                             flex-direction: column;
                         `;
                         
-                        // Header с кнопкой закрытия
                         const header = document.createElement("div");
                         header.style.cssText = `
                             height: 28px;
@@ -380,7 +368,6 @@ app.registerExtension({
                         header.appendChild(closeText);
                         menu.appendChild(header);
                         
-                        // Обработчик клика на header
                         header.onclick = (e) => {
                             e.stopPropagation();
                             if (_previewTimeout) clearTimeout(_previewTimeout);
@@ -388,10 +375,8 @@ app.registerExtension({
                             menu.remove();
                         };
                         
-                        // Content area для элементов списка
                         const content = document.createElement("div");
                         content.className = 'menu-content';
-                        // Перенесли max-height и overflow-y сюда
                         content.style.cssText = `
                             max-height: 300px;
                             overflow-y: auto;
@@ -412,7 +397,6 @@ app.registerExtension({
                             item.onmouseover = () => item.style.background = "#444";
                             item.onmouseout = () => item.style.background = imgPath === self.data.selected_image ? '#333' : "#1a1a1a";
                             
-                            // Hover для превью с debounce
                             item.onmouseenter = () => {
                                 if (_previewTimeout) clearTimeout(_previewTimeout);
                                 _previewTimeout = setTimeout(() => {
@@ -456,28 +440,22 @@ app.registerExtension({
                 const ds = app.canvas.ds;
                 const scale = ds.scale;
                 
-                // Экранная позиция левого верхнего угла ноды
                 const nodeScreenX = canvasRect.left + ((this.pos[0] + ds.offset[0]) * scale);
                 const nodeScreenY = canvasRect.top + ((this.pos[1] + ds.offset[1]) * scale);
                 
-                // Параметры кнопок (должны быть идентичны тем, что в onDrawForeground)
                 const padding = 15;
                 const gap = 10;
                 const btnW = (this.size[0] - 2 * padding - 2 * gap) / 3;
                 const btnH = 28;
-                const btnYOffset = 45; // Отступ от низа ноды до ВЕРХНЕГО края кнопок
+                const btnYOffset = 45;
                 
-                // Рассчитываем позицию конкретной кнопки (INPUT = 0)
                 const btnX = padding + (buttonIndex * (btnW + gap));
                 
-                // Y-координата ВЕРХНЕГО края кнопки в графовых координатах
                 const btnGraphY = this.size[1] - btnYOffset;
                 
-                // Переводим в экранные координаты
                 const screenLeft = nodeScreenX + (btnX * scale);
                 const screenTop = nodeScreenY + (btnGraphY * scale) + (btnH * scale);
                 
-                // Добавляем небольшой отступ (5px) чтобы меню не прилипало к кнопке
                 menu.style.left = screenLeft + "px";
                 menu.style.top = (screenTop + 5) + "px";
             };
@@ -501,7 +479,6 @@ app.registerExtension({
                 syncData();
             };
             
-            // ---- ФУНКЦИЯ РАСЧЁТА ПОЛОЖЕНИЯ ИЗОБРАЖЕНИЯ (с учётом смещения вниз) ----
             const calculateImageRect = () => {
                 if (!app.canvas) return null;
                 
@@ -523,7 +500,7 @@ app.registerExtension({
                 
                 const titleBarHeight = LiteGraph.NODE_TITLE_HEIGHT || 30;
                 const leftRightPadding = 10;
-                const topPadding = 18;       // 10 (базовый) + 8 (дополнительный сдвиг вниз)
+                const topPadding = 18;
                 const bottomPadding = 10;
                 const footerHeight = 50;
                 
@@ -553,7 +530,6 @@ app.registerExtension({
                 
                 return { left: drawX, top: drawY, width: drawW, height: drawH, scale: contentScale };
             };
-            // ----------------------------------------------------------------
             
             const syncPosition = () => {
                 if (!_overlayCanvas) return;
@@ -701,7 +677,6 @@ app.registerExtension({
                 updateLoop();
             };
             
-            // ---- ОТРИСОВКА КНОПОК И ИЗОБРАЖЕНИЯ (с учётом смещения) ----
             node.onDrawForeground = function(ctx) {
                 if (this.flags.collapsed) return;
                 
@@ -715,18 +690,16 @@ app.registerExtension({
                 
                 const titleBarHeight = LiteGraph.NODE_TITLE_HEIGHT || 30;
                 const leftRightPadding = 10;
-                const topPadding = 18;      // 10 + 8
+                const topPadding = 18;
                 const bottomPadding = 10;
                 const footerHeight = 50;
                 const btnH = 28;
                 const btnY = h - 45;
                 
-                // Параметры кнопок (расстояние +10, закругление)
                 const btnPadding = 15;
                 const btnGap = 10;
                 const btnW = (w - 2 * btnPadding - 2 * btnGap) / 3;
                 
-                // === РАЗМЕРЫ ИЗОБРАЖЕНИЯ НАД ПРЕВЬЮ ===
                 if (this.imageLoaded && this.image) {
                     ctx.fillStyle = "#888";
                     ctx.font = "15px sans-serif";
@@ -738,7 +711,6 @@ app.registerExtension({
                         titleBarHeight + widgetsHeight - 13
                     );
                 }
-                // ====================================
                 
                 const startY = titleBarHeight + widgetsHeight + topPadding;
                 const availableHeight = h - startY - footerHeight - bottomPadding;
@@ -772,7 +744,6 @@ app.registerExtension({
                     ctx.fillText("Select Image...", w / 2, startY + availableHeight / 2);
                 }
                 
-                // ---- РИСУЕМ КНОПКИ (скруглённые, с увеличенным расстоянием) ----
                 for (let i = 0; i < this.buttons.length; i++) {
                     const btn = this.buttons[i];
                     btn.x = btnPadding + (i * (btnW + btnGap));
@@ -780,7 +751,6 @@ app.registerExtension({
                     btn.w = btnW;
                     btn.h = btnH;
                     
-                    // Фон со скруглением
                     const radius = 4;
                     const x = btn.x, y = btn.y, w = btn.w, h = btn.h;
                     ctx.fillStyle = btn.hover ? "#444" : "#2a2a2a";
@@ -797,12 +767,10 @@ app.registerExtension({
                     ctx.closePath();
                     ctx.fill();
                     
-                    // Обводка
                     ctx.strokeStyle = btn.color;
                     ctx.lineWidth = 1.5;
                     ctx.stroke();
                     
-                    // Текст
                     ctx.fillStyle = btn.color;
                     ctx.font = "bold 11px Arial";
                     ctx.textAlign = "center";
@@ -810,7 +778,6 @@ app.registerExtension({
                     ctx.fillText(btn.label, btn.x + btn.w / 2, btn.y + btn.h / 2);
                 }
             };
-            // ------------------------------------------------------------
             
             node.onMouseMove = function(event, pos) {
                 const [x, y] = pos;

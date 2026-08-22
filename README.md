@@ -101,7 +101,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.38.0 - Added an RS LoRA Tester node
 - v0.39.0 - Added an RS Save Image LoRA node
 - v0.40.0 - Added RS Models Loader Pro node
-- v0.41.0 - Added RS Ref Encode node  
+- v0.41.0 - Added RS Ref Encode node
+- v0.42.0 - Added nodes for working with upscalers: RS Upscale & Resize, RS Tile Adjustments, RS Tile Assemble
 
 </details>
 
@@ -557,6 +558,80 @@ Tested with ComfyUI core upscaler models including:
 - `4x-UltraSharp.pth`  
 - `RealESRGAN_x4plus.pth`  
 - And on other models  
+
+</details>
+<details>
+  <summary>🦊 RS Upscale & Resize</summary>
+	
+# 🦊 RS Upscale & Resize  
+**Hybrid upscaler and resizer. Uses 'scale_by' by default. When width/height inputs are connected or set manually (>0), it switches to exact external dimensions.**   
+
+<img width="468" height="470" alt="3" src="https://github.com/user-attachments/assets/0c062cf0-2267-4d5f-aece-5969577c77d1" />
+
+### 🔥 Features  
+- **Dual Mode Operation** - Seamlessly switches between Scale By (multiplicative) and Absolute Size (fixed dimensions) modes based on input connections.  
+- **Tiled Upscale Ready** - Dedicated optional inputs for width and height allow dynamic size overrides from nodes like TTP_Image_Tile_Batch, making it perfect for tiled diffusion workflows.  
+- **Advanced Resizing Logic** - Includes full support for aspect ratio handling (keep proportion, pad, fill/crop), conditional resizing, and automatic alignment to multiples of 8/16/32/64.  
+- **High-Quality Interpolation** - Supports Lanczos, Bicubic, Bilinear, Nearest-Exact, and Area methods.  
+- **Efficient Processing** - Performs interpolation only once per execution, preserving image quality better than sequential native nodes.   
+
+### 🪛 Usage  
+**Standard Upscaling**  
+Leave width and height at 0. Adjust scale_by to 2.0x, 1.5x, 5.4x, etc. The node acts as a smart ImageScaleBy with built-in multiple-of alignment  
+
+**Tiled Diffusion / VAE Encoding**  
+Connect dynamic size outputs (e.g., from Get Image Size or tile batch nodes) to the width and height inputs. The node automatically ignores scale_by and resizes to the exact required dimensions while maintaining VAE compatibility via multiple_of  
+
+**Aspect Ratio Correction**  
+Set method to keep proportion or pad to prevent distortion when forcing specific resolutions. Use fill / crop for center-cropped upscaling  
+
+### 📝 Notes  
+- Priority Logic: External width/height inputs always take precedence over scale_by  
+- Proportional Fallback: If only one dimension is provided (e.g., only width), the other is calculated automatically to maintain the original aspect ratio  
+
+</details>
+<details>
+  <summary>🦊 RS Tile Adjustments</summary>
+	
+# 🦊 RS Tile Adjustments  
+**A powerful node that calculates optimal tile dimensions based on image factors and overlap rates, then splits the input image into a batch of tiles with precise coordinate metadata.**   
+
+<img width="456" height="406" alt="2" src="https://github.com/user-attachments/assets/9143cb2b-0c54-4956-9a65-34c846fab036" />
+
+### 🔥 Features  
+- **Dynamic Calculation** - Automatically computes tile_width and tile_height based on user-defined width/height factors and overlap rates  
+- **Smart Overlap** - Ensures tiles have sufficient overlap for smooth blending during reconstruction  
+- **Metadata Output** - Provides essential data (POSITIONS, ORIGINAL_SIZE, GRID_SIZE) required for accurate image assembly  
+
+### 🪛 Usage  
+Connect your source image to the image input  
+Adjust width_factor_tile and height_factor_tile to define the grid density  
+Set overlap_rate to ensure enough context for blending (recommended: 0.1 - 0.2)  
+Use the IMAGES output for processing (upscaling/inpainting) and pass the metadata outputs to RS Tile Assemble node  
+
+</details>
+<details>
+  <summary>🦊 RS Tile Assemble</summary>
+	
+# 🦊 RS Tile Assemble  
+**The companion node to RS Tile Adjustments. It reconstructs a full-resolution image from a batch of processed tiles using calculated positions and advanced feathered blending to eliminate visible seams.**   
+
+<img width="466" height="270" alt="1" src="https://github.com/user-attachments/assets/06c3fa4a-4d2f-4a1f-ae09-c799fbddc486" />
+
+### 🔥 Features  
+- **Seamless Reconstruction** - Uses gradient masking to blend tile overlaps smoothly  
+- **Flexible Blending** - The feather_size parameter allows you to control the softness of the transitions between tiles  
+- **Metadata Driven** - Relies on precise geometry data from the tiling node to ensure perfect alignment  
+- **High Quality** - Preserves details while removing hard edges common in basic tiling methods  
+
+### 🪛 Usage  
+Connect the processed tiles to the tiles input  Wire the POSITIONS, ORIGINAL_SIZE, and GRID_SIZE outputs from RS Tile Adjustments to their corresponding inputs  
+Adjust feather_size if you notice hard lines (increase) or loss of detail at seams (decrease)  
+The FINAL_IMAGE output is ready for saving or further processing  
+
+### 💡 Tips
+**Feather Size**: Start with 64. If your overlap rate was low, you may need to reduce this. If you see visible seams, increase it.  
+**Workflow**: This node is designed to work in a linear flow: Split -> Process -> Assemble. Avoid creating direct feedback loops within a single prompt execution.  
 
 </details>
 <details>

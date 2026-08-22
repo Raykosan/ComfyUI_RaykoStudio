@@ -30,7 +30,7 @@ class RSReferenceLatentEncode:
     RETURN_TYPES = ("CONDITIONING", "CONDITIONING")
     RETURN_NAMES = ("positive", "negative")
     FUNCTION = "execute"
-    CATEGORY = " RaykoStudio"
+    CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = "Combines VAE Encode + Set Reference Latent"
 
     def execute(self, positive, negative, pixels, vae):

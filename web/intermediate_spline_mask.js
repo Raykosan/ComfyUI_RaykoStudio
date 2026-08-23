@@ -1,4 +1,3 @@
-console.log("[InSPLINE ] intermediate_spline_mask.js LOADED!");
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 
@@ -129,11 +128,40 @@ app.registerExtension({
                     };
                 };
                 
+                const updateOverlayVisibility = () => {
+                    if (!_overlayCanvas) return;
+                    
+                    const currentGraph = app.canvas.graph || node.graph;
+                    const rootGraph = app.graph; 
+                    const isInSubgraph = currentGraph !== rootGraph;
+                    
+                    if (isInSubgraph) {
+                        _overlayCanvas.style.zIndex = '-1';
+                        _overlayCanvas.style.display = 'none';
+                        _overlayCanvas.style.pointerEvents = 'none';
+                    } else {
+                        _overlayCanvas.style.zIndex = '900';
+                        _overlayCanvas.style.display = node.imageReady ? 'block' : 'none';
+                        _overlayCanvas.style.pointerEvents = 'auto';
+                    }
+                };
+
+                const handleGraphChange = () => updateOverlayVisibility();
+                
+                api.addEventListener('graph_changed', handleGraphChange);
+                api.addEventListener('graphConfigured', handleGraphChange); 
+                
+                node._subgraphListeners = [
+                    { event: 'graph_changed', handler: handleGraphChange },
+                    { event: 'graphConfigured', handler: handleGraphChange }
+                ];
+                
                 const startSyncLoop = () => {
                     if (_syncRunning) return;
                     _syncRunning = true;
                     const syncLoop = () => {
                         if (!_syncRunning) return;
+                        updateOverlayVisibility();
                         syncPosition();
                         if (_overlayCanvas) requestAnimationFrame(syncLoop);
                         else _syncRunning = false;
@@ -167,6 +195,9 @@ app.registerExtension({
                     if (_overlayCanvas) return;
                     _overlayCanvas = document.createElement("canvas");
                     _overlayCanvas.className = "rayko-inspline-overlay";
+                    
+                    updateOverlayVisibility();
+                    
                     _overlayCanvas.style.cssText = `
                         position: fixed !important; z-index: 900 !important;
                         pointer-events: auto !important; cursor: crosshair !important;
@@ -315,9 +346,9 @@ app.registerExtension({
                             let btnColor = btn.color;
                             if (btn.isBatch && node.batchMode) {
                                 btnColor = "#ff9800";
-                                btn.label = "️⚙️ BATCH ON";
+                                btn.label = "️️ BATCH ON";
                             } else if (btn.isBatch) {
-                                btn.label = "️⚙️ BATCH";
+                                btn.label = "️️ BATCH";
                             }
                             
                             ctx.fillStyle = btn.hover ? "#444" : "#2a2a2a";
@@ -388,7 +419,7 @@ app.registerExtension({
                             })
                         });
                     } catch(e) {
-                        console.error("[InSPLINE ] Batch toggle failed:", e);
+                        console.error("[InSPLINE 🦊] Batch toggle failed:", e);
                     }
                 };
                 
@@ -434,7 +465,6 @@ app.registerExtension({
                             if (decision === "approve") {
                                 if (node.batchMode) {
                                     node.hasPreset = true;
-                                    // batchMode НЕ сбрасываем - кнопка остаётся оранжевой до конца очереди
                                 } else {
                                     this.currentStatus = "✅ Approved! Processing...";
                                 }
@@ -453,9 +483,15 @@ app.registerExtension({
                 };
                 
                 node.onRemoved = function() {
-                    console.log(`[InSPLINE ] Node ${this.id} removed, sending cleanup signal...`);
-                    
                     _syncRunning = false;
+                    
+                    if (node._subgraphListeners) {
+                        node._subgraphListeners.forEach(({ event, handler }) => {
+                            api.removeEventListener(event, handler);
+                        });
+                        node._subgraphListeners = null;
+                    }
+                    
                     if (_overlayCanvas) { 
                         _overlayCanvas.remove(); 
                         _overlayCanvas = null; 
@@ -486,7 +522,7 @@ app.registerExtension({
                 allNodes.push({node});
                 
             } catch (error) {
-                console.error("[InSPLINE ] Critical Error:", error);
+                console.error("[InSPLINE 🦊] Critical Error:", error);
             }
         };
     },
@@ -501,7 +537,7 @@ app.registerExtension({
                     node.imageReady = true;
                     const overlay = document.querySelector('.rayko-inspline-overlay');
                     if (overlay) {
-                        overlay.style.display = "block";
+                        updateOverlayVisibility();
                     }
                     setTimeout(() => {
                         _lastRect = null;

@@ -49,9 +49,9 @@ app.registerExtension({
             node.imageList = [];
             
             node.buttons = [
-                { label: "📂 INPUT", color: "#2196F3", callback: () => node.showImageSelector(), hover: false },
+                { label: " INPUT", color: "#2196F3", callback: () => node.showImageSelector(), hover: false },
                 { label: "🖥️ UPLOAD", color: "#4CAF50", callback: () => node.triggerFileUpload(), hover: false },
-                { label: "🔴 CLEAR", color: "#dc3545", callback: () => node.clearPoints(), hover: false }
+                { label: " CLEAR", color: "#dc3545", callback: () => node.clearPoints(), hover: false }
             ];
             
             let _points = [];
@@ -63,6 +63,34 @@ app.registerExtension({
             let _overlayCanvas = null;
             let _animationId = null;
             let _lastRect = null;
+            
+            const updateOverlayVisibility = () => {
+                if (!_overlayCanvas) return;
+                
+                const currentGraph = app.canvas.graph || node.graph;
+                const rootGraph = app.graph; 
+                const isInSubgraph = currentGraph !== rootGraph;
+                
+                if (isInSubgraph) {
+                    _overlayCanvas.style.zIndex = '-1';
+                    _overlayCanvas.style.display = 'none';
+                    _overlayCanvas.style.pointerEvents = 'none';
+                } else {
+                    _overlayCanvas.style.zIndex = '900';
+                    _overlayCanvas.style.display = node.imageLoaded ? 'block' : 'none';
+                    _overlayCanvas.style.pointerEvents = 'auto';
+                }
+            };
+
+            const handleGraphChange = () => updateOverlayVisibility();
+            
+            api.addEventListener('graph_changed', handleGraphChange);
+            api.addEventListener('graphConfigured', handleGraphChange); 
+            
+            node._subgraphListeners = [
+                { event: 'graph_changed', handler: handleGraphChange },
+                { event: 'graphConfigured', handler: handleGraphChange }
+            ];
             
             const syncData = () => {
                 node.data.spline_coords = JSON.stringify(_points);
@@ -96,7 +124,9 @@ app.registerExtension({
                     node.image = img;
                     node.imageLoaded = true;
                     node.imageLoading = false;
-                    if (_overlayCanvas) _overlayCanvas.style.display = "block";
+                    
+                    updateOverlayVisibility();
+                    
                     _lastRect = null;
                     syncPosition();
                     node.setDirtyCanvas(true, true);
@@ -105,6 +135,7 @@ app.registerExtension({
                 img.onerror = () => {
                     node.imageLoaded = false;
                     node.imageLoading = false;
+                    updateOverlayVisibility();
                     node.setDirtyCanvas(true, true);
                 };
                 img.src = imgUrl;
@@ -345,7 +376,7 @@ app.registerExtension({
                         const header = document.createElement("div");
                         header.style.cssText = `
                             height: 28px;
-                            flex-shrink: 0; /* Чтобы header не сжимался */
+                            flex-shrink: 0;
                             display: flex;
                             justify-content: center;
                             align-items: center;
@@ -450,7 +481,6 @@ app.registerExtension({
                 const btnYOffset = 45;
                 
                 const btnX = padding + (buttonIndex * (btnW + gap));
-                
                 const btnGraphY = this.size[1] - btnYOffset;
                 
                 const screenLeft = nodeScreenX + (btnX * scale);
@@ -596,6 +626,9 @@ app.registerExtension({
             const createOverlayCanvas = () => {
                 if (_overlayCanvas) return;
                 _overlayCanvas = document.createElement("canvas");
+                
+                updateOverlayVisibility();
+                
                 _overlayCanvas.style.cssText = `
                     position: fixed !important;
                     z-index: 900 !important;
@@ -671,6 +704,9 @@ app.registerExtension({
                 
                 const updateLoop = () => {
                     if (!_overlayCanvas) return;
+                    
+                    updateOverlayVisibility();
+                    
                     syncPosition();
                     _animationId = requestAnimationFrame(updateLoop);
                 };
@@ -834,6 +870,14 @@ app.registerExtension({
                     cancelAnimationFrame(_animationId);
                     _animationId = null;
                 }
+                
+                if (node._subgraphListeners) {
+                    node._subgraphListeners.forEach(({ event, handler }) => {
+                        api.removeEventListener(event, handler);
+                    });
+                    node._subgraphListeners = null;
+                }
+                
                 if (_overlayCanvas) _overlayCanvas.remove();
                 if (_previewContainer) _previewContainer.remove();
                 const menu = document.querySelector('.spline-image-menu');

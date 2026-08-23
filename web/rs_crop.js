@@ -75,7 +75,7 @@ app.registerExtension({
                 
                 node.addButton("✔️ ACCEPT", "#28a745", () => node.sendDecision("approve"));
                 node.addButton("🔄 RESET", "#dc3545", () => node.sendDecision("reject"));
-                node.addButton("❌ CANCEL", "#666666", () => node.sendDecision("cancel"));
+                node.addButton(" CANCEL", "#666666", () => node.sendDecision("cancel"));
                 
                 node.setSize([500, 650]);
                 
@@ -277,11 +277,40 @@ app.registerExtension({
                     };
                 };
                 
+                const updateOverlayVisibility = () => {
+                    if (!node._overlayCanvas) return;
+                    
+                    const currentGraph = app.canvas.graph || node.graph;
+                    const rootGraph = app.graph; 
+                    const isInSubgraph = currentGraph !== rootGraph;
+                    
+                    if (isInSubgraph) {
+                        node._overlayCanvas.style.zIndex = '-1';
+                        node._overlayCanvas.style.display = 'none';
+                        node._overlayCanvas.style.pointerEvents = 'none';
+                    } else {
+                        node._overlayCanvas.style.zIndex = '900';
+                        node._overlayCanvas.style.display = node.imageReady ? 'block' : 'none';
+                        node._overlayCanvas.style.pointerEvents = 'auto';
+                    }
+                };
+
+                const handleGraphChange = () => updateOverlayVisibility();
+                
+                api.addEventListener('graph_changed', handleGraphChange);
+                api.addEventListener('graphConfigured', handleGraphChange); 
+                
+                node._subgraphListeners = [
+                    { event: 'graph_changed', handler: handleGraphChange },
+                    { event: 'graphConfigured', handler: handleGraphChange }
+                ];
+                
                 const startSyncLoop = () => {
                     if (_syncRunning) return;
                     _syncRunning = true;
                     const syncLoop = () => {
                         if (!_syncRunning) return;
+                        updateOverlayVisibility();
                         syncPosition();
                         if (node._overlayCanvas) requestAnimationFrame(syncLoop);
                         else _syncRunning = false;
@@ -315,7 +344,6 @@ app.registerExtension({
                         const screenScale = imgRect.scale * currentScale;
                         node._overlayCanvas.dataset.screenScale = screenScale;
                         
-                        node._overlayCanvas.style.display = "block";
                         drawOverlay();
                     }
                 };
@@ -323,6 +351,9 @@ app.registerExtension({
                 const createOverlayCanvas = () => {
                     if (node._overlayCanvas) return;
                     node._overlayCanvas = document.createElement("canvas");
+                    
+                    updateOverlayVisibility();
+                    
                     node._overlayCanvas.style.cssText = `
                         position: fixed !important; z-index: 900 !important;
                         pointer-events: auto !important; cursor: crosshair !important;
@@ -696,6 +727,14 @@ app.registerExtension({
                 
                 node.onRemoved = function() {
                     _syncRunning = false;
+                    
+                    if (node._subgraphListeners) {
+                        node._subgraphListeners.forEach(({ event, handler }) => {
+                            api.removeEventListener(event, handler);
+                        });
+                        node._subgraphListeners = null;
+                    }
+                    
                     if (node._overlayCanvas) { 
                         node._overlayCanvas.remove(); 
                         node._overlayCanvas = null; 
@@ -748,9 +787,7 @@ app.registerExtension({
                             applyClamp();
                             applyAlignment();
                             
-                            if (node._overlayCanvas) {
-                                node._overlayCanvas.style.display = "block";
-                            }
+                            updateOverlayVisibility();
                             
                             setTimeout(() => {
                                 _lastRect = null;

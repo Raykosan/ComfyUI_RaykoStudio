@@ -17,8 +17,8 @@ app.registerExtension({
                 spline_coords: "[]"
             };
             
-            node.targetWidth = 450;
-            node.setSize([node.targetWidth, 600]);
+            node.targetWidth = 320;
+            node.setSize([320, 410]);
             
             const imageWidget = node.widgets?.find(w => w.name === "image");
             const coordsWidget = node.widgets?.find(w => w.name === "coordinates");
@@ -48,10 +48,28 @@ app.registerExtension({
             node.buttons = [];
             node.imageList = [];
             
+            // Новая функция для создания полной маски
+            node.fillFullMask = function() {
+                if (!node.imageLoaded || !node.image) return;
+                
+                const w = node.image.width;
+                const h = node.image.height;
+                
+                _points = [
+                    { x: 0, y: 0 },
+                    { x: w, y: 0 },
+                    { x: w, y: h },
+                    { x: 0, y: h }
+                ];
+                
+                syncData();
+            };
+            
             node.buttons = [
-                { label: " INPUT", color: "#2196F3", callback: () => node.showImageSelector(), hover: false },
-                { label: "🖥️ UPLOAD", color: "#4CAF50", callback: () => node.triggerFileUpload(), hover: false },
-                { label: " CLEAR", color: "#dc3545", callback: () => node.clearPoints(), hover: false }
+                { label: "📂 INPUT", color: "#2196F3", callback: () => node.showImageSelector(), hover: false },
+                { label: "🖥️ LOAD", color: "#4CAF50", callback: () => node.triggerFileUpload(), hover: false },
+                { label: "✔️ FULL", color: "#6ABF70", callback: () => node.fillFullMask(), hover: false },
+                { label: "❌ CLEAR", color: "#dc3545", callback: () => node.clearPoints(), hover: false }
             ];
             
             let _points = [];
@@ -476,7 +494,7 @@ app.registerExtension({
                 
                 const padding = 15;
                 const gap = 10;
-                const btnW = (this.size[0] - 2 * padding - 2 * gap) / 3;
+                const btnW = (this.size[0] - 2 * padding - 3 * gap) / 4; // Пересчет на 4 кнопки
                 const btnH = 28;
                 const btnYOffset = 45;
                 
@@ -732,9 +750,10 @@ app.registerExtension({
                 const btnH = 28;
                 const btnY = h - 45;
                 
+                // Пересчет ширины кнопок на 4 элемента
                 const btnPadding = 15;
                 const btnGap = 10;
-                const btnW = (w - 2 * btnPadding - 2 * btnGap) / 3;
+                const btnW = (w - 2 * btnPadding - 3 * btnGap) / 4;
                 
                 if (this.imageLoaded && this.image) {
                     ctx.fillStyle = "#888";
@@ -789,6 +808,13 @@ app.registerExtension({
                     
                     const radius = 4;
                     const x = btn.x, y = btn.y, w = btn.w, h = btn.h;
+                    
+                    // Ховер для бледной кнопки FULL
+                    let fillColor = btn.color;
+                    if (btn.label === "✔️ FULL" && btn.hover) {
+                        fillColor = "#4CAF50"; // Полная яркость при наведении
+                    }
+                    
                     ctx.fillStyle = btn.hover ? "#444" : "#2a2a2a";
                     ctx.beginPath();
                     ctx.moveTo(x + radius, y);
@@ -803,11 +829,11 @@ app.registerExtension({
                     ctx.closePath();
                     ctx.fill();
                     
-                    ctx.strokeStyle = btn.color;
+                    ctx.strokeStyle = fillColor;
                     ctx.lineWidth = 1.5;
                     ctx.stroke();
                     
-                    ctx.fillStyle = btn.color;
+                    ctx.fillStyle = fillColor;
                     ctx.font = "bold 11px Arial";
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
@@ -839,12 +865,10 @@ app.registerExtension({
                 return false;
             };
             
-            node.onResize = function() {
-                _lastRect = null;
-                syncPosition();
-            };
-            
-            node.onMove = function() {
+            node.onResize = function(size) {
+                if (size[0] < 320) size[0] = 320;
+                if (size[1] < 410) size[1] = 410;
+                
                 _lastRect = null;
                 syncPosition();
             };

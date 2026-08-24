@@ -74,8 +74,8 @@ app.registerExtension({
                 };
                 
                 node.addButton("✔️ ACCEPT", "#28a745", () => node.sendDecision("approve"));
-                node.addButton("🔄 RESET", "#dc3545", () => node.sendDecision("reject"));
-                node.addButton(" CANCEL", "#666666", () => node.sendDecision("cancel"));
+                node.addButton("🔄 RESET", "#2196F3", () => node.sendDecision("reject"));
+                node.addButton("❌ CANCEL", "#dc3545", () => node.sendDecision("cancel"));
                 
                 node.setSize([500, 650]);
                 

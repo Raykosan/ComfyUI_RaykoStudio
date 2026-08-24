@@ -103,6 +103,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.40.0 - Added RS Models Loader Pro node
 - v0.41.0 - Added RS Ref Encode node
 - v0.42.0 - Added nodes for working with upscalers: RS Upscale & Resize, RS Tile Adjustments, RS Tile Assemble
+- v0.42.1 - Changes in the interfaces of some nodes
 
 </details>
 

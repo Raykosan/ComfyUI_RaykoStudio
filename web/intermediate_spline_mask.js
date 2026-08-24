@@ -41,8 +41,8 @@ app.registerExtension({
                 
                 node.addButton("⚙️ BATCH", "#2196F3", () => node.toggleBatchMode(), true);
                 node.addButton("✔️ ACCEPT", "#28a745", () => node.sendDecision("approve"));
-                node.addButton("🔴 CLEAR MASK", "#dc3545", () => node.sendDecision("reject"));
-                node.addButton("❌ CANCEL", "#666666", () => node.sendDecision("cancel"));
+                node.addButton("🔴 CLEAR", "#dc3545", () => node.sendDecision("reject"));
+                node.addButton("❌ CANCEL", "#dc3545", () => node.sendDecision("cancel"));
                 
                 node.setSize([450, 600]);
                 

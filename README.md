@@ -105,6 +105,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.42.0 - Added nodes for working with upscalers: RS Upscale & Resize, RS Tile Adjustments, RS Tile Assemble
 - v0.42.1 - Changes in the interfaces of some nodes
 - v0.43.0 - Added RS Label node
+- v0.44.0 - Added RS Label Image node
 
 </details>
 
@@ -160,6 +161,49 @@ Fonts are auto-detected on editor open
 | **Border Radius** | Corner roundness of the label frame. | `5` |
 | **Border Width** | Thickness of the outer frame. | `2` |
 | **Border Color** | Color of the outer frame. | `#FF0000` |
+
+</details>
+<details>
+  <summary>🦊 RS Label Image</summary>
+	
+# 🦊 RS Label Image  
+**A versatile floating image label node for ComfyUI.**  
+Perfect for adding visual markers, logos, icons, or annotations directly onto your canvas with full control over styling and layout.  
+
+<img width="1632" height="547" alt="Screenshot_1" src="https://github.com/user-attachments/assets/ebe03f69-f9f4-4046-a807-7a236d08c88b" />
+
+### 🔥 Features  
+- **Flexible Backgrounds** - Choose between fully transparent mode for a "floating" look or solid background colors to make your labels pop  
+- **Smart Drag & Drop** - Simply drag an image file from your computer directly onto the node to upload it instantly  
+- **Auto-Synced Rounding** - The image corners automatically match the curvature of the outer border for a perfectly aligned, professional look (with an option for manual override)  
+- **Proportional Scaling** - Images are resized while maintaining their original aspect ratio, ensuring no distortion regardless of the target size  
+- **Non-Destructive Workflow** - Edit properties in a draggable settings window without dimming the canvas or blocking access to other nodes  
+- **Persistent Storage** - Uploaded images are cached and reliably restored even after page reloads or switching between workflow tabs  
+
+### 🎛️ Controls  
+**Double-Click:** Opens the settings dialog anchored to the node  
+**Drag Window Title:** Repositions the settings dialog anywhere on screen  
+**Close:** settings window is closed with the `OK` button or the `ESC` key  
+
+⚠️ **When navigating through the ComfyUI or browser tabs, as well as when refreshing the ComfyUI page, the settings window automatically closes, saving the text settings configured in it.**
+
+### 🛠️ Settings Dialog
+| Parameter | Description | Default |
+| :--- | :--- | :--- |
+| **Size** | Maximum side length of the displayed image (16–200px). | `100` |
+| **Padding** | Internal margin between the image and the border. | `0` (Internal: 5px) |
+| **Border Width** | Thickness of the outer frame. | `2` |
+| **Border Radius** | Corner roundness of the label frame. | `5` |
+| **Sync Image Radius** | Automatically matches image corners to the border shape. | `On` |
+| **Image Radius** | Manual corner roundness for the image (if sync is off). | `0` |
+| **Border Color** | Color of the outer frame. | `#FF0000` |
+| **BG Transparent** | Toggle for solid background vs transparency. | `On` |
+| **BG Color** | Fill color when transparency is disabled. | N/A |
+
+### 💡 Tips
+- **Perfect Circles:** Set the **Border Radius** to half of the **Size** (e.g., Size 100, Radius 50) to create perfect circular labels  
+- **Visual Consistency:** Keep **Sync Image Radius** enabled to ensure the image and border always look like a single cohesive element  
+- **Workflow Organization:** Use these labels as visual headers for different sections of your graph or as status indicators for complex sub-workflows  
 
 </details>
 <details>

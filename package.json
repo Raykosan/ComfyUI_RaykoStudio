@@ -1,6 +1,6 @@
 {
   "name": "ComfyUI_RaykoStudio",
-  "version": "0.43.0",
+  "version": "0.44.0",
   "description": "Set of custom nodes for ComfyUI providing additional image processing capabilities",
   "author": "Raykosan",
   "license": "Apache License 2.0",
@@ -25,6 +25,7 @@
       "Rayko_Insert_Crop.py"
       "Rayko_Intermediate_Spline_Mask.py"
       "Rayko_Label.py"
+      "Rayko_Label_Image.py"
       "Rayko_Last_Frame.py"
       "Rayko_Load_Images_From_Dir.py"
       "Rayko_Loop_Switch.py"

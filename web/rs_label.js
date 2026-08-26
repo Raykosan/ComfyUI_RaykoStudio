@@ -229,6 +229,10 @@ app.registerExtension({
         };
         
         nodeType.prototype.showSettingsDialog = async function() {
+            if (this.dialogOpen) {
+                return;
+            }
+            
             if (this._fontLoadPromise) {
                 try { await this._fontLoadPromise; } catch (e) {}
             }
@@ -286,8 +290,10 @@ app.registerExtension({
                 if (isDragging) { isDragging = false; title.style.cursor = "grab"; }
             });
 
+            // FIX: Убран window.blur, оставлен только visibilitychange и Escape
             const closeDialog = () => {
                 document.removeEventListener("keydown", escHandler);
+                document.removeEventListener("visibilitychange", visibilityHandler);
                 if (dialog.parentNode) document.body.removeChild(dialog);
                 this.dialogOpen = false;
                 this.setDirtyCanvas(true, true);
@@ -295,6 +301,11 @@ app.registerExtension({
             
             const escHandler = (e) => { if (e.key === "Escape") closeDialog(); };
             document.addEventListener("keydown", escHandler);
+            
+            const visibilityHandler = () => {
+                if (document.hidden) closeDialog();
+            };
+            document.addEventListener("visibilitychange", visibilityHandler);
             
             const createRow = (label, createControl) => {
                 const row = document.createElement("div");

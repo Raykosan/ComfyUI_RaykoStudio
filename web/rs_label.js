@@ -229,9 +229,7 @@ app.registerExtension({
         };
         
         nodeType.prototype.showSettingsDialog = async function() {
-            if (this.dialogOpen) {
-                return;
-            }
+            if (this.dialogOpen) return;
             
             if (this._fontLoadPromise) {
                 try { await this._fontLoadPromise; } catch (e) {}
@@ -290,10 +288,32 @@ app.registerExtension({
                 if (isDragging) { isDragging = false; title.style.cursor = "grab"; }
             });
 
-            // FIX: Убран window.blur, оставлен только visibilitychange и Escape
+            // FIX: Перехват History API для отслеживания навигации ComfyUI
+            const originalPushState = history.pushState;
+            const originalReplaceState = history.replaceState;
+            
+            const onNavigate = () => {
+                closeDialog();
+            };
+            
+            history.pushState = function(...args) {
+                originalPushState.apply(this, args);
+                onNavigate();
+            };
+            
+            history.replaceState = function(...args) {
+                originalReplaceState.apply(this, args);
+                onNavigate();
+            };
+
             const closeDialog = () => {
+                // Восстанавливаем оригинальные методы History API
+                history.pushState = originalPushState;
+                history.replaceState = originalReplaceState;
+                
                 document.removeEventListener("keydown", escHandler);
                 document.removeEventListener("visibilitychange", visibilityHandler);
+                window.removeEventListener("hashchange", onHashChange);
                 if (dialog.parentNode) document.body.removeChild(dialog);
                 this.dialogOpen = false;
                 this.setDirtyCanvas(true, true);
@@ -306,6 +326,13 @@ app.registerExtension({
                 if (document.hidden) closeDialog();
             };
             document.addEventListener("visibilitychange", visibilityHandler);
+            
+            // Оставляем hashchange как запасной вариант
+            const currentHash = window.location.hash;
+            const onHashChange = () => {
+                if (window.location.hash !== currentHash) closeDialog();
+            };
+            window.addEventListener("hashchange", onHashChange);
             
             const createRow = (label, createControl) => {
                 const row = document.createElement("div");

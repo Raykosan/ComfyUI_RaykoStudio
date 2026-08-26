@@ -119,7 +119,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 **A highly customizable floating label node for ComfyUI.**  
 Perfect for adding annotations, titles, watermarks, or text overlays directly on the canvas with full control over typography and styling.  
 
-<img width="1083" height="816" alt="Screenshot_1" src="https://github.com/user-attachments/assets/bc3c5125-de03-4717-ac41-b95ab81ce294" />
+<img width="996" height="806" alt="photo_2026-08-26_12-36-43" src="https://github.com/user-attachments/assets/a492ecfb-5a8d-4131-a41c-3492d78fd3f2" />
 
 ### 🔥 Features  
 - **Rich Typography** - Full support for custom `.ttf`/`.otf` fonts loaded from a local directory  
@@ -133,6 +133,8 @@ Perfect for adding annotations, titles, watermarks, or text overlays directly on
 **Double-Click:** Opens the settings dialog anchored to the node  
 **Drag Window Title:** Repositions the settings dialog anywhere on screen  
 **Close:** settings window is closed with the `OK` button or the `ESC` key  
+
+⚠️ **When navigating through the ComfyUI or browser tabs, as well as when refreshing the ComfyUI page, the settings window automatically closes, saving the text settings configured in it.**
 
 ### 🔤 Installing Fonts
 Place .ttf or .otf files in folder:  

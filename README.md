@@ -104,6 +104,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.41.0 - Added RS Ref Encode node
 - v0.42.0 - Added nodes for working with upscalers: RS Upscale & Resize, RS Tile Adjustments, RS Tile Assemble
 - v0.42.1 - Changes in the interfaces of some nodes
+- v0.43.0 - Added RS Label node
 
 </details>
 
@@ -111,6 +112,54 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 ---
 
 # NODES
+<details>
+  <summary>🦊 RS Label</summary>
+	
+# 🦊 RS Label  
+**A highly customizable floating label node for ComfyUI.**  
+Perfect for adding annotations, titles, watermarks, or text overlays directly on the canvas with full control over typography and styling.  
+
+<img width="1083" height="816" alt="Screenshot_1" src="https://github.com/user-attachments/assets/bc3c5125-de03-4717-ac41-b95ab81ce294" />
+
+### 🔥 Features  
+- **Rich Typography** - Full support for custom `.ttf`/`.otf` fonts loaded from a local directory  
+- **Advanced Styling** - Precise control over font size, color, alignment, line spacing, letter spacing, and text stroke (outline)  
+- **Flexible Backgrounds** - Choose between fully transparent mode or solid background colors with adjustable padding and border radius  
+- **Smart UI** - Draggable settings window that auto-anchors to the node without dimming the canvas  
+- **Non-Destructive Workflow** - Edit properties in real-time while maintaining full visibility of your graph  
+- **Pin Support** - Right-click → Pin to allow clicks to pass through the label when not editing  
+
+### 🎛️ Controls  
+**Double-Click:** Opens the settings dialog anchored to the node  
+**Drag Window Title:** Repositions the settings dialog anywhere on screen  
+**Close:** settings window is closed with the `OK` button or the `ESC` key  
+
+### 🔤 Installing Fonts
+Place .ttf or .otf files in folder:  
+ComfyUI\custom_nodes\ComfyUI_RaykoStudio\fonts  
+Restart ComfyUI  
+Fonts are auto-detected on editor open  
+
+### 🛠️ Settings Dialog
+| Parameter | Description | Default |
+| :--- | :--- | :--- |
+| **Text** | Content of the label. Supports multiline via Enter key. | `Sample Text` |
+| **Font Size** | Height of the text in pixels. | `24` |
+| **Font Family** | Dropdown populated from `fonts/` directory. | First available |
+| **Font Color** | Fill color of the text characters. | `#FF0000` |
+| **Text Align** | Horizontal alignment (Left, Center, Right). | `Left` |
+| **Line Spacing** | Multiplier for vertical distance between baselines. | `1.0` |
+| **Letter Spacing** | Pixel offset between individual characters. | `0` |
+| **Stroke Width** | Thickness of the text outline (0–10). | `0` |
+| **Stroke Color** | Color of the text outline. | `#000000` |
+| **BG Transparent** | Toggle for solid background vs transparency. | `On` |
+| **BG Color** | Fill color when transparency is disabled. | N/A |
+| **Padding** | Internal margin between text and border. Min effective value is 5px. | `10` (UI: 5) |
+| **Border Radius** | Corner roundness of the label frame. | `5` |
+| **Border Width** | Thickness of the outer frame. | `2` |
+| **Border Color** | Color of the outer frame. | `#FF0000` |
+
+</details>
 <details>
   <summary>🦊 RS Collage Node</summary>	
 	

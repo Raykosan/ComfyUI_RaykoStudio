@@ -119,6 +119,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 # 🦊 RS Label  
 **A highly customizable floating label node for ComfyUI.**  
 Perfect for adding annotations, titles, watermarks, or text overlays directly on the canvas with full control over typography and styling.  
+<br>
+[![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/XRu__-2PXj8)
 
 <img width="996" height="806" alt="photo_2026-08-26_12-36-43" src="https://github.com/user-attachments/assets/a492ecfb-5a8d-4131-a41c-3492d78fd3f2" />
 
@@ -169,6 +171,8 @@ Fonts are auto-detected on editor open
 # 🦊 RS Label Image  
 **A versatile floating image label node for ComfyUI.**  
 Perfect for adding visual markers, logos, icons, or annotations directly onto your canvas with full control over styling and layout.  
+<br>
+[![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/XRu__-2PXj8)
 
 <img width="1632" height="547" alt="Screenshot_1" src="https://github.com/user-attachments/assets/ebe03f69-f9f4-4046-a807-7a236d08c88b" />
 

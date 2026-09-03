@@ -106,6 +106,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.42.1 - Changes in the interfaces of some nodes
 - v0.43.0 - Added RS Label node
 - v0.44.0 - Added RS Label Image node
+- v0.44.1 - Modification of the RS Decode Save Image node
 
 </details>
 
@@ -439,29 +440,28 @@ Also, when using bypass using comfi's own methods (the context menu is bypass, b
 
 </details>
 <details>
-  <summary>🦊 RS Decode Save</summary>
+  <summary>🦊 RS Decode Save Image</summary>
 	
-# 🦊 RS Decode Save  
+# 🦊 RS Decode Save Image  
 **A lightweight ComfyUI custom node that combines native VAE Decode and Save Image into a single, streamlined unit.**  
 Decodes latent samples to image tensors and saves them to disk in one step, while preserving the decoded `IMAGE` output for downstream preview or processing.  
 
-<img width="1013" height="774" alt="Screenshot_3" src="https://github.com/user-attachments/assets/ca9d60cf-e9c9-4f83-ae8d-617046ba2904" />
+<img width="633" height="922" alt="Screenshot_1" src="https://github.com/user-attachments/assets/a9cc36c5-22c9-4ccd-a922-b9c5bf900309" />
 
 ### 🔥 Features  
-**Unified Workflow** - Eliminates the need for separate decode and save nodes.  
-**Native Path Handling** - Uses ComfyUI's standard `folder_paths.get_save_image_path` logic. Supports subfolders via prefix (e.g., `project/render`).  
-**Format Support** - PNG, JPG, WEBP with automatic file numbering (`_00001`, `_00002`...).  
-**Metadata Embedding** - Automatically embeds workflow metadata into PNGs or saves sidecar JSON files for other formats.  
-**Minimal Interface** - Only two custom widgets (Prefix, Format). No cluttered settings panels.  
+- **Unified Workflow** - Eliminates the need for separate decode and save nodes.  
+- **Universal Path Support** - Save images to any location on your system (internal subfolders or absolute external paths like `D:\Renders`).  
+- **Smart Preview** - Automatically handles previews for both internal and external saves by utilizing a temporary cache with auto-cleanup.  
+- **Batch Processing** - Supports batch latents with automatic file numbering (`_00001`, `_00002`...) to prevent overwrites.  
+- **Format Support** - PNG, JPG, WEBP with metadata embedding capabilities.  
+- **State Persistence** - Node settings are automatically saved and restored across workflow reloads and tab switches.  
 
-### 🪛 Usage  
-| Input / Widget | Description |
+### 🎛️ Interface Widgets  
+| Widget | Description |
 | :--- | :--- |
-| `samples` (LATENT) | Latent space data from KSampler or similar. |
-| `vae` (VAE) | VAE model used for decoding. |
-| **PREFIX** (Widget) | Filename prefix and optional subfolder path. Default: `ComfyUI`. Use `/` for subfolders (e.g., `batch1/test`). |
-| **FORMAT** (Widget) | Output format selector: PNG, JPG, or WEBP. |
-| `image` (Output) | Decoded IMAGE tensor. Connect to PreviewImage or further processing nodes. |
+| **PATH** | The destination directory for your images. <br>- Click the **📁** button to select from existing `output` subfolders.<br>- Select **"ComfyUI"** to save to the root output folder.<br>- Choose **"✏️ Custom path..."** to manually type a relative subfolder (e.g., `project_v2`) or an absolute path (e.g., `I:/Final_Renders`). |
+| **PREFIX** | The base name for your saved files. Files will be saved as `prefix_00001.png`, `prefix_00002.png`, etc. |
+| **FORMAT** | The output file format selector: **PNG**, **JPG**, or **WEBP**. |
 
 </details>
 <details>

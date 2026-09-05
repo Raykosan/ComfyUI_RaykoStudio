@@ -126,7 +126,7 @@ class RS_VAE_Decode_Save:
                 return
             
             now = time.time()
-            cutoff = now - 7200
+            cutoff = now - 7200 
             
             for filename in os.listdir(temp_dir):
                 if filename.startswith("rs_prev_"):
@@ -151,11 +151,9 @@ class RS_VAE_Decode_Save:
 
         if is_absolute:
             target_dir = os.path.normpath(clean_path)
-            is_internal = False
         else:
             safe_path = self._sanitize_path_component(clean_path)
             target_dir = os.path.join(self.output_dir, safe_path) if safe_path else self.output_dir
-            is_internal = True
         
         try:
             os.makedirs(target_dir, exist_ok=True)
@@ -208,28 +206,18 @@ class RS_VAE_Decode_Save:
             
             img.save(filepath_main, **save_kwargs)
 
-            if is_internal:
-                rel_subfolder = os.path.relpath(target_dir, self.output_dir)
-                if rel_subfolder == ".": rel_subfolder = ""
-                
-                saved_files.append({
-                    "filename": filename_main,
-                    "subfolder": rel_subfolder,
-                    "type": "output"
-                })
-            else:
-                temp_name = f"rs_prev_{int(time.time() * 1000)}_{i}.png"
-                filepath_temp = os.path.join(temp_dir, temp_name)
-                img.save(filepath_temp, compress_level=1)
-                
-                if i == batch_size - 1:
-                    self.last_temp_file = temp_name
+            temp_name = f"rs_prev_{int(time.time() * 1000)}_{i}.png"
+            filepath_temp = os.path.join(temp_dir, temp_name)
+            img.save(filepath_temp, compress_level=1)
+            
+            if i == batch_size - 1:
+                self.last_temp_file = temp_name
 
-                saved_files.append({
-                    "filename": temp_name,
-                    "subfolder": "",
-                    "type": "temp"
-                })
+            saved_files.append({
+                "filename": temp_name,
+                "subfolder": "",
+                "type": "temp"
+            })
 
         return {"ui": {"images": saved_files}, "result": (images,)}
 
@@ -256,5 +244,5 @@ NODE_CLASS_MAPPINGS = {
     "RS_VAE_Decode_Save": RS_VAE_Decode_Save,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "RS_VAE_Decode_Save": "🦊 RS Decode Save Image",
+    "RS_VAE_Decode_Save": "🦊 RS Decode Save",
 }

@@ -84,6 +84,47 @@ function mkEl(tag, css) {
     return el; 
 }
 
+function isUidOccupied(uid) {
+    if (!uid) return false;
+    try {
+        const key = `rs_prompt_${uid}`;
+        const raw = localStorage.getItem(key);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        const now = Date.now();
+        const age = (now - (data.timestamp || 0)) / 1000 / 60 / 60;
+        return age <= 2;
+    } catch (_) {
+        return false;
+    }
+}
+
+function generateUniqueUid() {
+    let localStorageAvailable = true;
+    try {
+        localStorage.setItem('__test__', 'test');
+        localStorage.removeItem('__test__');
+    } catch (_) {
+        localStorageAvailable = false;
+    }
+    if (!localStorageAvailable) {
+        return 'rs_inst_' + crypto.randomUUID().replace(/-/g, '');
+    }
+    let uid;
+    let attempts = 0;
+    const maxAttempts = 100;
+    do {
+        uid = 'rs_inst_' + crypto.randomUUID().replace(/-/g, '');
+        if (!isUidOccupied(uid)) break;
+        attempts++;
+        if (attempts >= maxAttempts) {
+            console.warn("[RSPrompts] Max attempts reached for unique UID, using fallback");
+            break;
+        }
+    } while (true);
+    return uid;
+}
+
 app.registerExtension({
     name: "RSPrompts",
     async beforeRegisterNodeDef(nodeType, nodeData) {
@@ -96,6 +137,16 @@ app.registerExtension({
         
         nodeType.prototype.onConfigure = function(data) {
             const result = origOnConfigure ? origOnConfigure.apply(this, arguments) : undefined;
+            
+            let uid = this.properties?.rs_instance_uid || this.widgets?.find(w => w.name === "instance_uid")?.value;
+            if (uid) {
+                if (isUidOccupied(uid)) {
+                    uid = generateUniqueUid();
+                    this.properties.rs_instance_uid = uid;
+                    const uidWidget = this.widgets?.find(w => w.name === "instance_uid");
+                    if (uidWidget) uidWidget.value = uid;
+                }
+            }
             
             if (this.properties?.rs_instance_uid && this.widgets) {
                 const uidWidget = this.widgets.find(w => w.name === "instance_uid");
@@ -161,17 +212,15 @@ app.registerExtension({
                 node.properties = {};
             }
             
-            let instanceUid = node.properties.rs_instance_uid;
+            let instanceUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
             
-            if (!instanceUid) {
-                const uidWidget = node.widgets?.find(w => w.name === "instance_uid");
-                if (uidWidget && uidWidget.value) {
-                    instanceUid = uidWidget.value;
-                } else {
-                    instanceUid = 'rs_inst_' + crypto.randomUUID().replace(/-/g, '');
-                }
-                node.properties.rs_instance_uid = instanceUid;
+            if (instanceUid && isUidOccupied(instanceUid)) {
+                instanceUid = generateUniqueUid();
+            } else if (!instanceUid) {
+                instanceUid = generateUniqueUid();
             }
+                        
+            node.properties.rs_instance_uid = instanceUid;
             
             if (node.properties.rs_pause_state === undefined) {
                 const pauseWidget = node.widgets?.find(w => w.name === "pause_for_edit");
@@ -474,10 +523,18 @@ app.registerExtension({
                 } else {
                     const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                     const textKey = `rs_prompt_${currentUid}`;
-                    const savedText = localStorage.getItem(textKey);
-                    if (savedText !== null) {
-                        customTextarea.value = savedText;
-                        if (textWidget) textWidget.value = savedText;
+                    const saved = localStorage.getItem(textKey);
+                    if (saved) {
+                        try {
+                            const data = JSON.parse(saved);
+                            if (data.text !== undefined) {
+                                customTextarea.value = data.text;
+                                if (textWidget) textWidget.value = data.text;
+                            }
+                        } catch (_) {
+                            customTextarea.value = saved;
+                            if (textWidget) textWidget.value = saved;
+                        }
                     }
                     updateStatusAndUI();
                 }
@@ -492,13 +549,21 @@ app.registerExtension({
                     customTextarea.value = node.properties.rs_waiting_prompt;
                     if (textWidget) textWidget.value = node.properties.rs_waiting_prompt;
                 } else {
-                    const savedText = localStorage.getItem(textKey);
-                    if (savedText !== null && textWidget) {
-                        textWidget.value = savedText;
-                        customTextarea.value = savedText;
+                    const saved = localStorage.getItem(textKey);
+                    if (saved) {
+                        try {
+                            const data = JSON.parse(saved);
+                            if (data.text !== undefined) {
+                                customTextarea.value = data.text;
+                                if (textWidget) textWidget.value = data.text;
+                            }
+                        } catch (_) {
+                            customTextarea.value = saved;
+                            if (textWidget) textWidget.value = saved;
+                        }
                     } else if (textWidget) {
                         const initialText = textWidget.value || "";
-                        localStorage.setItem(textKey, initialText);
+                        localStorage.setItem(textKey, JSON.stringify({ text: initialText, timestamp: Date.now() }));
                         customTextarea.value = initialText;
                     }
                 }
@@ -534,7 +599,7 @@ app.registerExtension({
                     textWidget.value = customTextarea.value;
                     const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                     const currentTextKey = `rs_prompt_${currentUid}`;
-                    localStorage.setItem(currentTextKey, customTextarea.value);
+                    localStorage.setItem(currentTextKey, JSON.stringify({ text: customTextarea.value, timestamp: Date.now() }));
                     if (node.properties.rs_is_waiting) {
                         node.properties.rs_waiting_prompt = customTextarea.value;
                     }
@@ -591,7 +656,7 @@ app.registerExtension({
                     customTextarea.value = "";
                     const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                     const currentTextKey = `rs_prompt_${currentUid}`;
-                    localStorage.setItem(currentTextKey, "");
+                    localStorage.setItem(currentTextKey, JSON.stringify({ text: "", timestamp: Date.now() }));
                     if (node.properties.rs_is_waiting) {
                         node.properties.rs_waiting_prompt = "";
                     }
@@ -655,7 +720,7 @@ app.registerExtension({
                                     customTextarea.value = data.text || "";
                                     const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                                     const currentTextKey = `rs_prompt_${currentUid}`;
-                                    localStorage.setItem(currentTextKey, data.text || "");
+                                    localStorage.setItem(currentTextKey, JSON.stringify({ text: data.text || "", timestamp: Date.now() }));
                                 }
                                 if (node.graph) node.graph.setDirtyCanvas(true, true);
                             }
@@ -715,7 +780,7 @@ app.registerExtension({
                     if (textWidget) {
                         textWidget.value = event.detail.prompt;
                         const currentTextKey = `rs_prompt_${currentUid}`;
-                        localStorage.setItem(currentTextKey, event.detail.prompt);
+                        localStorage.setItem(currentTextKey, JSON.stringify({ text: event.detail.prompt, timestamp: Date.now() }));
                     }
                     updateStatusAndUI();
                 }
@@ -729,7 +794,7 @@ app.registerExtension({
                         if (textWidget) {
                             textWidget.value = event.detail.prompt;
                             const currentTextKey = `rs_prompt_${currentUid}`;
-                            localStorage.setItem(currentTextKey, event.detail.prompt);
+                            localStorage.setItem(currentTextKey, JSON.stringify({ text: event.detail.prompt, timestamp: Date.now() }));
                         }
                         if (node.graph) node.graph.setDirtyCanvas(true, true);
                     }, 10);
@@ -744,7 +809,7 @@ app.registerExtension({
                 if (textWidget && textWidget.value) {
                     const currentUid = node.properties.rs_instance_uid || node.widgets?.find(w => w.name === "instance_uid")?.value;
                     const currentTextKey = `rs_prompt_${currentUid}`;
-                    localStorage.setItem(currentTextKey, textWidget.value);
+                    localStorage.setItem(currentTextKey, JSON.stringify({ text: textWidget.value, timestamp: Date.now() }));
                 }
                 if (pauseWidget) node.properties.rs_pause_state = pauseWidget.value;
                 if (enableWidget) node.properties.rs_enable_state = enableWidget.value;

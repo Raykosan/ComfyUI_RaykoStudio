@@ -107,6 +107,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.43.0 - Added RS Label node
 - v0.44.0 - Added RS Label Image node
 - v0.44.1 - Modification of the RS Decode Save Image node
+- v0.44.2 - Display of the image grid in the batch mode of the RS Decode Save Image node has been changed
+- v0.45.0 - Isolation of RS Prompts and RS Decode Save Image nodes
 
 </details>
 
@@ -446,7 +448,8 @@ Also, when using bypass using comfi's own methods (the context menu is bypass, b
 **A lightweight ComfyUI custom node that combines native VAE Decode and Save Image into a single, streamlined unit.**  
 Decodes latent samples to image tensors and saves them to disk in one step, while preserving the decoded `IMAGE` output for downstream preview or processing.  
 
-<img width="633" height="922" alt="Screenshot_1" src="https://github.com/user-attachments/assets/a9cc36c5-22c9-4ccd-a922-b9c5bf900309" />
+<img width="517" height="817" alt="Screenshot_2" src="https://github.com/user-attachments/assets/e6c797ab-8d6e-490c-b342-8f484a613e70" />
+<img width="518" height="819" alt="Screenshot_1" src="https://github.com/user-attachments/assets/a4133728-7305-433f-806b-db4138be5f99" />
 
 ### 🔥 Features  
 - **Unified Workflow** - Eliminates the need for separate decode and save nodes.  

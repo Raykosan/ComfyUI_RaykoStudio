@@ -244,5 +244,5 @@ NODE_CLASS_MAPPINGS = {
     "RS_VAE_Decode_Save": RS_VAE_Decode_Save,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "RS_VAE_Decode_Save": "🦊 RS Decode Save",
+    "RS_VAE_Decode_Save": "🦊 RS Decode Save Image",
 }

@@ -5,6 +5,8 @@ const MIN_WIDTH = 240;
 const MIN_HEIGHT = 320;
 const PREVIEW_GAP = 5;
 const CLOSE_BTN_SIZE = 24;
+const STORAGE_PREFIX = "RS_VAE_Save_images_";
+const MAX_DATAURL_SIZE = 500 * 1024;
 
 app.registerExtension({
     name: "RaykoStudio.VAESaveImage",
@@ -22,6 +24,83 @@ app.registerExtension({
 
             const self = this;
 
+            this.generateUUID = function() {
+                let localStorageAvailable = true;
+                try {
+                    localStorage.setItem('__test__', 'test');
+                    localStorage.removeItem('__test__');
+                } catch (_) {
+                    localStorageAvailable = false;
+                }
+
+                if (!localStorageAvailable) {
+                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        const r = Math.random() * 16 | 0;
+                        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+                }
+
+                let uuid;
+                let attempts = 0;
+                const maxAttempts = 100;
+
+                do {
+                    uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        const r = Math.random() * 16 | 0;
+                        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+
+                    const key = STORAGE_PREFIX + uuid;
+                    const raw = localStorage.getItem(key);
+
+                    if (!raw) break;
+
+                    try {
+                        const data = JSON.parse(raw);
+                        const now = Date.now();
+                        const age = (now - (data.timestamp || 0)) / 1000 / 60 / 60;
+                        if (age > 2) {
+                            localStorage.removeItem(key);
+                            break;
+                        }
+                    } catch (_) {
+                        localStorage.removeItem(key);
+                        break;
+                    }
+
+                    attempts++;
+                    if (attempts >= maxAttempts) {
+                        console.warn("[RS] Max attempts reached for unique UUID, using fallback");
+                        break;
+                    }
+                } while (true);
+
+                return uuid;
+            };
+
+            this.ensureUniqueUuid = function() {
+                try {
+                    const key = this.getStorageKey();
+                    const raw = localStorage.getItem(key);
+                    if (!raw) return false;
+
+                    const data = JSON.parse(raw);
+                    const now = Date.now();
+                    const age = (now - (data.timestamp || 0)) / 1000 / 60 / 60;
+                    if (age <= 2 && data.imageData && data.imageData.length > 0) {
+                        const newUuid = this.generateUUID();
+                        this.rs_data.uuid = newUuid;
+                        this.syncData();
+                        return true;
+                    }
+                    return false;
+                } catch (_) {
+                    return false;
+                }
+            };
+
             if (this.widgets) {
                 for (let i = 0; i < this.widgets.length; i++) {
                     this.widgets[i].hidden = true;
@@ -29,7 +108,10 @@ app.registerExtension({
             }
 
             this.rs_data = { save_path: "", file_prefix: "img", format: "png" };
-            
+            if (!this.rs_data.uuid) {
+                this.rs_data.uuid = this.generateUUID();
+            }
+
             const dataW = this.widgets?.find(w => w.name === "node_data");
             const pathW = this.widgets?.find(w => w.name === "save_path");
             const prefixW = this.widgets?.find(w => w.name === "file_prefix");
@@ -44,19 +126,186 @@ app.registerExtension({
                 }
             };
 
+            this.syncData = function() {
+                const state = {
+                    rs_data: self.rs_data,
+                    previewMode: self.previewMode,
+                    imageIndex: self.imageIndex
+                };
+                if (dataW) {
+                    dataW.value = JSON.stringify(state);
+                } else {
+                    console.warn("[RS] syncData: dataW not found");
+                }
+            };
+
             this.applyState = function() {
                 if (pathW) pathW.value = self.rs_data.save_path;
                 if (prefixW) prefixW.value = self.rs_data.file_prefix;
                 if (formatW) formatW.value = self.rs_data.format;
-                if (dataW) dataW.value = JSON.stringify(self.rs_data);
+                self.syncData();
                 self.updateUI();
             };
 
             this.persistState = function () {
-                if (dataW) dataW.value = JSON.stringify(self.rs_data);
+                self.syncData();
                 if (pathW) pathW.value = self.rs_data.save_path;
                 if (prefixW) prefixW.value = self.rs_data.file_prefix;
                 if (formatW) formatW.value = self.rs_data.format;
+            };
+
+            this.getStorageKey = function() {
+                return STORAGE_PREFIX + (this.rs_data.uuid || 'unknown');
+            };
+
+            this.saveImagesToLocalStorage = function() {
+                try {
+                    const key = this.getStorageKey();
+                    const data = {
+                        imageData: this.imageData,
+                        previewMode: this.previewMode,
+                        imageIndex: this.imageIndex,
+                        imgAspect: this.imgAspect,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem(key, JSON.stringify(data));
+                } catch (e) {
+                    console.error("[RS] saveImagesToLocalStorage error:", e);
+                }
+            };
+
+            this.loadImagesFromLocalStorage = function() {
+                try {
+                    const key = this.getStorageKey();
+                    const raw = localStorage.getItem(key);
+                    if (!raw) return false;
+                    const data = JSON.parse(raw);
+                    if (!data.imageData || data.imageData.length === 0) return false;
+
+                    const now = Date.now();
+                    const age = (now - (data.timestamp || 0)) / 1000 / 60 / 60;
+                    if (age > 2) {
+                        localStorage.removeItem(key);
+                        return false;
+                    }
+
+                    this.loadImagesFromData(data.imageData, false);
+                    this.previewMode = (data.previewMode === 'view' && this.imgs.length >= 2) ? 'view' : 'grid';
+                    this.imageIndex = Math.min(data.imageIndex || 0, this.imgs.length - 1);
+                    if (data.imgAspect) this.imgAspect = data.imgAspect;
+                    return true;
+                } catch (e) {
+                    console.error("[RS] loadImagesFromLocalStorage error:", e);
+                    return false;
+                }
+            };
+
+            this.loadImagesFromData = function(imageDataArray, forceReload) {
+                if (this._abortController) {
+                    this._abortController.abort();
+                    this._abortController = null;
+                }
+
+                if (!imageDataArray || imageDataArray.length === 0) {
+                    this.imgs = [];
+                    this.imageData = [];
+                    return;
+                }
+
+                this.imageData = imageDataArray.slice();
+                this.imgs = [];
+                this.imgAspect = 1;
+
+                if (this._blobUrls) {
+                    this._blobUrls.forEach(url => URL.revokeObjectURL(url));
+                    this._blobUrls = [];
+                }
+
+                this._abortController = new AbortController();
+                const signal = this._abortController.signal;
+
+                const loadPromises = imageDataArray.map((data) => {
+                    return new Promise((resolve) => {
+                        if (data.dataUrl) {
+                            const img = new Image();
+                            img.onload = () => {
+                                if (this.imgAspect === 1 && img.naturalWidth > 0) {
+                                    this.imgAspect = img.naturalWidth / img.naturalHeight;
+                                }
+                                resolve(img);
+                            };
+                            img.onerror = () => resolve(null);
+                            img.src = data.dataUrl;
+                            return;
+                        }
+
+                        let url = `/view?filename=${encodeURIComponent(data.filename)}&type=${data.type}`;
+                        if (data.subfolder) {
+                            url += `&subfolder=${encodeURIComponent(data.subfolder)}`;
+                        } else {
+                            url += `&subfolder=`;
+                        }
+                        if (forceReload) {
+                            url += `&t=${Date.now()}`;
+                        }
+
+                        const attemptFetch = (attempt) => {
+                            fetch(url, { cache: 'no-store', signal })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`HTTP ${response.status}`);
+                                    }
+                                    return response.blob();
+                                })
+                                .then(blob => {
+                                    const objectUrl = URL.createObjectURL(blob);
+                                    this._blobUrls.push(objectUrl);
+                                    const img = new Image();
+                                    img.onload = () => {
+                                        if (this.imgAspect === 1 && img.naturalWidth > 0) {
+                                            this.imgAspect = img.naturalWidth / img.naturalHeight;
+                                        }
+                                        resolve(img);
+                                    };
+                                    img.onerror = () => resolve(null);
+                                    img.src = objectUrl;
+                                })
+                                .catch(error => {
+                                    if (error.name === 'AbortError') {
+                                        resolve(null);
+                                    } else if (attempt === 0 && error.message.includes('404')) {
+                                        setTimeout(() => attemptFetch(1), 500);
+                                    } else {
+                                        console.error("[RS] Failed to fetch image:", data.filename, error);
+                                        resolve(null);
+                                    }
+                                });
+                        };
+                        attemptFetch(0);
+                    });
+                });
+
+                Promise.all(loadPromises).then((images) => {
+                    this.imgs = images.filter(img => img !== null);
+                    if (this.graph) this.graph.setDirtyCanvas(true, true);
+                });
+            };
+
+            this.forceRedraw = function() {
+                if (this.imageData && this.imageData.length > 0) {
+                    this.loadImagesFromData(this.imageData, true);
+                } else {
+                    this.loadImagesFromLocalStorage();
+                }
+            };
+
+            this.blobToDataURL = function(blob) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
             };
 
             this.getDisplayPath = function () {
@@ -72,14 +321,20 @@ app.registerExtension({
             this.labelWidth = 70;
             this.clickZones = [];
             this.widgetsHeight = 0;
-            
+
             this.imgs = [];
+            this.imageData = [];
             this.imageIndex = 0;
             this.previewMode = 'grid';
-            
+            this.imgAspect = 1;
+            this._blobUrls = [];
+            this._abortController = null;
+
             this.outputFolders = [];
             this.foldersLoaded = false;
-            
+
+            this._hasNewImages = false;
+
             this.setSize([MIN_WIDTH, MIN_HEIGHT]);
             this.min_size = [MIN_WIDTH, MIN_HEIGHT];
 
@@ -104,49 +359,129 @@ app.registerExtension({
             };
             this.loadOutputFolders();
 
+            this._visibilityHandler = () => {
+                if (!document.hidden) {
+                    if (this._hasNewImages) {
+                        this._hasNewImages = false;
+                        this.forceRedraw();
+                    } else if (this.imageData && this.imageData.length > 0) {
+                        const allLoaded = this.imgs.length > 0 && this.imgs.every(img => img && img.complete && img.naturalWidth > 0);
+                        if (!allLoaded || this.imgs.length === 0) {
+                            this.forceRedraw();
+                        } else {
+                            this.graph?.setDirtyCanvas(true, true);
+                        }
+                    } else {
+                        this.loadImagesFromLocalStorage();
+                    }
+                }
+            };
+            document.addEventListener('visibilitychange', this._visibilityHandler);
+
             const onExecuted = this.onExecuted;
-            this.onExecuted = function (message) {
+            this.onExecuted = async function (message) {
                 const r = onExecuted ? onExecuted.apply(this, arguments) : undefined;
-                
+
                 if (message?.images && message.images.length > 0) {
+                    this.ensureUniqueUuid();
+
                     this.imgs = [];
+                    this.imageData = [];
                     this.imageIndex = 0;
                     this.previewMode = 'grid';
-                    
-                    for (const image of message.images) {
-                        const img = new Image();
-                        img.onload = () => {
-                            if (this.graph) this.graph.setDirtyCanvas(true, true);
-                        };
-                        img.onerror = () => {};
-                        img.src = `/view?filename=${encodeURIComponent(image.filename)}&type=${image.type}&subfolder=${encodeURIComponent(image.subfolder || '')}`;
-                        this.imgs.push(img);
+                    this.imgAspect = 1;
+                    this._hasNewImages = true;
+
+                    const metaOnly = message.images.map(img => ({
+                        filename: img.filename,
+                        type: img.type,
+                        subfolder: img.subfolder || ''
+                    }));
+
+                    const newImageData = [];
+                    for (const imgData of metaOnly) {
+                        let url = `/view?filename=${encodeURIComponent(imgData.filename)}&type=${imgData.type}`;
+                        if (imgData.subfolder) {
+                            url += `&subfolder=${encodeURIComponent(imgData.subfolder)}`;
+                        } else {
+                            url += `&subfolder=`;
+                        }
+                        url += `&t=${Date.now()}`;
+                        try {
+                            const response = await fetch(url, { cache: 'no-store' });
+                            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                            const blob = await response.blob();
+                            if (blob.size <= MAX_DATAURL_SIZE) {
+                                const dataUrl = await this.blobToDataURL(blob);
+                                newImageData.push({
+                                    filename: imgData.filename,
+                                    type: imgData.type,
+                                    subfolder: imgData.subfolder || '',
+                                    dataUrl: dataUrl
+                                });
+                            } else {
+                                newImageData.push({ ...imgData });
+                            }
+                        } catch (error) {
+                            console.error("[RS] Failed to load image for dataURL:", imgData.filename, error);
+                            newImageData.push({ ...imgData });
+                        }
+                    }
+                    this.imageData = newImageData;
+                    this.saveImagesToLocalStorage();
+                    this.syncData();
+
+                    this.loadImagesFromData(newImageData, false);
+                    if (this.graph) this.graph.setDirtyCanvas(true, true);
+                    this._hasNewImages = false;
+
+                    if (!document.hidden) {
+                        this._hasNewImages = false;
+                        requestAnimationFrame(() => {
+                            this.graph?.setDirtyCanvas(true, true);
+                        });
                     }
                 }
                 return r;
             };
 
-            function calcGrid(count, availW, availH) {
-                if (count <= 1) {
-                    return { cols: 1, rows: 1, cellSize: Math.min(availW, availH) };
-                }
-                const maxCols = Math.min(count, Math.floor((availW + PREVIEW_GAP) / (1 + PREVIEW_GAP)));
-                let bestCols = 1;
-                let bestSize = 0;
-                for (let c = 1; c <= maxCols; c++) {
-                    const rows = Math.ceil(count / c);
-                    const cellW = (availW - PREVIEW_GAP * (c - 1)) / c;
-                    const cellH = (availH - PREVIEW_GAP * (rows - 1)) / rows;
-                    const size = Math.min(cellW, cellH);
-                    if (size > bestSize) {
-                        bestSize = size;
-                        bestCols = c;
-                    } else if (size === bestSize && c > bestCols) {
-                        bestCols = c;
+            function calcGridOptimal(count, availW, availH, gap, aspect) {
+                if (count <= 0) return null;
+                if (!aspect || aspect <= 0) aspect = 1;
+
+                let best = null;
+                let bestScale = 0;
+                for (let cols = 1; cols <= count; cols++) {
+                    const rows = Math.ceil(count / cols);
+                    const sX = (availW - (cols - 1) * gap) / (cols * aspect);
+                    const sY = (availH - (rows - 1) * gap) / rows;
+                    const s = Math.min(sX, sY);
+                    if (s > bestScale) {
+                        bestScale = s;
+                        best = {
+                            cols: cols,
+                            rows: rows,
+                            scale: s,
+                            itemW: s * aspect,
+                            itemH: s,
+                            totalW: cols * s * aspect + (cols - 1) * gap,
+                            totalH: rows * s + (rows - 1) * gap
+                        };
                     }
                 }
-                const rows = Math.ceil(count / bestCols);
-                return { cols: bestCols, rows: rows, cellSize: bestSize };
+                if (!best) {
+                    const s = Math.min(availW / aspect, availH);
+                    best = {
+                        cols: 1,
+                        rows: count,
+                        scale: s,
+                        itemW: s * aspect,
+                        itemH: s,
+                        totalW: s * aspect,
+                        totalH: count * s + (count - 1) * gap
+                    };
+                }
+                return best;
             }
 
             this.onDrawBackground = function(ctx) {
@@ -178,32 +513,30 @@ app.registerExtension({
 
                     if (this.previewMode === 'grid') {
                         const count = this.imgs.length;
-                        const grid = calcGrid(count, availableW, availableH);
-                        const cols = grid.cols;
-                        const cellSize = grid.cellSize;
+                        const aspect = this.imgAspect || 1;
+                        const grid = calcGridOptimal(count, availableW, availableH, PREVIEW_GAP, aspect);
+                        if (!grid) return;
 
-                        const totalWidth = cols * cellSize + (cols - 1) * PREVIEW_GAP;
-                        const offsetX_extra = (availableW - totalWidth) / 2;
+                        const cols = grid.cols;
+                        const itemW = grid.itemW;
+                        const itemH = grid.itemH;
+                        const totalW = grid.totalW;
+                        const totalH = grid.totalH;
+
+                        const offsetX = (availableW - totalW) / 2;
+                        const offsetY = (availableH - totalH) / 2;
 
                         for (let i = 0; i < this.imgs.length; i++) {
                             const img = this.imgs[i];
                             const col = i % cols;
                             const row = Math.floor(i / cols);
-                            
-                            const x = this.padding + offsetX_extra + col * (cellSize + PREVIEW_GAP);
-                            const y = startY + row * (cellSize + PREVIEW_GAP);
+
+                            const x = this.padding + offsetX + col * (itemW + PREVIEW_GAP);
+                            const y = startY + offsetY + row * (itemH + PREVIEW_GAP);
 
                             if (img.complete && img.naturalWidth > 0) {
-                                const maxDim = Math.max(img.width, img.height);
-                                const scale = cellSize / maxDim;
-                                const drawW = img.width * scale;
-                                const drawH = img.height * scale;
-                                
-                                const offsetX = (cellSize - drawW) / 2;
-                                const offsetY = (cellSize - drawH) / 2;
-                                
                                 try {
-                                    ctx.drawImage(img, x + offsetX, y + offsetY, drawW, drawH);
+                                    ctx.drawImage(img, x, y, itemW, itemH);
                                 } catch (e) {}
                             }
                         }
@@ -223,12 +556,12 @@ app.registerExtension({
 
                         const btnX = this.size[0] - this.padding - CLOSE_BTN_SIZE;
                         const btnY = startY;
-                        
+
                         ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
                         ctx.beginPath();
                         ctx.arc(btnX + CLOSE_BTN_SIZE/2, btnY + CLOSE_BTN_SIZE/2, CLOSE_BTN_SIZE/2, 0, Math.PI * 2);
                         ctx.fill();
-                        
+
                         ctx.strokeStyle = "#fff";
                         ctx.lineWidth = 2;
                         ctx.lineCap = "round";
@@ -250,7 +583,7 @@ app.registerExtension({
                 ctx.save();
                 try {
                     if (origODF) origODF.apply(this, arguments);
-                    
+
                     this.clickZones = [];
                     const p = this.padding, lW = this.labelWidth, rH = this.rowHeight;
                     const iW = this.size[0] - p * 2 - lW;
@@ -354,9 +687,11 @@ app.registerExtension({
                     const centerX = btnX + CLOSE_BTN_SIZE / 2;
                     const centerY = btnY + CLOSE_BTN_SIZE / 2;
                     const dist = Math.sqrt(Math.pow(pos[0] - centerX, 2) + Math.pow(pos[1] - centerY, 2));
-                    
+
                     if (dist <= CLOSE_BTN_SIZE / 2) {
                         this.previewMode = 'grid';
+                        this.syncData();
+                        this.saveImagesToLocalStorage();
                         if (this.graph) this.graph.setDirtyCanvas(true, true);
                         return true;
                     }
@@ -364,24 +699,30 @@ app.registerExtension({
 
                 if (this.previewMode === 'grid' && this.imgs.length > 0) {
                     const count = this.imgs.length;
-                    const grid = calcGrid(count, availableW, availableH);
-                    const cols = grid.cols;
-                    const cellSize = grid.cellSize;
+                    const aspect = this.imgAspect || 1;
+                    const grid = calcGridOptimal(count, availableW, availableH, PREVIEW_GAP, aspect);
+                    if (!grid) return false;
 
-                    const totalWidth = cols * cellSize + (cols - 1) * PREVIEW_GAP;
-                    const offsetX_extra = (availableW - totalWidth) / 2;
+                    const cols = grid.cols;
+                    const itemW = grid.itemW;
+                    const itemH = grid.itemH;
+                    const totalW = grid.totalW;
+                    const totalH = grid.totalH;
+                    const offsetX = (availableW - totalW) / 2;
+                    const offsetY = (availableH - totalH) / 2;
 
                     for (let i = 0; i < this.imgs.length; i++) {
                         const col = i % cols;
                         const row = Math.floor(i / cols);
-                        
-                        const x = this.padding + offsetX_extra + col * (cellSize + PREVIEW_GAP);
-                        const y = startY + row * (cellSize + PREVIEW_GAP);
-                        
-                        if (pos[0] >= x && pos[0] <= x + cellSize &&
-                            pos[1] >= y && pos[1] <= y + cellSize) {
+                        const x = this.padding + offsetX + col * (itemW + PREVIEW_GAP);
+                        const y = startY + offsetY + row * (itemH + PREVIEW_GAP);
+
+                        if (pos[0] >= x && pos[0] <= x + itemW &&
+                            pos[1] >= y && pos[1] <= y + itemH) {
                             this.imageIndex = i;
                             this.previewMode = 'view';
+                            this.syncData();
+                            this.saveImagesToLocalStorage();
                             if (this.graph) this.graph.setDirtyCanvas(true, true);
                             return true;
                         }
@@ -467,10 +808,10 @@ app.registerExtension({
                 document.body.appendChild(menu);
 
                 setTimeout(() => {
-                    const closeHandler = (e) => { 
-                        if (self.activePopup === menu && !menu.contains(e.target)) { 
-                            self.closeActivePopup(); 
-                        } 
+                    const closeHandler = (e) => {
+                        if (self.activePopup === menu && !menu.contains(e.target)) {
+                            self.closeActivePopup();
+                        }
                     };
                     document.addEventListener("mousedown", closeHandler);
                 }, 100);
@@ -482,7 +823,7 @@ app.registerExtension({
                 const pop = document.createElement('div');
                 pop.style.cssText = 'position:fixed;z-index:10002;background:#1a1a1a;border:1px solid #444;border-radius:6px;padding:8px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.5);display:flex;align-items:center;gap:8px;';
                 self.activePopup = pop;
-                
+
                 const inp = document.createElement('input');
                 inp.type = 'text';
                 inp.value = cv;
@@ -498,14 +839,14 @@ app.registerExtension({
                 if (ev) { pop.style.left = (ev.clientX + 8) + 'px'; pop.style.top = (ev.clientY + 8) + 'px'; }
                 document.body.appendChild(pop);
                 setTimeout(() => { inp.focus(); if (cv.length) inp.select(); }, 50);
-                
+
                 const save = () => { self.rs_data.save_path = inp.value; self.persistState(); self.updateUI(); self.closeActivePopup(); };
                 btn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); save(); };
                 inp.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } };
-                
-                setTimeout(() => { 
+
+                setTimeout(() => {
                     const cl = (e) => { if (self.activePopup === pop && !pop.contains(e.target)) { self.closeActivePopup(); } };
-                    document.addEventListener("mousedown", cl); 
+                    document.addEventListener("mousedown", cl);
                 }, 50);
             };
 
@@ -515,7 +856,7 @@ app.registerExtension({
                 const pop = document.createElement('div');
                 pop.style.cssText = 'position:fixed;z-index:10002;background:#1a1a1a;border:1px solid #444;border-radius:6px;padding:8px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.5);display:flex;align-items:center;gap:8px;';
                 self.activePopup = pop;
-                
+
                 const inp = document.createElement('input');
                 inp.type = 'text';
                 inp.value = cv;
@@ -530,14 +871,14 @@ app.registerExtension({
                 if (ev) { pop.style.left = (ev.clientX + 8) + 'px'; pop.style.top = (ev.clientY + 8) + 'px'; }
                 document.body.appendChild(pop);
                 setTimeout(() => { inp.focus(); if (cv.length) inp.select(); }, 50);
-                
+
                 const save = () => { self.rs_data.file_prefix = inp.value; self.persistState(); self.updateUI(); self.closeActivePopup(); };
                 btn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); save(); };
                 inp.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } };
-                
-                setTimeout(() => { 
+
+                setTimeout(() => {
                     const cl = (e) => { if (self.activePopup === pop && !pop.contains(e.target)) { self.closeActivePopup(); } };
-                    document.addEventListener("mousedown", cl); 
+                    document.addEventListener("mousedown", cl);
                 }, 50);
             };
 
@@ -547,7 +888,7 @@ app.registerExtension({
                 const menu = document.createElement("div");
                 menu.style.cssText = 'position:fixed;background:#1a1a1a;border:1px solid #444;border-radius:6px;overflow:hidden;z-index:10001;box-shadow:0 4px 20px rgba(0,0,0,0.5);min-width:120px;';
                 self.activePopup = menu;
-                
+
                 FMTS.forEach(f => {
                     const it = document.createElement("div");
                     it.textContent = f.toUpperCase();
@@ -579,18 +920,49 @@ app.registerExtension({
             const originalOnConfigure = this.onConfigure;
             this.onConfigure = function(info) {
                 const r = originalOnConfigure ? originalOnConfigure.apply(this, arguments) : undefined;
-                
+
                 const savedDataW = this.widgets?.find(w => w.name === "node_data");
                 if (savedDataW && savedDataW.value && savedDataW.value !== "{}") {
                     try {
                         const parsed = JSON.parse(savedDataW.value);
-                        this.rs_data = { ...this.rs_data, ...parsed };
-                        this.applyState();
-                    } catch (e) { console.warn("[RS] Restore error", e); }
+                        if (parsed.rs_data) {
+                            this.rs_data = { ...this.rs_data, ...parsed.rs_data };
+                            if (!this.rs_data.uuid) {
+                                this.rs_data.uuid = this.generateUUID();
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("[RS] Failed to parse node_data:", e);
+                    }
                 }
+
+                const loadedFromStorage = this.loadImagesFromLocalStorage();
+                if (!loadedFromStorage) {
+                    this.previewMode = 'grid';
+                    this.imageIndex = 0;
+                }
+
+                this.applyState();
                 return r;
             };
 
+            const originalOnRemoved = this.onRemoved;
+            this.onRemoved = function() {
+                if (originalOnRemoved) originalOnRemoved.apply(this, arguments);
+                if (this._visibilityHandler) {
+                    document.removeEventListener('visibilitychange', this._visibilityHandler);
+                }
+                if (this._abortController) {
+                    this._abortController.abort();
+                    this._abortController = null;
+                }
+                if (this._blobUrls) {
+                    this._blobUrls.forEach(url => URL.revokeObjectURL(url));
+                    this._blobUrls = [];
+                }
+            };
+
+            this.syncData();
             return result;
         };
     }

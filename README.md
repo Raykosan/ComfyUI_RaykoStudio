@@ -109,6 +109,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.44.1 - Modification of the RS Decode Save Image node
 - v0.44.2 - Display of the image grid in the batch mode of the RS Decode Save Image node has been changed
 - v0.45.0 - Isolation of RS Prompts and RS Decode Save Image nodes
+- v0.45.1 - Changes to the RS Bypass Manager node interface  
 
 </details>
 
@@ -408,14 +409,17 @@ The prompt is extracted from a wide range of metadata formats, in priority order
 
 [![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/Ockp2SpuFSY)
 
-<img width="623" height="583" alt="Screenshot_5" src="https://github.com/user-attachments/assets/c4193648-0e3b-4499-bb14-aff6d59e0345" />
+<img width="422" height="408" alt="Screenshot_1" src="https://github.com/user-attachments/assets/e0ec1566-7a19-4ba5-b7b6-0dc3632ad7f3" />
+<img width="431" height="411" alt="Screenshot_2" src="https://github.com/user-attachments/assets/0161b782-972b-405d-bcaa-20a5422d896d" />
+<img width="743" height="546" alt="Screenshot_4" src="https://github.com/user-attachments/assets/36e14dcb-8b1f-4184-8178-f427b0855f06" />
 
 ### 🔥 Features  
 **Smart Search** - Instant search for the desired nodes and groups by name right inside the drop-down menu.  
 **Group Support** - Works with ComfyUI groups. Groups can be collapsed and expanded to select individual nodes within them.  
+**Node Support** - Works with ComfyUI nodes. You can select nodes that are not part of groups, or you can select individual nodes within groups.  
+**Toggles** - Common toggle for all selected items. Each element has personal switches.  
 **Color indication**:  
  * 🔴 **Red** — the group or node is completely blocked.  
- * 🟠 **Orange** — only part of the node is bypassed in the group (partial bypass).  
  * ⚪ **Gray** — the node/group is active.
    
 **List of active bypasses** - All blocked elements are displayed directly on the node. You can delete a bypass by clicking on the node or group name.  
@@ -423,19 +427,20 @@ The prompt is extracted from a wide range of metadata formats, in priority order
 **Dynamic size** - The node automatically adjusts its height to the number of mounted elements.  
 **Advanced UX**:  
   * The menu **does not close** when you click on an item, you can quickly reset several nodes in a row.  
-  * The menu closes automatically when the mouse cursor moves outside of it (with a slight delay for comfort).  
-  * The `SELECT' field...` is highlighted in orange while the menu is open.  
+  * The `SELECT ITEM' field...` is highlighted in orange while the menu is open.  
   * The node excludes itself from the list of elements available for bypass.  
 
 ### 🪛 Usage  
-Add the **🦊 RS Bypass** node to the canvas (category `🦊 RaykoStudio').  
-Click on the **SELECT...** field. A menu opens with all the groups and nodes of your scheme.  
+Add the **🦊 RS Bypass Manager** node to the canvas (category `🦊 RaykoStudio').  
+Click on the **SELECT ITEM** field. A menu opens with all the groups and nodes of your scheme.  
 If there are a large number of nodes, use the search bar to filter.  
 Click on groups or nodes to switch their state (Bypass/Active).  
    * *Tip: Clicking on the name of the group bypasses it entirely. Clicking on the arrow (▶) will expand the group to select individual nodes.*
      
-When you're done, just move the mouse cursor outside the menu — it will close itself in half a second.  
-To remove the bypass, click on the name of the desired item in the list on the node itself.  
+When you're done, simply move the mouse cursor outside the menu or click anywhere outside the node — the menu will close in half a second.  
+To turn off or turn on the bypass of an element inserted into the interface, use the personal toggle.  
+To turn off or enable bypass for all elements, use the TOGGLE ALL switch.  
+To remove a workaround, click on the name of the desired item in the list on the node itself.  
 
 If a node is added to a circuit that already has bypass nodes, it will automatically display them in the interface.  
 Also, when using bypass using comfi's own methods (the context menu is bypass, bypass in the NodeMap side menu, or bypass buttons above the node), all changes will instantly appear in the node.  

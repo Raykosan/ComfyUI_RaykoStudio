@@ -109,7 +109,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.44.1 - Modification of the RS Decode Save Image node
 - v0.44.2 - Display of the image grid in the batch mode of the RS Decode Save Image node has been changed
 - v0.45.0 - Isolation of RS Prompts and RS Decode Save Image nodes
-- v0.45.1 - Changes to the RS Bypass Manager node interface  
+- v0.45.1 - Changes to the RS Bypass Manager node interface
+- v0.45.2 - Final modification of the RS Bypass Manager node
 
 </details>
 
@@ -407,11 +408,9 @@ The prompt is extracted from a wide range of metadata formats, in priority order
 # 🦊 RS Bypass Manager  
 **A powerful node for managing the states of Bypass nodes and groups in complex ComfyUI circuits. If your workflow has turned into a "spaghetti monster" and you need to quickly disable entire modules (for example, switch between txt2img, inpaint and upscale), this node will save you dozens of clicks and nerves.**  
 
-[![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/Ockp2SpuFSY)
-
-<img width="422" height="408" alt="Screenshot_1" src="https://github.com/user-attachments/assets/e0ec1566-7a19-4ba5-b7b6-0dc3632ad7f3" />
-<img width="431" height="411" alt="Screenshot_2" src="https://github.com/user-attachments/assets/0161b782-972b-405d-bcaa-20a5422d896d" />
-<img width="743" height="546" alt="Screenshot_4" src="https://github.com/user-attachments/assets/36e14dcb-8b1f-4184-8178-f427b0855f06" />
+<img width="429" height="407" alt="Screenshot_1" src="https://github.com/user-attachments/assets/cd3863b7-04a8-4506-aa7b-03f9e7c24cd5" />
+<img width="431" height="412" alt="Screenshot_2" src="https://github.com/user-attachments/assets/c6ffbbbc-94ee-465a-8b86-8d19f97b4c72" />
+<img width="750" height="616" alt="Screenshot_3" src="https://github.com/user-attachments/assets/b9795aee-1819-4010-82eb-fbbc77f1af8b" />
 
 ### 🔥 Features  
 **Smart Search** - Instant search for the desired nodes and groups by name right inside the drop-down menu.  
@@ -422,7 +421,6 @@ The prompt is extracted from a wide range of metadata formats, in priority order
  * 🔴 **Red** — the group or node is completely blocked.  
  * ⚪ **Gray** — the node/group is active.
    
-**List of active bypasses** - All blocked elements are displayed directly on the node. You can delete a bypass by clicking on the node or group name.  
 **Smart State saving** - The bypass status is saved directly in the JSON workflow. No data is lost when restarting ComfyUI, switching tabs, or sharing PNG/JSON.  
 **Dynamic size** - The node automatically adjusts its height to the number of mounted elements.  
 **Advanced UX**:  
@@ -437,10 +435,11 @@ If there are a large number of nodes, use the search bar to filter.
 Click on groups or nodes to switch their state (Bypass/Active).  
    * *Tip: Clicking on the name of the group bypasses it entirely. Clicking on the arrow (▶) will expand the group to select individual nodes.*
      
-When you're done, simply move the mouse cursor outside the menu or click anywhere outside the node — the menu will close in half a second.  
+When you're done, click anywhere outside the node or press the Escape key to close the menu.  
 To turn off or turn on the bypass of an element inserted into the interface, use the personal toggle.  
 To turn off or enable bypass for all elements, use the TOGGLE ALL switch.  
 To remove a workaround, click on the name of the desired item in the list on the node itself.  
+When the group frame is deleted, the bypass remains on the selected nodes.  
 
 If a node is added to a circuit that already has bypass nodes, it will automatically display them in the interface.  
 Also, when using bypass using comfi's own methods (the context menu is bypass, bypass in the NodeMap side menu, or bypass buttons above the node), all changes will instantly appear in the node.  

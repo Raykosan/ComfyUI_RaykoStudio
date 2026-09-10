@@ -134,23 +134,27 @@ app.registerExtension({
                     const toggleY = y + (h - toggleH) / 2;
                     const radius = toggleH / 2;
                     const knobRadius = radius - 2;
-                    const knobOffset = isOn ? toggleW - radius - 2 : 2;
-                    
+    
+                    // центр кружка — с отступом 2px от соответствующего края дорожки
+                    const knobOffset = isOn
+                        ? toggleW - 2 - knobRadius   // прижат к правому краю
+                        : 2 + knobRadius;            // прижат к левому краю
+    
                     ctx.fillStyle = isOn ? "#4CAF50" : "#555";
                     ctx.beginPath();
                     ctx.roundRect(toggleX, toggleY, toggleW, toggleH, radius);
                     ctx.fill();
-                    
+    
                     ctx.fillStyle = "#fff";
                     ctx.beginPath();
                     ctx.arc(toggleX + knobOffset, toggleY + radius, knobRadius, 0, Math.PI * 2);
                     ctx.fill();
-                    
+    
                     return { x: toggleX, y: toggleY, w: toggleW, h: toggleH };
                 };
 
                 self.drawBypassedItem = function(ctx, title, x, y, w, h, index, isBypassed) {
-                    const toggleZone = self.drawToggle(ctx, isBypassed, x, y, 36, h);
+                    const toggleZone = self.drawToggle(ctx, isBypassed, x, y, 28, h);
 
                     const pad = 8;
                     const removeW = 16;
@@ -169,7 +173,7 @@ app.registerExtension({
                     ctx.roundRect(textX, bgY, textW, bgHeight, bgRadius);
                     ctx.fill();
 
-                    ctx.fillStyle = "#ff4444";
+                    ctx.fillStyle = isBypassed ? "#ff4444" : "#eee";
                     ctx.font = "11px sans-serif";
                     ctx.textAlign = "left";
                     ctx.fillText(title, textX + pad, y + h/2 + 4);

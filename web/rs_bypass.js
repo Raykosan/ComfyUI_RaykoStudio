@@ -27,10 +27,9 @@ app.registerExtension({
                 const result = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
                 const self = this;
                 
-                // Новая структура данных: храним объекты { id, enabled }
                 self.data = {
-                    bypassedNodes: [],   // массив { id, enabled }
-                    bypassedGroups: [],  // массив { id, enabled }
+                    bypassedNodes: [],
+                    bypassedGroups: [],
                     menuSearch: "",
                     expandedGroups: {},
                     menuOpen: false,
@@ -41,7 +40,7 @@ app.registerExtension({
                 self.padding = 10;
                 self.clickZones = [];
                 self._lastBypassedCount = -1;
-                self._lastSyncTimestamp = 0; // для ограничения частоты синхронизации
+                self._lastSyncTimestamp = 0;
                 
                 const stateWidget = self.widgets.find(w => w.name === "bypass_state");
                 const isNewNode = !stateWidget.value || stateWidget.value === "{}";
@@ -62,7 +61,6 @@ app.registerExtension({
                         try {
                             const savedData = JSON.parse(stateWidget.value || "{}");
                             if (savedData && typeof savedData === 'object') {
-                                // Преобразуем старые форматы (массивы id) в новый формат
                                 if (Array.isArray(savedData.nodes)) {
                                     if (savedData.nodes.length && typeof savedData.nodes[0] === 'number') {
                                         self.data.bypassedNodes = savedData.nodes.map(id => ({ id, enabled: true }));
@@ -130,8 +128,8 @@ app.registerExtension({
                 };
 
                 self.drawToggle = function(ctx, isOn, x, y, w, h) {
-                    const toggleW = 36;
-                    const toggleH = 18;
+                    const toggleW = 28;
+                    const toggleH = 15;
                     const toggleX = x;
                     const toggleY = y + (h - toggleH) / 2;
                     const radius = toggleH / 2;
@@ -153,28 +151,55 @@ app.registerExtension({
 
                 self.drawBypassedItem = function(ctx, title, x, y, w, h, index, isBypassed) {
                     const toggleZone = self.drawToggle(ctx, isBypassed, x, y, 36, h);
-                    
-                    const textX = x + 44;
-                    const textW = w - 64;
-                    
-                    ctx.fillStyle = index % 2 === 0 ? "rgba(255,68,68,0.1)" : "rgba(255,68,68,0.05)";
-                    ctx.fillRect(textX, y, textW, h);
-                    
+
+                    const pad = 8;
+                    const removeW = 16;
+                    const gap = 8;
+
+                    const textX = x + 28 + pad;
+                    const removeX = x + w - removeW + 4;
+                    const textW = removeX - gap - textX;
+
+                    const bgHeight = 20;
+                    const bgRadius = 4;
+                    const bgY = y + (h - bgHeight) / 2;
+
+                    ctx.fillStyle = index % 2 === 0 ? "rgba(34,34,34,1)" : "rgba(34,34,34,0.5)";
+                    ctx.beginPath();
+                    ctx.roundRect(textX, bgY, textW, bgHeight, bgRadius);
+                    ctx.fill();
+
                     ctx.fillStyle = "#ff4444";
                     ctx.font = "11px sans-serif";
                     ctx.textAlign = "left";
-                    ctx.fillText(title, textX + 8, y + h/2 + 4);
-                    
+                    ctx.fillText(title, textX + pad, y + h/2 + 4);
+
                     ctx.fillStyle = "#ff6666";
-                    ctx.fillText("✕", textX + textW - 12, y + h/2 + 4);
-                    
-                    return { toggle: toggleZone, remove: { x: textX + textW - 20, y: y, w: 20, h: h } };
+                    ctx.textAlign = "center";
+                    ctx.fillText("✕", removeX + removeW / 2, y + h/2 + 4);
+
+                    return {
+                        toggle: toggleZone,
+                        remove: { x: removeX, y: y, w: removeW, h: h }
+                    };
                 };
 
-                // Синхронизация с внешними изменениями (через интерфейс ComfyUI)
+                self._rs_syncToggleAllState = function() {
+                    const allItems = [...self.data.bypassedGroups, ...self.data.bypassedNodes];
+                    if (allItems.length === 0) return;
+                    
+                    const allEnabled = allItems.every(item => item.enabled);
+                    const allDisabled = allItems.every(item => !item.enabled);
+                    
+                    if (allEnabled) {
+                        self.data.toggleAllOn = true;
+                    } else if (allDisabled) {
+                        self.data.toggleAllOn = false;
+                    }
+                };
+
                 self._rs_syncFromExternal = function() {
                     const now = Date.now();
-                    // Ограничиваем частоту синхронизации (не чаще 1 раза в 300 мс)
                     if (now - self._lastSyncTimestamp < 300) return;
                     self._lastSyncTimestamp = now;
 
@@ -182,68 +207,43 @@ app.registerExtension({
                     const groups = app.graph._groups || [];
                     let changed = false;
 
-                    // Синхронизация групп
                     self.data.bypassedGroups.forEach(item => {
                         const group = groups.find(g => g.id === item.id);
                         if (!group) return;
-                        const groupNodes = nodes.filter(n => isNodeInGroup(n, group));
+                        const groupNodes = nodes.filter(n => n.comfyClass !== "RS_Bypass" && isNodeInGroup(n, group));
                         if (groupNodes.length === 0) return;
                         const allBypassed = groupNodes.every(n => n.mode === 4);
-                        const anyBypassed = groupNodes.some(n => n.mode === 4);
-                        // Если все забайпашены -> enabled = true; если ни одна -> false; иначе оставляем как есть (частичный байпас)
+                        
                         if (allBypassed && !item.enabled) {
                             item.enabled = true;
                             changed = true;
-                        } else if (!anyBypassed && item.enabled) {
+                        } else if (!allBypassed && item.enabled) {
                             item.enabled = false;
                             changed = true;
                         }
-                        // Частичный случай: оставляем текущее enabled (может быть true или false)
-                        // Но если включен частичный, мы не можем точно определить, поэтому лучше не трогать.
-                        // Можно также установить enabled = anyBypassed, но тогда при частичном байпасе тоггл будет включён.
-                        // Реализуем как anyBypassed для согласованности:
-                        if (anyBypassed && !allBypassed) {
-                            // Частичный байпас: если ранее было false, то меняем на true, чтобы отображать активность
-                            if (!item.enabled) {
-                                item.enabled = true;
-                                changed = true;
-                            }
-                        }
                     });
 
-                    // Синхронизация отдельных нод
                     self.data.bypassedNodes.forEach(item => {
                         const node = nodes.find(n => n.id === item.id);
                         if (!node) return;
-                        // Проверяем, не входит ли нода в группу из кэша
-                        const inCachedGroup = self.data.bypassedGroups.some(gItem => {
+                        const coveredByGroup = self.data.bypassedGroups.some(gItem => {
+                            if (!gItem.enabled) return false;
                             const group = groups.find(g => g.id === gItem.id);
-                            return group && isNodeInGroup(node, group);
+                            if (!group || !isNodeInGroup(node, group)) return false;
+                            const groupNodes = nodes.filter(nn => nn.comfyClass !== "RS_Bypass" && isNodeInGroup(nn, group));
+                            return groupNodes.length > 0 && groupNodes.every(nn => nn.mode === 4);
                         });
-                        if (inCachedGroup) {
-                            // Если нода в группе, то она управляется группой, поэтому синхронизируем её enabled с группой
-                            const groupEntry = self.data.bypassedGroups.find(gItem => {
-                                const group = groups.find(g => g.id === gItem.id);
-                                return group && isNodeInGroup(node, group);
-                            });
-                            if (groupEntry && groupEntry.enabled !== item.enabled) {
-                                item.enabled = groupEntry.enabled;
-                                changed = true;
-                            }
-                        } else {
-                            // Отдельная нода
-                            const isBypassed = node.mode === 4;
-                            if (isBypassed !== item.enabled) {
-                                item.enabled = isBypassed;
-                                changed = true;
-                            }
+                        if (coveredByGroup) return;
+                        
+                        const isBypassed = node.mode === 4;
+                        if (isBypassed !== item.enabled) {
+                            item.enabled = isBypassed;
+                            changed = true;
                         }
                     });
 
-                    // Также проверяем, есть ли новые забайпашенные ноды/группы, которых нет в кэше
-                    // (это может быть, если пользователь забайпасил что-то вручную)
                     groups.forEach(group => {
-                        if (!group || !group.bounding && !group._bounding) return;
+                        if (!group || (!group.bounding && !group._bounding)) return;
                         const groupNodes = nodes.filter(n => n.comfyClass !== "RS_Bypass" && isNodeInGroup(n, group));
                         if (groupNodes.length === 0) return;
                         const allBypassed = groupNodes.every(n => n.mode === 4);
@@ -257,19 +257,47 @@ app.registerExtension({
 
                     nodes.forEach(n => {
                         if (n.comfyClass === "RS_Bypass") return;
-                        if (n.mode === 4) {
-                            const inGroup = groups.some(g => g && (g.bounding || g._bounding) && isNodeInGroup(n, g));
-                            if (!inGroup) {
-                                if (!self.data.bypassedNodes.some(item => item.id === n.id)) {
-                                    self.data.bypassedNodes.push({ id: n.id, enabled: true });
-                                    changed = true;
-                                }
+                        if (n.mode !== 4) return;
+                        
+                        const managedByBypassedGroup = self.data.bypassedGroups.some(gItem => {
+                            if (!gItem.enabled) return false;
+                            const group = groups.find(g => g.id === gItem.id);
+                            if (!group || !isNodeInGroup(n, group)) return false;
+                            const groupNodes = nodes.filter(nn => nn.comfyClass !== "RS_Bypass" && isNodeInGroup(nn, group));
+                            return groupNodes.length > 0 && groupNodes.every(nn => nn.mode === 4);
+                        });
+                        
+                        if (managedByBypassedGroup) return;
+                        
+                        if (!self.data.bypassedNodes.some(item => item.id === n.id)) {
+                            self.data.bypassedNodes.push({ id: n.id, enabled: true });
+                            changed = true;
+                        } else {
+                            const entry = self.data.bypassedNodes.find(item => item.id === n.id);
+                            if (entry && !entry.enabled) {
+                                entry.enabled = true;
+                                changed = true;
                             }
                         }
                     });
 
-                    // Если были изменения, обновляем UI и сохраняем
+                    const beforeGroups = self.data.bypassedGroups.length;
+                    const beforeNodes = self.data.bypassedNodes.length;
+
+                    self.data.bypassedNodes = self.data.bypassedNodes.filter(item =>
+                        nodes.some(n => n.id === item.id)
+                    );
+                    self.data.bypassedGroups = self.data.bypassedGroups.filter(item =>
+                        groups.some(g => g.id === item.id)
+                    );
+
+                    if (self.data.bypassedNodes.length !== beforeNodes ||
+                        self.data.bypassedGroups.length !== beforeGroups) {
+                        changed = true;
+                    }
+
                     if (changed) {
+                        self._rs_syncToggleAllState();
                         self._rs_syncData();
                         self._rs_updateUI();
                         self.graph?.setDirtyCanvas(true, true);
@@ -277,8 +305,8 @@ app.registerExtension({
                 };
 
                 self.onDrawForeground = function(ctx, visibleRect) {
-                    // Синхронизация с внешними изменениями перед отрисовкой
                     self._rs_syncFromExternal();
+                    self._rs_syncToggleAllState();
 
                     self.clickZones = [];
                     const pad = self.padding;
@@ -291,13 +319,11 @@ app.registerExtension({
                     self.clickZones.push({ type: "select", x: pad + 50, y: y, w: self.size[0] - pad*2 - 50, h: rowH });
                     y += rowH + 10;
 
-                    // Строим список из кэша, используя сохранённое состояние enabled
                     const nodes = app.graph._nodes || [];
                     const groups = app.graph._groups || [];
                     
                     const displayItems = [];
                     
-                    // Группы из кэша
                     self.data.bypassedGroups.forEach(item => {
                         const group = groups.find(g => g.id === item.id);
                         if (group) {
@@ -310,27 +336,26 @@ app.registerExtension({
                         }
                     });
                     
-                    // Отдельные ноды из кэша, исключая те, что входят в группы из кэша (чтобы не дублировать)
                     self.data.bypassedNodes.forEach(item => {
                         const targetNode = nodes.find(n => n.id === item.id);
-                        if (targetNode) {
-                            // Проверяем, не входит ли нода в какую-либо группу из кэша
-                            const inCachedGroup = self.data.bypassedGroups.some(gItem => {
-                                const group = groups.find(g => g.id === gItem.id);
-                                return group && isNodeInGroup(targetNode, group);
+                        if (!targetNode) return;
+                        
+                        const coveredByEnabledGroup = self.data.bypassedGroups.some(gItem => {
+                            if (!gItem.enabled) return false;
+                            const group = groups.find(g => g.id === gItem.id);
+                            return group && isNodeInGroup(targetNode, group);
+                        });
+                        
+                        if (!coveredByEnabledGroup) {
+                            displayItems.push({ 
+                                type: "node", 
+                                id: targetNode.id, 
+                                title: "️ " + (targetNode.title || targetNode.type), 
+                                isBypassed: item.enabled 
                             });
-                            if (!inCachedGroup) {
-                                displayItems.push({ 
-                                    type: "node", 
-                                    id: targetNode.id, 
-                                    title: "️ " + (targetNode.title || targetNode.type), 
-                                    isBypassed: item.enabled 
-                                });
-                            }
                         }
                     });
 
-                    // TOGGLE ALL строка
                     if (displayItems.length > 0) {
                         self.drawLabel(ctx, "TOGGLE ALL", pad, y, 100, rowH);
                         const toggleZone = self.drawToggle(ctx, self.data.toggleAllOn, pad + 100, y, self.size[0] - pad*2 - 100, rowH);
@@ -344,7 +369,6 @@ app.registerExtension({
                         y += rowH + 10;
                     }
 
-                    // Рисуем элементы списка
                     displayItems.forEach((item, index) => {
                         const itemY = y + (index * rowH);
                         const zones = self.drawBypassedItem(ctx, item.title, pad, itemY, self.size[0] - pad*2, rowH, index, item.isBypassed);
@@ -382,84 +406,81 @@ app.registerExtension({
                         self._rs_closeMenu();
                         return;
                     }
-                    
-                    // Синхронизация перед открытием меню
+    
                     self._rs_syncFromExternal();
-                    
+    
                     const existingMenu = document.getElementById("rs-bypass-menu");
                     if (existingMenu) existingMenu.remove();
-                    
+    
                     const menu = document.createElement("div");
                     menu.id = "rs-bypass-menu";
                     menu.style.cssText = "position:fixed;background:#1a1a1a;border:2px solid #ff9800;border-radius:6px;max-height:500px;overflow-y:auto;z-index:10001;box-shadow:0 4px 20px rgba(255,152,0,0.3);min-width:350px;transition:box-shadow 0.2s;";
-                    
+    
                     const searchInput = document.createElement("input");
                     searchInput.type = "text";
                     searchInput.placeholder = " Search nodes/groups...";
                     searchInput.style.cssText = "width:100%;padding:10px;background:#252525;color:#fff;border:none;border-bottom:1px solid #333;box-sizing:border-box;font-size:12px;outline:none;";
                     searchInput.value = self.data.menuSearch || "";
                     menu.appendChild(searchInput);
-                    
+    
                     const contentDiv = document.createElement("div");
                     contentDiv.id = "rs-bypass-content";
                     menu.appendChild(contentDiv);
-                    
+    
                     if (clickEvent) {
                         menu.style.left = (clickEvent.clientX + 8) + "px";
                         menu.style.top = clickEvent.clientY + "px";
                     }
-                    
-                    let closeTimer = null;
-                    const closeDelay = 300;
-                    
-                    menu.addEventListener("mouseleave", () => {
-                        closeTimer = setTimeout(() => {
-                            self._rs_closeMenu();
-                        }, closeDelay);
-                    });
-                    
-                    menu.addEventListener("mouseenter", () => {
-                        if (closeTimer) {
-                            clearTimeout(closeTimer);
-                            closeTimer = null;
+    
+                    const outsideHandler = (ev) => {
+                        const path = typeof ev.composedPath === "function" ? ev.composedPath() : null;
+                        if (path && path.length) {
+                            if (path.includes(menu)) return;
+                        } else {
+                            if (menu.contains(ev.target)) return;
                         }
-                    });
-                    
+                        self._rs_closeMenu();
+                    };
+                    self._rs_outsideHandler = outsideHandler;
+    
+                    const escHandler = (ev) => {
+                        if (ev.key === "Escape") self._rs_closeMenu();
+                    };
+                    self._rs_escHandler = escHandler;
+    
                     function renderContent() {
                         contentDiv.innerHTML = "";
                         const query = searchInput.value.toLowerCase();
                         self.data.menuSearch = query;
-                        
+        
                         const groups = app.graph._groups || [];
                         const nodes = app.graph._nodes || [];
-                        
+        
                         const filteredNodes = nodes.filter(n => n.comfyClass !== "RS_Bypass");
-                        
+        
                         let hasItems = false;
-                        
+        
                         groups.forEach(group => {
                             if (!group || !group.bounding && !group._bounding) {
                                 return;
                             }
-                            
+            
                             const groupNodes = filteredNodes.filter(n => isNodeInGroup(n, group));
                             if (groupNodes.length === 0) return;
-                            
+            
                             const title = group.title || "Group " + group.id;
                             if (query && !title.toLowerCase().includes(query)) return;
-                            
-                            // Проверяем, есть ли уже группа в кэше
+            
                             const cachedGroup = self.data.bypassedGroups.find(item => item.id === group.id);
                             const isAllBypassed = cachedGroup ? cachedGroup.enabled : false;
-                            const isPartialBypassed = false; // упростим
                             const isExpanded = self.data.expandedGroups[group.id] || false;
-                            
+            
                             let groupColor = "#ddd";
                             if (isAllBypassed) groupColor = "#ff4444";
-                            
+            
                             const groupItem = document.createElement("div");
                             groupItem.style.cssText = "padding:10px 12px;cursor:pointer;color:" + groupColor + ";border-bottom:1px solid #333;font-size:12px;display:flex;align-items:center;transition:background-color 0.15s;";
-                            
+            
                             const arrow = document.createElement("span");
                             arrow.textContent = isExpanded ? "▼ " : "▶ ";
                             arrow.style.cssText = "margin-right:8px;font-size:10px;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid #555;border-radius:4px;";
@@ -469,45 +490,47 @@ app.registerExtension({
                                 renderContent();
                             };
                             groupItem.appendChild(arrow);
-                            
+            
                             const groupText = document.createElement("span");
                             groupText.textContent = " " + title;
                             groupText.style.cssText = "flex:1;margin-left:4px;";
                             groupText.onclick = (ev) => {
                                 ev.stopPropagation();
-                                // Добавляем или удаляем группу из кэша
                                 let entry = self.data.bypassedGroups.find(item => item.id === group.id);
                                 if (entry) {
-                                    // Если уже есть, переключаем enabled
                                     entry.enabled = !entry.enabled;
                                 } else {
-                                    // Добавляем с enabled: true
                                     entry = { id: group.id, enabled: true };
                                     self.data.bypassedGroups.push(entry);
                                 }
-                                // Применяем байпас ко всем нодам группы
                                 groupNodes.forEach(n => setNodeBypass(n, entry.enabled));
+                                if (entry.enabled) {
+                                    self.data.bypassedNodes = self.data.bypassedNodes.filter(
+                                        nItem => !groupNodes.some(n => n.id === nItem.id)
+                                    );
+                                }
+                                self._rs_syncToggleAllState();
                                 self._rs_syncData();
                                 self._rs_updateUI();
                                 renderContent();
                             };
                             groupItem.appendChild(groupText);
-                            
+            
                             groupItem.onmouseover = () => groupItem.style.background = "#333";
                             groupItem.onmouseout = () => groupItem.style.background = "#1a1a1a";
-                            
+            
                             contentDiv.appendChild(groupItem);
                             hasItems = true;
-                            
+            
                             if (isExpanded) {
                                 groupNodes.forEach(n => {
                                     const nodeTitle = n.title || n.type;
                                     if (query && !nodeTitle.toLowerCase().includes(query)) return;
-                                    
+                    
                                     const cachedNode = self.data.bypassedNodes.find(item => item.id === n.id);
                                     const isNodeBypassed = cachedNode ? cachedNode.enabled : false;
                                     const nodeColor = isNodeBypassed ? "#ff4444" : "#ddd";
-                                    
+                    
                                     const nodeItem = document.createElement("div");
                                     nodeItem.textContent = "️ " + nodeTitle;
                                     nodeItem.style.cssText = "padding:10px 12px 10px 32px;cursor:pointer;color:" + nodeColor + ";border-bottom:1px solid #333;font-size:12px;transition:background-color 0.15s;";
@@ -523,6 +546,7 @@ app.registerExtension({
                                             self.data.bypassedNodes.push(entry);
                                         }
                                         setNodeBypass(n, entry.enabled);
+                                        self._rs_syncToggleAllState();
                                         self._rs_syncData();
                                         self._rs_updateUI();
                                         renderContent();
@@ -531,16 +555,16 @@ app.registerExtension({
                                 });
                             }
                         });
-                        
+        
                         const ungroupedNodes = filteredNodes.filter(n => !groups.some(g => g && (g.bounding || g._bounding) && isNodeInGroup(n, g)));
                         ungroupedNodes.forEach(n => {
                             const title = n.title || n.type;
                             if (query && !title.toLowerCase().includes(query)) return;
-                            
+            
                             const cachedNode = self.data.bypassedNodes.find(item => item.id === n.id);
                             const isBypassed = cachedNode ? cachedNode.enabled : false;
                             const nodeColor = isBypassed ? "#ff4444" : "#ddd";
-                            
+            
                             const item = document.createElement("div");
                             item.textContent = "⚙️ " + title;
                             item.style.cssText = "padding:10px 12px;cursor:pointer;color:" + nodeColor + ";border-bottom:1px solid #333;font-size:12px;transition:background-color 0.15s;";
@@ -556,6 +580,7 @@ app.registerExtension({
                                     self.data.bypassedNodes.push(entry);
                                 }
                                 setNodeBypass(n, entry.enabled);
+                                self._rs_syncToggleAllState();
                                 self._rs_syncData();
                                 self._rs_updateUI();
                                 renderContent();
@@ -563,7 +588,7 @@ app.registerExtension({
                             contentDiv.appendChild(item);
                             hasItems = true;
                         });
-                        
+        
                         if (!hasItems) {
                             const emptyMsg = document.createElement("div");
                             emptyMsg.textContent = "No nodes/groups found";
@@ -571,28 +596,34 @@ app.registerExtension({
                             contentDiv.appendChild(emptyMsg);
                         }
                     }
-                    
+    
                     searchInput.addEventListener("input", renderContent);
-                    
-                    const closeEsc = (ev) => {
-                        if (ev.key === "Escape") self._rs_closeMenu();
-                    };
-                    
-                    document.addEventListener("keydown", closeEsc);
-                    
+    
                     renderContent();
                     document.body.appendChild(menu);
-                    
+    
                     self.data.menuOpen = true;
                     self._rs_updateUI();
-                    
-                    setTimeout(() => searchInput.focus(), 10);
+    
+                    setTimeout(() => {
+                        document.addEventListener("pointerdown", outsideHandler, true);
+                        document.addEventListener("keydown", escHandler);
+                        searchInput.focus();
+                    }, 10);
                 };
 
                 self._rs_closeMenu = function() {
                     const menu = document.getElementById("rs-bypass-menu");
                     if (menu) {
                         menu.remove();
+                    }
+                    if (self._rs_escHandler) {
+                        document.removeEventListener("keydown", self._rs_escHandler);
+                        self._rs_escHandler = null;
+                    }
+                    if (self._rs_outsideHandler) {
+                        document.removeEventListener("pointerdown", self._rs_outsideHandler, true);
+                        self._rs_outsideHandler = null;
                     }
                     self.data.menuOpen = false;
                     self._rs_updateUI();
@@ -615,11 +646,9 @@ app.registerExtension({
                                 self.data.toggleAllOn = !self.data.toggleAllOn;
                                 const newState = self.data.toggleAllOn;
                                 
-                                // Меняем enabled у всех элементов в кэше
                                 self.data.bypassedGroups.forEach(item => item.enabled = newState);
                                 self.data.bypassedNodes.forEach(item => item.enabled = newState);
                                 
-                                // Применяем байпас
                                 const nodes = app.graph._nodes || [];
                                 const groups = app.graph._groups || [];
                                 self.data.bypassedGroups.forEach(item => {
@@ -632,8 +661,8 @@ app.registerExtension({
                                 self.data.bypassedNodes.forEach(item => {
                                     const targetNode = nodes.find(n => n.id === item.id);
                                     if (targetNode) {
-                                        // Проверяем, не входит ли нода в группу из кэша
                                         const inGroup = self.data.bypassedGroups.some(gItem => {
+                                            if (!gItem.enabled) return false;
                                             const group = groups.find(g => g.id === gItem.id);
                                             return group && isNodeInGroup(targetNode, group);
                                         });
@@ -671,6 +700,7 @@ app.registerExtension({
                                         setNodeBypass(targetNode, entry.enabled);
                                     }
                                 }
+                                self._rs_syncToggleAllState();
                                 self._rs_syncData();
                                 self._rs_updateUI();
                                 return true;
@@ -691,6 +721,7 @@ app.registerExtension({
                                     }
                                     self.data.bypassedNodes = self.data.bypassedNodes.filter(item => item.id !== zone.id);
                                 }
+                                self._rs_syncToggleAllState();
                                 self._rs_syncData();
                                 self._rs_updateUI();
                                 return true;
@@ -732,7 +763,6 @@ app.registerExtension({
                     const nodes = app.graph._nodes || [];
                     const groups = app.graph._groups || [];
                     
-                    // Включаем байпас только для элементов с enabled === true
                     self.data.bypassedGroups.forEach(item => {
                         if (!item.enabled) return;
                         const group = groups.find(g => g.id === item.id);
@@ -746,7 +776,6 @@ app.registerExtension({
                         if (!item.enabled) return;
                         const targetNode = nodes.find(n => n.id === item.id);
                         if (targetNode) {
-                            // Проверяем, не входит ли нода в уже забайпашенную группу
                             const inBypassedGroup = self.data.bypassedGroups.some(gItem => {
                                 if (!gItem.enabled) return false;
                                 const group = groups.find(g => g.id === gItem.id);
@@ -763,35 +792,38 @@ app.registerExtension({
                     const nodes = app.graph._nodes || [];
                     const groups = app.graph._groups || [];
                     
-                    // 1. Полностью забайпашенные группы
                     groups.forEach(group => {
-                        if (!group || !group.bounding && !group._bounding) return;
+                        if (!group || (!group.bounding && !group._bounding)) return;
                         const groupNodes = nodes.filter(n => n.comfyClass !== "RS_Bypass" && isNodeInGroup(n, group));
                         if (groupNodes.length > 0 && groupNodes.every(n => n.mode === 4)) {
-                            // Добавляем группу в кэш, если её там нет
                             if (!self.data.bypassedGroups.some(item => item.id === group.id)) {
                                 self.data.bypassedGroups.push({ id: group.id, enabled: true });
                             } else {
-                                // Обновляем enabled
                                 const entry = self.data.bypassedGroups.find(item => item.id === group.id);
                                 if (entry) entry.enabled = true;
                             }
                         }
                     });
 
-                    // 2. Отдельные ноды с mode=4, не входящие ни в какую группу
                     nodes.forEach(n => {
                         if (n.comfyClass === "RS_Bypass") return;
-                        if (n.mode === 4) {
-                            const inAnyGroup = groups.some(g => g && (g.bounding || g._bounding) && isNodeInGroup(n, g));
-                            if (!inAnyGroup) {
-                                if (!self.data.bypassedNodes.some(item => item.id === n.id)) {
-                                    self.data.bypassedNodes.push({ id: n.id, enabled: true });
-                                } else {
-                                    const entry = self.data.bypassedNodes.find(item => item.id === n.id);
-                                    if (entry) entry.enabled = true;
-                                }
-                            }
+                        if (n.mode !== 4) return;
+                        
+                        const managedByBypassedGroup = self.data.bypassedGroups.some(gItem => {
+                            if (!gItem.enabled) return false;
+                            const group = groups.find(g => g.id === gItem.id);
+                            if (!group || !isNodeInGroup(n, group)) return false;
+                            const groupNodes = nodes.filter(nn => nn.comfyClass !== "RS_Bypass" && isNodeInGroup(nn, group));
+                            return groupNodes.length > 0 && groupNodes.every(nn => nn.mode === 4);
+                        });
+                        
+                        if (managedByBypassedGroup) return;
+                        
+                        if (!self.data.bypassedNodes.some(item => item.id === n.id)) {
+                            self.data.bypassedNodes.push({ id: n.id, enabled: true });
+                        } else {
+                            const entry = self.data.bypassedNodes.find(item => item.id === n.id);
+                            if (entry) entry.enabled = true;
                         }
                     });
                 };
@@ -827,7 +859,6 @@ app.registerExtension({
                         try {
                             const restoredData = JSON.parse(stateWidget.value);
                             if (restoredData) {
-                                // Преобразование при необходимости
                                 if (Array.isArray(restoredData.nodes)) {
                                     if (restoredData.nodes.length && typeof restoredData.nodes[0] === 'number') {
                                         self.data.bypassedNodes = restoredData.nodes.map(id => ({ id, enabled: true }));
@@ -849,6 +880,7 @@ app.registerExtension({
                         }
                     }
                     
+                    self._rs_syncToggleAllState();
                     self._rs_applyBypass();
                     self._rs_updateUI();
                     
@@ -865,6 +897,7 @@ app.registerExtension({
                     } else {
                         self._rs_applyBypass();
                     }
+                    self._rs_syncToggleAllState();
                     self._rs_updateUI();
                 }, 100);
 

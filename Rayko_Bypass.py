@@ -30,6 +30,7 @@ class RS_Bypass:
     FUNCTION = "execute"
     CATEGORY = "🦊 RaykoStudio"
     OUTPUT_NODE = True
+    DESCRIPTION = "Bypass panel for nodes and groups.  Synced with ComfyUI bypass in both directions; state saved with the workflow."
 
     def execute(self, bypass_state="{}", **kwargs):
         return {}

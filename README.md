@@ -408,6 +408,8 @@ The prompt is extracted from a wide range of metadata formats, in priority order
 # 🦊 RS Bypass Manager  
 **A powerful node for managing the states of Bypass nodes and groups in complex ComfyUI circuits. If your workflow has turned into a "spaghetti monster" and you need to quickly disable entire modules (for example, switch between txt2img, inpaint and upscale), this node will save you dozens of clicks and nerves.**  
 
+[![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/JyFN_4XN50E)
+
 <img width="429" height="407" alt="Screenshot_1" src="https://github.com/user-attachments/assets/cd3863b7-04a8-4506-aa7b-03f9e7c24cd5" />
 <img width="431" height="412" alt="Screenshot_2" src="https://github.com/user-attachments/assets/c6ffbbbc-94ee-465a-8b86-8d19f97b4c72" />
 <img width="750" height="616" alt="Screenshot_3" src="https://github.com/user-attachments/assets/b9795aee-1819-4010-82eb-fbbc77f1af8b" />

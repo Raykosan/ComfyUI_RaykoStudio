@@ -103,7 +103,7 @@ class RaykoLoRALoader:
     def IS_CHANGED(cls, lora_data="[]", **kwargs):
         if lora_data is None:
             lora_data = "[]"
-        return hashlib.md5(lora_data.encode()).hexdigest()
+        return hashlib.sha256(lora_data.encode()).hexdigest()
 
     def load_lora(self, model, use_clip, clip=None, lora_data="[]"):
         if not lora_data:
@@ -144,12 +144,19 @@ class RaykoLoRALoader:
 NODE_CLASS_MAPPINGS = {"RaykoLoRALoader": RaykoLoRALoader}
 NODE_DISPLAY_NAME_MAPPINGS = {"RaykoLoRALoader": "🦊 RS LoRA Loader"}
 
+def is_local_request(request):
+    """Restrict state-changing/model-loading endpoints to local requests only."""
+    peer = request.remote
+    return peer in ("127.0.0.1", "::1", "localhost")
+
 @PromptServer.instance.routes.get("/rayko_lora_loader/get_loras")
 async def get_loras(request):
     return aiohttp.web.json_response(sorted(folder_paths.get_filename_list("loras"), key=lambda x: x.lower()))
 
 @PromptServer.instance.routes.post("/rayko_lora_loader/save_preset")
 async def rayko_lora_loader_save_preset(request):
+    if not is_local_request(request):
+        return aiohttp.web.Response(status=403, text="Forbidden")
     try:
         data = await request.json()
         name = "".join(c for c in data.get("name", "").strip() if c.isalnum() or c in " _-").strip()
@@ -172,6 +179,8 @@ async def rayko_lora_loader_list_presets(request):
 
 @PromptServer.instance.routes.post("/rayko_lora_loader/load_preset")
 async def rayko_lora_loader_load_preset(request):
+    if not is_local_request(request):
+        return aiohttp.web.Response(status=403, text="Forbidden")
     try:
         name = (await request.json()).get("name")
         filepath = os.path.join(LORA_PRESETS_DIR, f"{name}.json")
@@ -184,6 +193,8 @@ async def rayko_lora_loader_load_preset(request):
 
 @PromptServer.instance.routes.post("/rayko_lora_loader/delete_preset")
 async def rayko_lora_loader_delete_preset(request):
+    if not is_local_request(request):
+        return aiohttp.web.Response(status=403, text="Forbidden")
     try:
         name = (await request.json()).get("name")
         filepath = os.path.join(LORA_PRESETS_DIR, f"{name}.json")
@@ -196,6 +207,8 @@ async def rayko_lora_loader_delete_preset(request):
 
 @PromptServer.instance.routes.post("/rayko_lora_loader/get_lora_info")
 async def rayko_lora_loader_get_lora_info(request):
+    if not is_local_request(request):
+        return aiohttp.web.Response(status=403, text="Forbidden")
     try:
         data = await request.json()
         lora_name = data.get("name", "")
@@ -246,6 +259,8 @@ async def rayko_lora_loader_get_lora_info(request):
 
 @PromptServer.instance.routes.post("/rayko_lora_loader/fetch_civitai_info")
 async def rayko_lora_loader_fetch_civitai_info(request):
+    if not is_local_request(request):
+        return aiohttp.web.Response(status=403, text="Forbidden")
     try:
         data = await request.json()
         lora_name = data.get("name", "")
@@ -331,6 +346,8 @@ async def rayko_lora_loader_fetch_civitai_info(request):
 
 @PromptServer.instance.routes.post("/rayko_lora_loader/add_tags")
 async def rayko_add_tags(request):
+    if not is_local_request(request):
+        return aiohttp.web.Response(status=403, text="Forbidden")
     try:
         data = await request.json()
         lora_name = data.get("name", "")
@@ -386,6 +403,8 @@ async def rayko_add_tags(request):
 
 @PromptServer.instance.routes.post("/rayko_lora_loader/remove_tag")
 async def rayko_remove_tag(request):
+    if not is_local_request(request):
+        return aiohttp.web.Response(status=403, text="Forbidden")
     try:
         data = await request.json()
         lora_name = data.get("name", "")

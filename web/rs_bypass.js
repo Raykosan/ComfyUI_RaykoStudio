@@ -1,5 +1,7 @@
 import { app } from "../../scripts/app.js";
 
+const RS_BYPASS_INSTANCES = new Set();
+
 function isNodeInGroup(node, group) {
     if (!node || !group) return false;
     
@@ -27,6 +29,8 @@ app.registerExtension({
                 const result = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
                 const self = this;
                 
+                RS_BYPASS_INSTANCES.add(self);
+                
                 self.data = {
                     bypassedNodes: [],
                     bypassedGroups: [],
@@ -41,6 +45,7 @@ app.registerExtension({
                 self.clickZones = [];
                 self._lastBypassedCount = -1;
                 self._lastSyncTimestamp = 0;
+                self._rs_discoveryDone = false;
                 
                 const stateWidget = self.widgets.find(w => w.name === "bypass_state");
                 const isNewNode = !stateWidget.value || stateWidget.value === "{}";
@@ -134,57 +139,56 @@ app.registerExtension({
                     const toggleY = y + (h - toggleH) / 2;
                     const radius = toggleH / 2;
                     const knobRadius = radius - 2;
-    
-                    // центр кружка — с отступом 2px от соответствующего края дорожки
+                    
                     const knobOffset = isOn
-                        ? toggleW - 2 - knobRadius   // прижат к правому краю
-                        : 2 + knobRadius;            // прижат к левому краю
-    
+                        ? toggleW - 2 - knobRadius
+                        : 2 + knobRadius;
+                    
                     ctx.fillStyle = isOn ? "#4CAF50" : "#555";
                     ctx.beginPath();
                     ctx.roundRect(toggleX, toggleY, toggleW, toggleH, radius);
                     ctx.fill();
-    
+                    
                     ctx.fillStyle = "#fff";
                     ctx.beginPath();
                     ctx.arc(toggleX + knobOffset, toggleY + radius, knobRadius, 0, Math.PI * 2);
                     ctx.fill();
-    
+                    
                     return { x: toggleX, y: toggleY, w: toggleW, h: toggleH };
                 };
 
                 self.drawBypassedItem = function(ctx, title, x, y, w, h, index, isBypassed) {
-                    const toggleZone = self.drawToggle(ctx, isBypassed, x, y, 28, h);
-
+                    const toggleZone = self.drawToggle(ctx, isBypassed, x, y, 36, h);
+    
                     const pad = 8;
                     const removeW = 16;
                     const gap = 8;
-
+    
                     const textX = x + 28 + pad;
                     const removeX = x + w - removeW + 4;
                     const textW = removeX - gap - textX;
-
+    
                     const bgHeight = 20;
                     const bgRadius = 4;
                     const bgY = y + (h - bgHeight) / 2;
-
+    
                     ctx.fillStyle = index % 2 === 0 ? "rgba(34,34,34,1)" : "rgba(34,34,34,0.5)";
                     ctx.beginPath();
                     ctx.roundRect(textX, bgY, textW, bgHeight, bgRadius);
                     ctx.fill();
-
-                    ctx.fillStyle = isBypassed ? "#ff4444" : "#eee";
+    
+                    ctx.fillStyle = isBypassed ? "#ff4444" : "#bbb";
                     ctx.font = "11px sans-serif";
                     ctx.textAlign = "left";
                     ctx.fillText(title, textX + pad, y + h/2 + 4);
-
+    
                     ctx.fillStyle = "#ff6666";
                     ctx.textAlign = "center";
                     ctx.fillText("✕", removeX + removeW / 2, y + h/2 + 4);
-
-                    return {
-                        toggle: toggleZone,
-                        remove: { x: removeX, y: y, w: removeW, h: h }
+    
+                    return { 
+                        toggle: toggleZone, 
+                        remove: { x: removeX, y: y, w: removeW, h: h } 
                     };
                 };
 
@@ -202,7 +206,32 @@ app.registerExtension({
                     }
                 };
 
+                self._rs_broadcastRemove = function(itemType, itemId) {
+                    RS_BYPASS_INSTANCES.forEach(instance => {
+                        if (instance === self) return;
+                        let touched = false;
+                        if (itemType === "group") {
+                            const before = instance.data.bypassedGroups.length;
+                            instance.data.bypassedGroups = instance.data.bypassedGroups.filter(item => item.id !== itemId);
+                            if (instance.data.bypassedGroups.length !== before) touched = true;
+                        } else {
+                            const before = instance.data.bypassedNodes.length;
+                            instance.data.bypassedNodes = instance.data.bypassedNodes.filter(item => item.id !== itemId);
+                            if (instance.data.bypassedNodes.length !== before) touched = true;
+                        }
+                        if (touched) {
+                            if (instance.data.menuOpen) {
+                                instance._rs_closeMenu();
+                            }
+                            instance._rs_syncToggleAllState();
+                            instance._rs_syncData();
+                            instance._rs_updateUI();
+                        }
+                    });
+                };
+
                 self._rs_syncFromExternal = function() {
+                    if (!self._rs_discoveryDone) return;
                     const now = Date.now();
                     if (now - self._lastSyncTimestamp < 300) return;
                     self._lastSyncTimestamp = now;
@@ -410,32 +439,32 @@ app.registerExtension({
                         self._rs_closeMenu();
                         return;
                     }
-    
+                    
                     self._rs_syncFromExternal();
-    
+                    
                     const existingMenu = document.getElementById("rs-bypass-menu");
                     if (existingMenu) existingMenu.remove();
-    
+                    
                     const menu = document.createElement("div");
                     menu.id = "rs-bypass-menu";
                     menu.style.cssText = "position:fixed;background:#1a1a1a;border:2px solid #ff9800;border-radius:6px;max-height:500px;overflow-y:auto;z-index:10001;box-shadow:0 4px 20px rgba(255,152,0,0.3);min-width:350px;transition:box-shadow 0.2s;";
-    
+                    
                     const searchInput = document.createElement("input");
                     searchInput.type = "text";
                     searchInput.placeholder = " Search nodes/groups...";
                     searchInput.style.cssText = "width:100%;padding:10px;background:#252525;color:#fff;border:none;border-bottom:1px solid #333;box-sizing:border-box;font-size:12px;outline:none;";
                     searchInput.value = self.data.menuSearch || "";
                     menu.appendChild(searchInput);
-    
+                    
                     const contentDiv = document.createElement("div");
                     contentDiv.id = "rs-bypass-content";
                     menu.appendChild(contentDiv);
-    
+                    
                     if (clickEvent) {
                         menu.style.left = (clickEvent.clientX + 8) + "px";
                         menu.style.top = clickEvent.clientY + "px";
                     }
-    
+                    
                     const outsideHandler = (ev) => {
                         const path = typeof ev.composedPath === "function" ? ev.composedPath() : null;
                         if (path && path.length) {
@@ -446,45 +475,45 @@ app.registerExtension({
                         self._rs_closeMenu();
                     };
                     self._rs_outsideHandler = outsideHandler;
-    
+                    
                     const escHandler = (ev) => {
                         if (ev.key === "Escape") self._rs_closeMenu();
                     };
                     self._rs_escHandler = escHandler;
-    
+                    
                     function renderContent() {
                         contentDiv.innerHTML = "";
                         const query = searchInput.value.toLowerCase();
                         self.data.menuSearch = query;
-        
+                        
                         const groups = app.graph._groups || [];
                         const nodes = app.graph._nodes || [];
-        
+                        
                         const filteredNodes = nodes.filter(n => n.comfyClass !== "RS_Bypass");
-        
+                        
                         let hasItems = false;
-        
+                        
                         groups.forEach(group => {
                             if (!group || !group.bounding && !group._bounding) {
                                 return;
                             }
-            
+                            
                             const groupNodes = filteredNodes.filter(n => isNodeInGroup(n, group));
                             if (groupNodes.length === 0) return;
-            
+                            
                             const title = group.title || "Group " + group.id;
                             if (query && !title.toLowerCase().includes(query)) return;
-            
+                            
                             const cachedGroup = self.data.bypassedGroups.find(item => item.id === group.id);
                             const isAllBypassed = cachedGroup ? cachedGroup.enabled : false;
                             const isExpanded = self.data.expandedGroups[group.id] || false;
-            
+                            
                             let groupColor = "#ddd";
                             if (isAllBypassed) groupColor = "#ff4444";
-            
+                            
                             const groupItem = document.createElement("div");
                             groupItem.style.cssText = "padding:10px 12px;cursor:pointer;color:" + groupColor + ";border-bottom:1px solid #333;font-size:12px;display:flex;align-items:center;transition:background-color 0.15s;";
-            
+                            
                             const arrow = document.createElement("span");
                             arrow.textContent = isExpanded ? "▼ " : "▶ ";
                             arrow.style.cssText = "margin-right:8px;font-size:10px;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid #555;border-radius:4px;";
@@ -494,7 +523,7 @@ app.registerExtension({
                                 renderContent();
                             };
                             groupItem.appendChild(arrow);
-            
+                            
                             const groupText = document.createElement("span");
                             groupText.textContent = " " + title;
                             groupText.style.cssText = "flex:1;margin-left:4px;";
@@ -519,22 +548,22 @@ app.registerExtension({
                                 renderContent();
                             };
                             groupItem.appendChild(groupText);
-            
+                            
                             groupItem.onmouseover = () => groupItem.style.background = "#333";
                             groupItem.onmouseout = () => groupItem.style.background = "#1a1a1a";
-            
+                            
                             contentDiv.appendChild(groupItem);
                             hasItems = true;
-            
+                            
                             if (isExpanded) {
                                 groupNodes.forEach(n => {
                                     const nodeTitle = n.title || n.type;
                                     if (query && !nodeTitle.toLowerCase().includes(query)) return;
-                    
+                                    
                                     const cachedNode = self.data.bypassedNodes.find(item => item.id === n.id);
                                     const isNodeBypassed = cachedNode ? cachedNode.enabled : false;
                                     const nodeColor = isNodeBypassed ? "#ff4444" : "#ddd";
-                    
+                                    
                                     const nodeItem = document.createElement("div");
                                     nodeItem.textContent = "️ " + nodeTitle;
                                     nodeItem.style.cssText = "padding:10px 12px 10px 32px;cursor:pointer;color:" + nodeColor + ";border-bottom:1px solid #333;font-size:12px;transition:background-color 0.15s;";
@@ -559,16 +588,16 @@ app.registerExtension({
                                 });
                             }
                         });
-        
+                        
                         const ungroupedNodes = filteredNodes.filter(n => !groups.some(g => g && (g.bounding || g._bounding) && isNodeInGroup(n, g)));
                         ungroupedNodes.forEach(n => {
                             const title = n.title || n.type;
                             if (query && !title.toLowerCase().includes(query)) return;
-            
+                            
                             const cachedNode = self.data.bypassedNodes.find(item => item.id === n.id);
                             const isBypassed = cachedNode ? cachedNode.enabled : false;
                             const nodeColor = isBypassed ? "#ff4444" : "#ddd";
-            
+                            
                             const item = document.createElement("div");
                             item.textContent = "⚙️ " + title;
                             item.style.cssText = "padding:10px 12px;cursor:pointer;color:" + nodeColor + ";border-bottom:1px solid #333;font-size:12px;transition:background-color 0.15s;";
@@ -592,7 +621,7 @@ app.registerExtension({
                             contentDiv.appendChild(item);
                             hasItems = true;
                         });
-        
+                        
                         if (!hasItems) {
                             const emptyMsg = document.createElement("div");
                             emptyMsg.textContent = "No nodes/groups found";
@@ -600,15 +629,15 @@ app.registerExtension({
                             contentDiv.appendChild(emptyMsg);
                         }
                     }
-    
+                    
                     searchInput.addEventListener("input", renderContent);
-    
+                    
                     renderContent();
                     document.body.appendChild(menu);
-    
+                    
                     self.data.menuOpen = true;
                     self._rs_updateUI();
-    
+                    
                     setTimeout(() => {
                         document.addEventListener("pointerdown", outsideHandler, true);
                         document.addEventListener("keydown", escHandler);
@@ -718,12 +747,14 @@ app.registerExtension({
                                         groupNodes.forEach(n => setNodeBypass(n, false));
                                     }
                                     self.data.bypassedGroups = self.data.bypassedGroups.filter(item => item.id !== zone.id);
+                                    self._rs_broadcastRemove("group", zone.id);
                                 } else {
                                     const targetNode = app.graph._nodes.find(n => n.id === zone.id);
                                     if (targetNode) {
                                         setNodeBypass(targetNode, false);
                                     }
                                     self.data.bypassedNodes = self.data.bypassedNodes.filter(item => item.id !== zone.id);
+                                    self._rs_broadcastRemove("node", zone.id);
                                 }
                                 self._rs_syncToggleAllState();
                                 self._rs_syncData();
@@ -796,6 +827,20 @@ app.registerExtension({
                     const nodes = app.graph._nodes || [];
                     const groups = app.graph._groups || [];
                     
+                    RS_BYPASS_INSTANCES.forEach(instance => {
+                        if (instance === self) return;
+                        instance.data.bypassedGroups.forEach(item => {
+                            if (!self.data.bypassedGroups.some(x => x.id === item.id)) {
+                                self.data.bypassedGroups.push({ id: item.id, enabled: item.enabled });
+                            }
+                        });
+                        instance.data.bypassedNodes.forEach(item => {
+                            if (!self.data.bypassedNodes.some(x => x.id === item.id)) {
+                                self.data.bypassedNodes.push({ id: item.id, enabled: item.enabled });
+                            }
+                        });
+                    });
+                    
                     groups.forEach(group => {
                         if (!group || (!group.bounding && !group._bounding)) return;
                         const groupNodes = nodes.filter(n => n.comfyClass !== "RS_Bypass" && isNodeInGroup(n, group));
@@ -853,6 +898,12 @@ app.registerExtension({
                     }
                 };
 
+                const onRemoved = self.onRemoved;
+                self.onRemoved = function() {
+                    RS_BYPASS_INSTANCES.delete(self);
+                    if (onRemoved) return onRemoved.apply(this, arguments);
+                };
+
                 const onConfigure = self.onConfigure;
                 self.onConfigure = function(o) {
                     if (onConfigure) {
@@ -901,6 +952,7 @@ app.registerExtension({
                     } else {
                         self._rs_applyBypass();
                     }
+                    self._rs_discoveryDone = true;
                     self._rs_syncToggleAllState();
                     self._rs_updateUI();
                 }, 100);

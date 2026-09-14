@@ -110,7 +110,11 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.44.2 - Display of the image grid in the batch mode of the RS Decode Save Image node has been changed
 - v0.45.0 - Isolation of RS Prompts and RS Decode Save Image nodes
 - v0.45.1 - Changes to the RS Bypass Manager node interface
-- v0.45.2 - Final modification of the RS Bypass Manager node
+- v0.45.2 - Modification of the RS Bypass Manager node  
+- v0.45.3 - Code optimization in the RS Bypass Manager node  
+- v0.45.4 - Code optimization in the RS Bypass Manager node  
+- v0.45.5 - Мodification of the RS Bypass Manager node interface
+- v0.45.6 - Final modification of the RS Bypass Manager node interface  
 
 </details>
 
@@ -411,16 +415,18 @@ The prompt is extracted from a wide range of metadata formats, in priority order
 [![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/JyFN_4XN50E)
 
 <img width="429" height="407" alt="Screenshot_1" src="https://github.com/user-attachments/assets/cd3863b7-04a8-4506-aa7b-03f9e7c24cd5" />
-<img width="431" height="412" alt="Screenshot_2" src="https://github.com/user-attachments/assets/c6ffbbbc-94ee-465a-8b86-8d19f97b4c72" />
+<img width="499" height="638" alt="Screenshot_2" src="https://github.com/user-attachments/assets/9bdb2b30-dc8e-49bd-9b08-2f1531f986f0" />
 <img width="750" height="616" alt="Screenshot_3" src="https://github.com/user-attachments/assets/b9795aee-1819-4010-82eb-fbbc77f1af8b" />
 
 ### 🔥 Features  
 **Smart Search** - Instant search for the desired nodes and groups by name right inside the drop-down menu.  
 **Group Support** - Works with ComfyUI groups. Groups can be collapsed and expanded to select individual nodes within them.  
 **Node Support** - Works with ComfyUI nodes. You can select nodes that are not part of groups, or you can select individual nodes within groups.  
+**Tree structure** - Tree structure of the node hierarchy in groups.
 **Toggles** - Common toggle for all selected items. Each element has personal switches.  
 **Color indication**:  
- * 🔴 **Red** — the group or node is completely blocked.  
+ * 🔴 **Red** — the group or node is completely blocked.
+ * 🟠 **Orange** - the group is partially in the bypass.  
  * ⚪ **Gray** — the node/group is active.
    
 **Smart State saving** - The bypass status is saved directly in the JSON workflow. No data is lost when restarting ComfyUI, switching tabs, or sharing PNG/JSON.  

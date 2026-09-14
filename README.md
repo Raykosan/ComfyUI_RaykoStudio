@@ -415,7 +415,7 @@ The prompt is extracted from a wide range of metadata formats, in priority order
 [![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/JyFN_4XN50E)
 
 <img width="429" height="407" alt="Screenshot_1" src="https://github.com/user-attachments/assets/cd3863b7-04a8-4506-aa7b-03f9e7c24cd5" />
-<img width="499" height="638" alt="Screenshot_2" src="https://github.com/user-attachments/assets/9bdb2b30-dc8e-49bd-9b08-2f1531f986f0" />
+<img width="682" height="883" alt="Screenshot_1" src="https://github.com/user-attachments/assets/fa780391-ecc9-4b53-a3c7-f9da8f389f6a" />
 <img width="750" height="616" alt="Screenshot_3" src="https://github.com/user-attachments/assets/b9795aee-1819-4010-82eb-fbbc77f1af8b" />
 
 ### 🔥 Features  

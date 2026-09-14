@@ -298,6 +298,21 @@ app.registerExtension({
                         }
                     });
 
+                    const beforeCovered = self.data.bypassedNodes.length;
+                    self.data.bypassedNodes = self.data.bypassedNodes.filter(item => {
+                        const node = nodes.find(n => n.id === item.id);
+                        if (!node) return true;
+                        const coveredByGroup = self.data.bypassedGroups.some(gItem => {
+                            if (!gItem.enabled) return false;
+                            const group = groups.find(g => g.id === gItem.id);
+                            if (!group || !isNodeInGroup(node, group)) return false;
+                            const groupNodes = nodes.filter(nn => nn.comfyClass !== "RS_Bypass" && isNodeInGroup(nn, group));
+                            return groupNodes.length > 0 && groupNodes.every(nn => nn.mode === 4);
+                        });
+                        return !coveredByGroup;
+                    });
+                    if (self.data.bypassedNodes.length !== beforeCovered) changed = true;
+
                     groups.forEach(group => {
                         if (!group || (!group.bounding && !group._bounding)) return;
                         const groupNodes = nodes.filter(n => n.comfyClass !== "RS_Bypass" && isNodeInGroup(n, group));
@@ -313,13 +328,12 @@ app.registerExtension({
 
                     nodes.forEach(n => {
                         if (n.comfyClass === "RS_Bypass") return;
-    
-                        // Ищем группу из кэша, в которую входит нода (если есть)
+                        
                         const groupEntry = self.data.bypassedGroups.find(gItem => {
                             const group = groups.find(g => g.id === gItem.id);
                             return group && isNodeInGroup(n, group);
                         });
-    
+                        
                         if (n.mode === 4) {
                             const managedByBypassedGroup = self.data.bypassedGroups.some(gItem => {
                                 if (!gItem.enabled) return false;
@@ -328,9 +342,9 @@ app.registerExtension({
                                 const groupNodes = nodes.filter(nn => nn.comfyClass !== "RS_Bypass" && isNodeInGroup(nn, group));
                                 return groupNodes.length > 0 && groupNodes.every(nn => nn.mode === 4);
                             });
-        
+                            
                             if (managedByBypassedGroup) return;
-        
+                            
                             if (!self.data.bypassedNodes.some(item => item.id === n.id)) {
                                 self.data.bypassedNodes.push({ id: n.id, enabled: true });
                                 changed = true;
@@ -342,14 +356,11 @@ app.registerExtension({
                                 }
                             }
                         } else if (n.mode === 0 && groupEntry && !groupEntry.enabled) {
-                            // Нода выключена, но её группа из кэша в статусе partial.
-                            // Считаем её отслеживаемой: добавляем с enabled=false.
-                            // Отсекаем случай «группа выключена целиком» — там нет ни одной забайпашенной соседки.
                             const group = groups.find(g => g.id === groupEntry.id);
                             if (!group) return;
                             const groupNodes = nodes.filter(nn => nn.comfyClass !== "RS_Bypass" && isNodeInGroup(nn, group));
                             const hasBypassedSibling = groupNodes.some(nn => nn.mode === 4);
-        
+                            
                             if (hasBypassedSibling && !self.data.bypassedNodes.some(item => item.id === n.id)) {
                                 self.data.bypassedNodes.push({ id: n.id, enabled: false });
                                 changed = true;
@@ -411,24 +422,24 @@ app.registerExtension({
                             title: "📁 " + (group.title || "Group"), 
                             state: state
                         });
-    
-                        if (state === "partial" || state === "none") {
-                            // Собираем только «свои» ноды этой группы
+                        
+                        if (state === "partial") {
                             const childItems = [];
                             self.data.bypassedNodes.forEach(nItem => {
                                 const targetNode = nodes.find(n => n.id === nItem.id);
                                 if (!targetNode) return;
                                 if (!isNodeInGroup(targetNode, group)) return;
                                 if (nodesPlacedInGroups.has(targetNode.id)) return;
+                                if (nItem.enabled) return;
                                 childItems.push({ node: targetNode, entry: nItem });
                             });
-    
+                            
                             childItems.forEach((child, ci) => {
                                 displayItems.push({ 
                                     type: "node", 
                                     id: child.node.id, 
                                     title: " ️ " + (child.node.title || child.node.type), 
-                                    state: child.entry.enabled ? "all" : "none",
+                                    state: "none",
                                     isChild: true,
                                     isLastChild: ci === childItems.length - 1
                                 });
@@ -437,26 +448,23 @@ app.registerExtension({
                         }
                     });
 
-                    // Остальные ноды — standalone или чья группа не в кэше
                     self.data.bypassedNodes.forEach(item => {
                         const targetNode = nodes.find(n => n.id === item.id);
                         if (!targetNode) return;
                         if (nodesPlacedInGroups.has(targetNode.id)) return;
-    
-                        const coveredByEnabledGroup = self.data.bypassedGroups.some(gItem => {
-                            if (!gItem.enabled) return false;
+                        
+                        const belongsToCachedGroup = self.data.bypassedGroups.some(gItem => {
                             const group = groups.find(g => g.id === gItem.id);
                             return group && isNodeInGroup(targetNode, group);
                         });
-    
-                        if (!coveredByEnabledGroup) {
-                            displayItems.push({ 
-                                type: "node", 
-                                id: targetNode.id, 
-                                title: "️ " + (targetNode.title || targetNode.type), 
-                                state: item.enabled ? "all" : "none"
-                            });
-                        }
+                        if (belongsToCachedGroup) return;
+                        
+                        displayItems.push({ 
+                            type: "node", 
+                            id: targetNode.id, 
+                            title: " ️ " + (targetNode.title || targetNode.type), 
+                            state: item.enabled ? "all" : "none"
+                        });
                     });
 
                     if (displayItems.length > 0) {
@@ -574,9 +582,8 @@ app.registerExtension({
                             const title = group.title || "Group " + group.id;
                             if (query && !title.toLowerCase().includes(query)) return;
                             
-                            const cachedGroup = self.data.bypassedGroups.find(item => item.id === group.id);
                             const isExpanded = self.data.expandedGroups[group.id] || false;
-
+                            
                             const bypassedCount = groupNodes.filter(n => n.mode === 4).length;
                             let groupColor = "#ddd";
                             if (bypassedCount === groupNodes.length) groupColor = "#ff4444";
@@ -630,21 +637,18 @@ app.registerExtension({
                                 groupNodes.forEach(n => {
                                     const nodeTitle = n.title || n.type;
                                     if (query && !nodeTitle.toLowerCase().includes(query)) return;
-        
-                                    const cachedNode = self.data.bypassedNodes.find(item => item.id === n.id);
-                                    // Если персональной записи нет — считаем состояние по реальному mode (может быть забайпашено через родительскую группу)
-                                    const isNodeBypassed = cachedNode ? cachedNode.enabled : (n.mode === 4);
+                                    
+                                    const isNodeBypassed = n.mode === 4;
                                     const nodeColor = isNodeBypassed ? "#ff4444" : "#ddd";
-        
+                                    
                                     const nodeItem = document.createElement("div");
-                                    nodeItem.textContent = "️ " + nodeTitle;
+                                    nodeItem.textContent = " ️ " + nodeTitle;
                                     nodeItem.style.cssText = "padding:10px 12px 10px 32px;cursor:pointer;color:" + nodeColor + ";border-bottom:1px solid #333;font-size:12px;transition:background-color 0.15s;";
                                     nodeItem.onmouseover = () => nodeItem.style.background = "#333";
                                     nodeItem.onmouseout = () => nodeItem.style.background = "#1a1a1a";
                                     nodeItem.onclick = (ev) => {
                                         ev.stopPropagation();
                                         let entry = self.data.bypassedNodes.find(item => item.id === n.id);
-                                        // Текущее состояние — либо из личной записи, либо из реального mode
                                         const currentlyBypassed = entry ? entry.enabled : (n.mode === 4);
                                         const newState = !currentlyBypassed;
                                         if (entry) {
@@ -669,8 +673,7 @@ app.registerExtension({
                             const title = n.title || n.type;
                             if (query && !title.toLowerCase().includes(query)) return;
                             
-                            const cachedNode = self.data.bypassedNodes.find(item => item.id === n.id);
-                            const isBypassed = cachedNode ? cachedNode.enabled : false;
+                            const isBypassed = n.mode === 4;
                             const nodeColor = isBypassed ? "#ff4444" : "#ddd";
                             
                             const item = document.createElement("div");

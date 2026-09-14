@@ -187,10 +187,10 @@ app.registerExtension({
 
                     let cursorX = textX + pad;
                     if (isChild) {
-                        const prefix = isLastChild ? "└ " : "├ ";
+                        const prefix = isLastChild ? "└─ " : "├─ ";
                         ctx.fillStyle = "#eee";
                         ctx.fillText(prefix, cursorX, y + h/2 + 4);
-                        cursorX += ctx.measureText(prefix).width;
+                        cursorX += ctx.measureText(prefix).width + 2;  // +2 px дополнительного сдвига
                     }
 
                     ctx.fillStyle = titleColor;

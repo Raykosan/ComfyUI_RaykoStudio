@@ -190,15 +190,17 @@ app.registerExtension({
                         const prefix = isLastChild ? "└─ " : "├─ ";
                         ctx.fillStyle = "#eee";
                         ctx.fillText(prefix, cursorX, y + h/2 + 4);
-                        cursorX += ctx.measureText(prefix).width + 2;  // +2 px дополнительного сдвига
+                        cursorX += ctx.measureText(prefix).width + 2;
                     }
 
                     ctx.fillStyle = titleColor;
                     ctx.fillText(title, cursorX, y + h/2 + 4);
 
-                    ctx.fillStyle = "#ff6666";
-                    ctx.textAlign = "center";
-                    ctx.fillText("✕", removeX + removeW / 2, y + h/2 + 4);
+                    if (!isChild) {
+                        ctx.fillStyle = "#ff6666";
+                        ctx.textAlign = "center";
+                        ctx.fillText("✕", removeX + removeW / 2, y + h/2 + 4);
+                    }
 
                     return { 
                         toggle: toggleZone, 
@@ -494,15 +496,17 @@ app.registerExtension({
                             h: zones.toggle.h 
                         });
                         
-                        self.clickZones.push({ 
-                            type: "remove", 
-                            itemType: item.type, 
-                            id: item.id, 
-                            x: zones.remove.x, 
-                            y: zones.remove.y, 
-                            w: zones.remove.w, 
-                            h: zones.remove.h 
-                        });
+                        if (!item.isChild) {
+                            self.clickZones.push({ 
+                                type: "remove", 
+                                itemType: item.type, 
+                                id: item.id, 
+                                x: zones.remove.x, 
+                                y: zones.remove.y, 
+                                w: zones.remove.w, 
+                                h: zones.remove.h 
+                            });
+                        }
                     });
 
                     const currentCount = displayItems.length;

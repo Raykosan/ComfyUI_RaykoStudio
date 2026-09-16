@@ -1,30 +1,218 @@
 import { app } from "../../../scripts/app.js";
 
+let topbarInterval = null;
+const STORAGE_KEY = "RaykoStudio.ShowIcon";
+
 app.registerExtension({
     name: "RaykoStudio.SettingsManager",
     
     async setup() {
-        if (app.extensionManager && app.extensionManager.registerSidebarTab) {
-            app.extensionManager.registerSidebarTab({
-                id: "RaykoStudio.SettingsManager",
-                icon: "pi pi-desktop",
-                title: "🦊 Settings Manager",
-                tooltip: "Interface Settings Manager",
-                type: "custom",
-                render: (el) => {
-                    renderSettingsPanel(el);
-                },
-            });
-        }
+        // Одна настройка без явной category — ComfyUI возьмет раздел из id (часть до точки)
+        app.ui.settings.addSetting({
+            id: "RaykoStudio.SettingsManager",
+            name: "Settings Manager",
+            type: () => {
+                const container = document.createElement("div");
+                container.id = "sm-settings-container";
+                container.style.display = "flex";
+                container.style.flexDirection = "column";
+                container.style.gap = "4px";
+                container.style.margin = "0";
+                container.style.padding = "0";
+
+                // --- Строка с тогглом ---
+                const toggleRow = document.createElement("label");
+                toggleRow.style.display = "flex";
+                toggleRow.style.alignItems = "center";
+                toggleRow.style.gap = "10px";
+                toggleRow.style.cursor = "pointer";
+                toggleRow.style.fontSize = "14px";
+                toggleRow.style.lineHeight = "1.2";
+
+                const toggleInput = document.createElement("input");
+                toggleInput.type = "checkbox";
+                toggleInput.style.cursor = "pointer";
+                toggleInput.style.width = "16px";
+                toggleInput.style.height = "16px";
+                toggleInput.style.margin = "0";
+                
+                const isEnabled = localStorage.getItem(STORAGE_KEY) === "true";
+                toggleInput.checked = isEnabled;
+
+                toggleInput.onchange = (e) => {
+                    localStorage.setItem(STORAGE_KEY, e.target.checked ? "true" : "false");
+                    updateTopbarIcon(e.target.checked);
+                };
+
+                const toggleText = document.createElement("span");
+                toggleText.textContent = "Show Icon On Menu";
+                toggleText.style.color = "var(--fg-color)";
+
+                toggleRow.appendChild(toggleInput);
+                toggleRow.appendChild(toggleText);
+
+                // --- Кнопка открытия менеджера ---
+                const btn = document.createElement("button");
+                btn.className = "sm-btn sm-btn-success";
+                btn.textContent = "Open Settings Manager";
+                btn.style.width = "auto";
+                btn.style.alignSelf = "flex-start";
+                btn.style.padding = "6px 12px";
+                btn.style.fontSize = "13px";
+                btn.style.marginTop = "4px";
+                btn.onclick = () => openSettingsManagerModal();
+
+                container.appendChild(toggleRow);
+                container.appendChild(btn);
+
+                return container;
+            }
+        });
+
+        // Инициализация при загрузке
+        setTimeout(() => {
+            const initialVal = localStorage.getItem(STORAGE_KEY) === "true";
+            updateTopbarIcon(initialVal);
+        }, 1000);
     },
 });
+
+// --- Управление иконкой в верхнем меню ---
+
+function updateTopbarIcon(show) {
+    if (show) {
+        startTopbarInjection();
+    } else {
+        stopTopbarInjection();
+        const existingBtn = document.getElementById("sm-topbar-btn");
+        if (existingBtn) {
+            existingBtn.remove();
+            console.log("🦊 Settings Manager: Иконка скрыта.");
+        }
+    }
+}
+
+function startTopbarInjection() {
+    if (topbarInterval) return;
+    
+    console.log("🦊 Settings Manager: Начинаем поиск верхнего меню...");
+    let attempts = 0;
+    const maxAttempts = 20;
+
+    topbarInterval = setInterval(() => {
+        attempts++;
+        const actionBar = document.querySelector('.actionbar-container');
+        
+        if (actionBar) {
+            if (document.getElementById("sm-topbar-btn")) {
+                clearInterval(topbarInterval);
+                topbarInterval = null;
+                return;
+            }
+
+            const topBtn = document.createElement("button");
+            topBtn.id = "sm-topbar-btn";
+            topBtn.className = "comfyui-button";
+            topBtn.title = "Settings Manager";
+            topBtn.innerHTML = `<span style="font-size: 18px; line-height: 1;">🖥️</span>`; 
+            topBtn.onclick = () => openSettingsManagerModal();
+
+            topBtn.style.width = "38px";
+            topBtn.style.height = "100%";
+            topBtn.style.minHeight = "32px";
+            topBtn.style.maxHeight = "40px";
+            topBtn.style.padding = "0";
+            topBtn.style.margin = "0 5px";
+            topBtn.style.display = "inline-flex";
+            topBtn.style.alignItems = "center";
+            topBtn.style.justifyContent = "center";
+            topBtn.style.cursor = "pointer";
+            topBtn.style.background = "var(--comfy-input-bg)";
+            topBtn.style.color = "var(--fg-color)";
+            topBtn.style.border = "1px solid var(--border-color)";
+            topBtn.style.borderRadius = "8px";
+            topBtn.style.transition = "background 0.2s";
+            topBtn.style.boxSizing = "border-box";
+
+            topBtn.onmouseenter = () => { topBtn.style.background = "var(--comfy-menu-secondary-bg)"; };
+            topBtn.onmouseleave = () => { topBtn.style.background = "var(--comfy-input-bg)"; };
+
+            const runContainer = actionBar.querySelector('.flex.h-full.items-center');
+            if (runContainer) {
+                actionBar.insertBefore(topBtn, runContainer);
+            } else {
+                actionBar.appendChild(topBtn);
+            }
+            
+            console.log("🦊 Settings Manager: Иконка добавлена в верхнее меню.");
+            clearInterval(topbarInterval);
+            topbarInterval = null;
+        } else {
+            if (attempts >= maxAttempts) {
+                console.error("🦊 Settings Manager: Не удалось найти .actionbar-container.");
+                clearInterval(topbarInterval);
+                topbarInterval = null;
+            }
+        }
+    }, 500);
+}
+
+function stopTopbarInjection() {
+    if (topbarInterval) {
+        clearInterval(topbarInterval);
+        topbarInterval = null;
+    }
+}
+
+// --- Модальное окно и интерфейс менеджера ---
+
+function openSettingsManagerModal() {
+    const overlay = document.createElement("div");
+    overlay.className = "sm-modal-overlay";
+    
+    const modal = document.createElement("div");
+    modal.className = "sm-modal-content";
+    
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "sm-btn sm-btn-danger sm-btn-small";
+    closeBtn.textContent = "✕ Close";
+    closeBtn.style.width = "100%";
+    closeBtn.style.marginTop = "10px";
+    closeBtn.onclick = () => document.body.removeChild(overlay);
+    
+    renderSettingsPanel(modal);
+    modal.appendChild(closeBtn);
+    overlay.appendChild(modal);
+    
+    overlay.onclick = (e) => {
+        if (e.target === overlay) document.body.removeChild(overlay);
+    };
+    
+    document.body.appendChild(overlay);
+}
 
 function renderSettingsPanel(container) {
     container.innerHTML = '';
     
     const style = document.createElement('style');
     style.textContent = `
-        .sm-container { padding: 15px; display: flex; flex-direction: column; gap: 20px; min-height: 300px; }
+        .sm-modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10000;
+        }
+        .sm-modal-content {
+            background: var(--comfy-menu-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            width: 90%; max-width: 450px;
+            max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .sm-container { display: flex; flex-direction: column; gap: 20px; min-height: 300px; }
         .sm-section { background-color: var(--comfy-input-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; }
         .sm-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: var(--fg-color); }
         .sm-description { font-size: 12px; color: var(--descrip-text); margin-bottom: 15px; }

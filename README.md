@@ -114,7 +114,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.45.3 - Code optimization in the RS Bypass Manager node  
 - v0.45.4 - Code optimization in the RS Bypass Manager node  
 - v0.45.5 - Мodification of the RS Bypass Manager node interface
-- v0.45.6 - Final modification of the RS Bypass Manager node interface  
+- v0.45.6 - Final modification of the RS Bypass Manager node interface
+- v0.46.0 - Modification of the Setting Manager extension  
 
 </details>
 
@@ -1998,7 +1999,10 @@ The node generates a list of INT values, automatically switching between 10 pres
 # 🦊 ComfyUI Settings Manager  
 **A  user-friendly extension that allows you to easily backup, restore, and manage your interface settings. Never lose your custom UI layout, preferences, or configurations again!**  
 
-<img width="580" height="783" alt="Screenshot_3" src="https://github.com/user-attachments/assets/2db2e5c7-055b-40c0-805d-167dde6d47e2" />
+<img width="217" height="937" alt="Screenshot_1" src="https://github.com/user-attachments/assets/a898ce80-dd21-4245-9228-d8b78ede8cf4" />
+<img width="207" height="136" alt="Screenshot_4" src="https://github.com/user-attachments/assets/13ad352f-295e-4e5e-9fdb-2b55d7f80c37" />
+<img width="580" height="783" alt="Screenshot_3" src="https://github.com/user-attachments/assets/f139e9c5-64d5-44d2-9790-bb266f8bd078" />
+<img width="438" height="54" alt="Screenshot_5" src="https://github.com/user-attachments/assets/ccc1a109-e7bf-4ad1-a537-ffe6b0c3cb33" />
 
 ### 🔥 Features  
 - **Smart Backups** - Save your current interface settings with custom names. If no name is provided, it automatically uses a timestamp.  
@@ -2013,7 +2017,10 @@ The node generates a list of INT values, automatically switching between 10 pres
 
 ### 🪛 Usage  
 **Accessing the Manager**  
-Look for the **Desktop/Monitor icon** (🖥️) in the left sidebar of ComfyUI. Click it to open the **Settings Manager** panel.  
+Open the **Settings** (gear icon on the sidebar)  
+Open the menu item **RaykoStudio**  
+You can enable/disable the display of the extension icon in the ComfyUI top menu [🖥️]   
+Click **Open Setting Manager**  
 
 **Saving Settings (Backup)**  
 1. In the **Save Interface Settings** section, you will see a text field. 

@@ -1,18 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2025-2026 Raykosan (RaykoStudio)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import json
 import os
 import server
@@ -30,10 +15,30 @@ if not os.path.exists(PROMPTS_DIR):
 
 PENDING_PROMPTS = {}
 
+
+# --- tokenizer helper --------------------------------------------------------
+# Qwen 2.1 (and possibly other new encoders) accept images / keep_vision /
+# prevent_empty_text. We have no image inputs, so images=[] and keep_vision=True
+# are fixed. prevent_empty_text=True is what makes an empty negative prompt
+# produce a proper "unconditional" embedding instead of degenerate tokens —
+# this is exactly what TextEncodeQwenImage21 does.
+# Tokenizers that don't understand these kwargs raise TypeError, and we fall
+# back to a plain tokenize call (behaviour identical to native CLIPTextEncode).
+
+def _tokenize(clip, text):
+    try:
+        return clip.tokenize(
+            text, images=[], keep_vision=True, prevent_empty_text=True
+        )
+    except TypeError:
+        return clip.tokenize(text)
+# -----------------------------------------------------------------------------
+
+
 class RSPrompts:
     _encode_cache = {}
     _CACHE_MAX_SIZE = 50
-    
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -58,22 +63,22 @@ class RSPrompts:
     CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = "Text encoder with visual prompt controls and pause-for-edit mode."
 
-    def encode_prompts(self, clip, enable_text_input=False, pause_for_edit=False, 
+    def encode_prompts(self, clip, enable_text_input=False, pause_for_edit=False,
                        text="", text_input=None, unique_id=None, instance_uid=""):
-        
+
         if not enable_text_input:
             current_text = text
             effective_text_input = None
         else:
             current_text = text_input if text_input is not None else text
             effective_text_input = text_input
-        
+
         if effective_text_input is not None and not pause_for_edit and instance_uid:
             PromptServer.instance.send_sync("rs.prompt.update", {
                 "instance_uid": instance_uid,
                 "prompt": current_text
             })
-        
+
         if pause_for_edit and effective_text_input is not None and effective_text_input and instance_uid:
             PENDING_PROMPTS[instance_uid] = {
                 "original": current_text,
@@ -82,15 +87,15 @@ class RSPrompts:
                 "timestamp": time.time(),
                 "clip": clip
             }
-            
+
             PromptServer.instance.send_sync("rs.prompt.pause", {
                 "instance_uid": instance_uid,
                 "prompt": current_text
             })
-            
+
             future = Future()
             PENDING_PROMPTS[instance_uid]["future"] = future
-            
+
             try:
                 result = future.result(timeout=600)
                 if result["status"] == "approved":
@@ -99,33 +104,37 @@ class RSPrompts:
                     final_text = current_text
             except TimeoutError:
                 final_text = current_text
-            except Exception as e:
+            except Exception:
                 final_text = current_text
             finally:
                 if instance_uid in PENDING_PROMPTS:
                     del PENDING_PROMPTS[instance_uid]
-            
+
             current_text = final_text
-        
+
+        # ---- encoding ---------------------------------------------------
         cache_key = (current_text, id(clip))
-        
+
         if cache_key in RSPrompts._encode_cache:
             pos_cond, neg_cond = RSPrompts._encode_cache[cache_key]
         else:
-            tokens_pos = clip.tokenize(current_text)
+            tokens_pos = _tokenize(clip, current_text)
             pos_cond = clip.encode_from_tokens_scheduled(tokens_pos)
-            
-            neg_cond = []
-            for t in pos_cond:
-                d = t[1].copy() if len(t) > 1 else {}
-                if "pooled_output" in d and d["pooled_output"] is not None:
-                    d["pooled_output"] = torch.zeros_like(d["pooled_output"])
-                neg_cond.append((torch.zeros_like(t[0]), d))
-            
+
+            # Encode the empty string the same way the native text-encode nodes
+            # do. For Qwen 2.1 this yields a proper unconditional embedding via
+            # prevent_empty_text=True, which is what makes CFG>1 behave sanely
+            # instead of collapsing into uniform noise. For older encoders the
+            # kwargs are ignored or the call falls back to plain tokenize, and
+            # the result matches the standard empty-prompt negative.
+            tokens_neg = _tokenize(clip, "")
+            neg_cond = clip.encode_from_tokens_scheduled(tokens_neg)
+
             if len(RSPrompts._encode_cache) >= RSPrompts._CACHE_MAX_SIZE:
                 RSPrompts._encode_cache.clear()
             RSPrompts._encode_cache[cache_key] = (pos_cond, neg_cond)
-        
+        # -----------------------------------------------------------------
+
         return {
             "ui": {"text": [current_text]},
             "result": (pos_cond, neg_cond, current_text)
@@ -136,15 +145,16 @@ class RSPrompts:
         return float("nan")
 
 
+# --- routes (без изменений) --------------------------------------------------
 @server.PromptServer.instance.routes.post("/rs_prompts/save_prompt")
 async def rs_prompts_save_prompt(request):
     try:
         data = await request.json()
         name = data.get("name", "").strip()
-        if not name: 
+        if not name:
             return web.Response(status=400, text="Name required")
         name = "".join(c for c in name if c.isalnum() or c in " _-").strip()
-        if not name: 
+        if not name:
             return web.Response(status=400, text="Invalid name")
         filepath = os.path.join(PROMPTS_DIR, f"{name}.json")
         prompt_data = {"text": data.get("text", "")}
@@ -183,7 +193,7 @@ async def rs_prompts_delete_prompt(request):
     try:
         data = await request.json()
         name = data.get("name")
-        if not name: 
+        if not name:
             return web.Response(status=400, text="Name required")
         filepath = os.path.join(PROMPTS_DIR, f"{name}.json")
         if os.path.exists(filepath):
@@ -200,22 +210,22 @@ async def rs_prompts_approve_edit(request):
         data = await request.json()
         instance_uid = data.get("instance_uid", "")
         edited_prompt = data.get("prompt", "")
-        
+
         if instance_uid in PENDING_PROMPTS:
             pending = PENDING_PROMPTS[instance_uid]
             pending["status"] = "approved"
             pending["edited"] = edited_prompt
-            
+
             if "future" in pending:
                 pending["future"].set_result({
                     "status": "approved",
                     "prompt": edited_prompt
                 })
-            
+
             return web.Response(status=200, text="Approved")
         else:
             return web.Response(status=404, text=f"Instance {instance_uid} not waiting")
-            
+
     except Exception as e:
         return web.Response(status=500, text=str(e))
 
@@ -225,21 +235,21 @@ async def rs_prompts_reject_edit(request):
     try:
         data = await request.json()
         instance_uid = data.get("instance_uid", "")
-        
+
         if instance_uid in PENDING_PROMPTS:
             pending = PENDING_PROMPTS[instance_uid]
             pending["status"] = "rejected"
-            
+
             if "future" in pending:
                 pending["future"].set_result({
                     "status": "rejected",
                     "prompt": pending["original"]
                 })
-            
+
             return web.Response(status=200, text="Rejected")
         else:
             return web.Response(status=404, text=f"Instance {instance_uid} not waiting")
-            
+
     except Exception as e:
         return web.Response(status=500, text=str(e))
 

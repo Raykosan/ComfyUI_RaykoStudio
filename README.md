@@ -1,7 +1,7 @@
 # 🦊 ComfyUI_RaykoStudio  
 Set of custom nodes for ComfyUI providing additional image processing capabilities  
 --- 
----  
+---
 
 <details>
   <summary>🖥️ Performance has been tested for</summary>
@@ -26,7 +26,7 @@ Set of custom nodes for ComfyUI providing additional image processing capabiliti
 </details>
 <details>
   <summary>🛠 Installation</summary>	
-  
+
 Set of nodes can be installed in several ways:  
 - Clone repository to `ComfyUI/custom_nodes/` folder:  
 ```
@@ -53,7 +53,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 # NODES
 <details>
   <summary>🦊 RS Label</summary>
-	
+
 # 🦊 RS Label  
 **A highly customizable floating label node for ComfyUI.**  
 Perfect for adding annotations, titles, watermarks, or text overlays directly on the canvas with full control over typography and styling.  
@@ -105,7 +105,7 @@ Fonts are auto-detected on editor open
 </details>
 <details>
   <summary>🦊 RS Label Image</summary>
-	
+
 # 🦊 RS Label Image  
 **A versatile floating image label node for ComfyUI.**  
 Perfect for adding visual markers, logos, icons, or annotations directly onto your canvas with full control over styling and layout.  
@@ -150,7 +150,7 @@ Perfect for adding visual markers, logos, icons, or annotations directly onto yo
 </details>
 <details>
   <summary>🦊 RS Collage Node</summary>	
-	
+
 # 🦊 RS Collage Node  
 **Interactive node for overlaying images with real-time positioning, scaling, rotation, and edge feathering directly on the canvas.**  
 
@@ -249,7 +249,7 @@ In Chrome and Edge, the button works immediately (requires a one-time confirmati
 In Firefox, the Paste button will additionally pop up, when clicked, the path will be inserted.  
 **These are browser security principles and cannot be circumvented.**  
 In any case, you can always paste the path using the keyboard shortcut Ctrl+V.  
-   
+
 ### Inputs  
 | Parameter | Type | Description |
 | :--- | :--- | :--- |
@@ -270,7 +270,7 @@ In any case, you can always paste the path using the keyboard shortcut Ctrl+V.
 </details>
 <details>
   <summary>🦊 RS Image-Prompt</summary>
-	
+
 # 🦊 RS Image-Prompt  
 **A ComfyUI node that extracts the positive prompt from image metadata — instantly, without running the queue.**  
 Load a generated image and `RS Image-Prompt` reads back the prompt that was used to create it. It understands metadata written by ComfyUI, Automatic1111, Forge, and the rest of the RaykoStudio suite.  
@@ -358,6 +358,7 @@ The prompt is extracted from a wide range of metadata formats, in priority order
  * 🟠 **Orange** - the group is partially in the bypass.  
  * ⚪ **Gray** — the node/group is active.
    
+
 **Smart State saving** - The bypass status is saved directly in the JSON workflow. No data is lost when restarting ComfyUI, switching tabs, or sharing PNG/JSON.  
 **Dynamic size** - The node automatically adjusts its height to the number of mounted elements.  
 **Advanced UX**:  
@@ -372,6 +373,7 @@ If there are a large number of nodes, use the search bar to filter.
 Click on groups or nodes to switch their state (Bypass/Active).  
    * *Tip: Clicking on the name of the group bypasses it entirely. Clicking on the arrow (▶) will expand the group to select individual nodes.*
      
+
 When you're done, click anywhere outside the node or press the Escape key to close the menu.  
 To turn off or turn on the bypass of an element inserted into the interface, use the personal toggle.  
 To turn off or enable bypass for all elements, use the TOGGLE ALL switch.  
@@ -384,7 +386,7 @@ Also, when using bypass using comfi's own methods (the context menu is bypass, b
 </details>
 <details>
   <summary>🦊 RS Decode Save Image</summary>
-	
+
 # 🦊 RS Decode Save Image  
 **A lightweight ComfyUI custom node that combines native VAE Decode and Save Image into a single, streamlined unit.**  
 Decodes latent samples to image tensors and saves them to disk in one step, while preserving the decoded `IMAGE` output for downstream preview or processing.  
@@ -407,10 +409,110 @@ Decodes latent samples to image tensors and saves them to disk in one step, whil
 | **PREFIX** | The base name for your saved files. Files will be saved as `prefix_00001.png`, `prefix_00002.png`, etc. |
 | **FORMAT** | The output file format selector: **PNG**, **JPG**, or **WEBP**. |
 
+## Output directory & write boundary
+
+`RS_VAE_Decode_Save` supports two kinds of `save_path` values:
+
+| Input in `save_path`                          | Behavior                                                     |
+| --------------------------------------------- | ------------------------------------------------------------ |
+| *(empty)*                                     | Saves into ComfyUI's default `output/` directory.            |
+| `project_v2` (relative)                       | Saves into `output/project_v2/`. The subfolder is created if missing. |
+| `/mnt/ssd/renders` or `I:/Renders` (absolute) | Saves to that exact path — **only if it is inside one of the allowed roots** (see below). |
+
+### Write boundary
+
+Every write is resolved through `os.path.realpath()` and verified with `os.path.commonpath()` against an explicit allowlist of roots. If the resolved path falls outside every allowed root, the node raises `PermissionError` and no file is written.
+
+The default allowlist contains exactly one root:
+
+- `folder_paths.get_output_directory()` (ComfyUI's `output/` folder).
+
+This means: **out of the box, the node cannot write anywhere outside ComfyUI's `output/` directory.** Symlinks, `..` traversal, and absolute paths outside the allowlist are all rejected.
+
+### Enabling additional output roots
+
+To let the node write to user-chosen locations (e.g. a dedicated renders  drive), add those roots to the allowlist at ComfyUI startup via the `RS_EXTRA_OUTPUT_ROOTS` environment variable. The value is a path-separator-delimited list (`:` on Linux/macOS, `;` on Windows), same convention as `PATH`.
+
+**Linux / macOS:**
+
+bash
+
+```
+export RS_EXTRA_OUTPUT_ROOTS="/mnt/ssd/renders:/media/user/backup"
+python main.py
+```
+
+
+
+**Windows (cmd):**
+
+bat
+
+```
+set RS_EXTRA_OUTPUT_ROOTS=I:\Renders;D:\Projects\ComfyOut
+python main.py
+```
+
+
+
+**Windows (PowerShell):**
+
+powershell
+
+```
+$env:RS_EXTRA_OUTPUT_ROOTS = "I:\Renders;D:\Projects\ComfyOut"
+python main.py
+```
+
+
+
+**comfy-launch / docker-compose:**
+
+yaml
+
+```
+environment:
+  - RS_EXTRA_OUTPUT_ROOTS=/mnt/ssd/renders:/media/user/backup
+```
+
+
+
+After setting the variable, absolute paths inside those roots will be  accepted by the node. Paths outside every root will still raise `PermissionError`.
+
+### Programmatic configuration (optional)
+
+If you prefer configuring the allowlist from Python instead of the environment, you can set it on `comfy.options` before the node is used:
+
+python
+
+```
+import comfy.options
+comfy.options.rs_extra_output_roots = [
+    "/mnt/ssd/renders",
+    "/media/user/backup",
+]
+```
+
+
+
+The environment variable and `comfy.options.rs_extra_output_roots` are both additive — the output directory is always included, and any roots from either source are merged into the allowlist.
+
+### Notes
+
+- Roots are resolved with `os.path.realpath()` before comparison. A symlinked path is treated as its target, so  putting a symlink inside an allowed root that points outside the root  will **not** grant access to the target.
+- Adding a root grants write access to **everything under it**, including subdirectories that don't exist yet — they will be created on demand.
+- Removing a root from `RS_EXTRA_OUTPUT_ROOTS` on the next launch immediately revokes write access to it. Existing files are not touched.
+- The `_sanitize_path_component()` helper inside the node is a cosmetic cleaner for relative subfolder names. It is **not** a security boundary and should not be relied on as one; the boundary is enforced by `_resolve_target_dir()`.
+
+### Security rationale
+
+The node intentionally supports user-chosen absolute output paths — that's the point of the `save_path` field and the folder picker in the UI. Rather than disabling that  feature or relying on blacklist sanitization (which is fragile against  encoding tricks, symlinks, and platform-specific quirks), the boundary  is expressed as an explicit allowlist checked with `realpath()` + `commonpath()` at a single choke point (`_resolve_target_dir`). The default posture is safe; enabling broader write access is an explicit, auditable opt-in.
+
 </details>
+
 <details>
   <summary>🦊 RS rgb2rgba</summary>
-	
+
 # 🦊 RS rgb2rgba  
 **A lightweight ComfyUI custom node that loads images while preserving the alpha channel (RGBA). Ideal for workflows that require transparency handling in PNG, WebP, and TIFF formats.**  
 
@@ -436,12 +538,12 @@ Connect the `rgba` output to any node that accepts ComfyUI image tensors (e.g., 
 </details>
 <details>
   <summary>🦊 RS Any Switch</summary>
-	
+
 # 🦊 RS Any Switch  
 **A dynamic switch node for ComfyUI that allows you to switch between multiple inputs of ANY data type with an intuitive toggle interface.**  
 
 <img width="511" height="395" alt="Screenshot_1" src="https://github.com/user-attachments/assets/f5b4ee5c-d342-4346-b101-d364d2f714f4" />
- 
+
 ### 🔥 Features  
 **Universal Type Support** - Accepts any data type (IMAGE, LATENT, MODEL, AUDIO, VIDEO, TEXT, etc.)  
 **Dynamic Inputs** - Inputs are created automatically as you connect nodes (up to 20) 
@@ -505,12 +607,12 @@ Upscale Method 3 ──→ input_3
                   RS Any Switch
                         ↓
                   Final Output
-``` 
+```
 
 </details>
 <details>
   <summary>🦊 RS LoRA Tester</summary>
-	
+
 # 🦊 RS LoRA Tester  
 **Node for batch-testing LoRA models. Load multiple LoRAs and automatically queue one generation session per LoRA — or test the same LoRA at different strengths.**  
 
@@ -554,7 +656,7 @@ Use the ⋮⋮ handle on the left of each row to drag and drop LoRAs into your d
 </details>
 <details>
   <summary>🦊 RS Save Image LoRA</summary>
-	
+
 # 🦊 RS Save Image LoRA  
 **A drop-in replacement for `SaveImage` that automatically puts the names and strengths of all LoRAs used in the generation right into the output file name.**  
 No more guessing which LoRA produced which image. Your files name themselves.  
@@ -585,7 +687,7 @@ No more guessing which LoRA produced which image. Your files name themselves.
 </details>
 <details>
   <summary>🦊 RS Upscaler</summary>
-	
+
 # 🦊 RS Upscaler  
 **A node for that combines upscale model loading and image upscaling into a single, compact node with a custom UI.**   
 
@@ -606,7 +708,7 @@ Tested with ComfyUI core upscaler models including:
 </details>
 <details>
   <summary>🦊 RS Upscale & Resize</summary>
-	
+
 # 🦊 RS Upscale & Resize  
 **Hybrid upscaler and resizer. Uses 'scale_by' by default. When width/height inputs are connected or set manually (>0), it switches to exact external dimensions.**   
 
@@ -636,7 +738,7 @@ Set method to keep proportion or pad to prevent distortion when forcing specific
 </details>
 <details>
   <summary>🦊 RS Tile Adjustments</summary>
-	
+
 # 🦊 RS Tile Adjustments  
 **A powerful node that calculates optimal tile dimensions based on image factors and overlap rates, then splits the input image into a batch of tiles with precise coordinate metadata.**   
 
@@ -656,7 +758,7 @@ Use the IMAGES output for processing (upscaling/inpainting) and pass the metadat
 </details>
 <details>
   <summary>🦊 RS Tile Assemble</summary>
-	
+
 # 🦊 RS Tile Assemble  
 **The companion node to RS Tile Adjustments. It reconstructs a full-resolution image from a batch of processed tiles using calculated positions and advanced feathered blending to eliminate visible seams.**   
 
@@ -680,7 +782,7 @@ The FINAL_IMAGE output is ready for saving or further processing
 </details>
 <details>
   <summary>🦊 RS Ref Encode</summary>
-	
+
 # 🦊 RS Ref Encode  
 **A node that combines VAE Encode and Set Reference Latent into a single efficient operation.**   
 
@@ -760,7 +862,7 @@ The node pauses the queue until you confirm the settings, then outputs a ready-t
 **Example Workflow**:  
 ```
 Load Image → RS Outpaint → [Your Model] → Save Image  
-```  
+```
 
 ### Mode 2: Single Image Batch  
 
@@ -781,7 +883,7 @@ Load Image → RS Outpaint → [Your Model] → Save Image
 **Example Workflow**:  
 ```
 Load Image → RS Outpaint → [Multiple Model Variations] → Save Image (×N)  
-``` 
+```
 
 ### Mode 3: Multi-Image Batch  
 
@@ -1750,7 +1852,7 @@ Toggle **ENABLE SHADOW** to activate.
 </details> 
 <details>
   <summary>🦊 RS Image Adjustments</summary>
-	
+
 # 🦊 RS Image Adjustments  
 **A powerful interactive image adjustment node with real-time preview and professional-grade controls.**  
 Inspired by industry standards like Adobe Lightroom and Photoshop, it offers real-time previews, advanced color grading, and an efficient batch processing mode.  

@@ -37,9 +37,11 @@ app.registerExtension({
         const origOnSerialize = nodeType.prototype.onSerialize;
         const origOnRemoved = nodeType.prototype.onRemoved;
 
-        const STATE_OFF = 0;
-        const STATE_ARMED = 1;
-        const STATE_RUNNING = 2;
+        const STATE_IDLE = 0;
+        const STATE_RUNNING = 1;
+
+        const CLEAR_BTN_H = 30;
+        const CLEAR_BTN_PAD = 5;
 
         nodeType.prototype.onNodeCreated = function() {
             const result = origOnCreated ? origOnCreated.apply(this, arguments) : undefined;
@@ -58,10 +60,9 @@ app.registerExtension({
             this.isRestoring = false;
             this.storageKey = null;
             this.currentFilter = "";
-            this.batchState = STATE_OFF;
+            this.batchState = STATE_IDLE;
             this.batchSnapshot = [];
-            this.batchTotal = 0;
-            this.batchRemaining = 0;
+            this.sendingDone = true;
 
             const self = this;
 
@@ -128,40 +129,26 @@ app.registerExtension({
             const clipWidget = this.addDOMWidget("rs_clip_btn", "custom", clipBtn);
             clipWidget.computeSize = () => [this.width || 200, 30];
 
-            const batchBtn = document.createElement("button");
-            batchBtn.textContent = "⚙️ LoRA Batch";
-            batchBtn.style.cssText = "width:100%;height:26px;padding:0;font-size:13px;border:1px solid #555;border-radius:5px;background:#2a2a2a;color:#ccc;cursor:pointer;margin:-14px 0 0 0;box-sizing:border-box;";
-            this._batchBtnEl = batchBtn;
+            const addBtn = document.createElement("button");
+            addBtn.textContent = "➕ ADD LoRA";
+            addBtn.style.cssText = "width:100%;height:26px;padding:0;font-size:12px;border:1px solid #4CAF50;border-radius:5px;background:#1a3a1a;color:#aaffaa;cursor:pointer;margin:-14px 0 0 0;box-sizing:border-box;";
+            addBtn.onmouseenter = () => { addBtn.style.background = "#2a4a2a"; };
+            addBtn.onmouseleave = () => { addBtn.style.background = "#1a3a1a"; };
+            this._addBtnEl = addBtn;
 
-            batchBtn.addEventListener("click", (e) => {
+            addBtn.addEventListener("click", async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (self.batchState === STATE_RUNNING) return;
-                const active = self.loraRows.filter(r => r.enabled && r.name && r.name !== "None");
-                if (!active.length) { showToast("LoRA is not selected", "error", self); return; }
-                self.batchSnapshot = active.map(r => ({ ...r }));
-                self.batchTotal = active.length;
-                self.batchRemaining = active.length;
-                self.batchState = STATE_ARMED;
-                self.updateBatchBtn();
-                self.graph?.setDirtyCanvas(true, true);
-            });
-
-            const batchWidget = this.addDOMWidget("rs_batch_btn", "custom", batchBtn);
-            batchWidget.computeSize = () => [this.width || 200, 34];
-
-            this.addWidget("button", "✔️ UPDATE LoRA LIST", "", async () => {
+                const w = self.widgets.find(x => x.name === "rs_add_btn");
                 await self.loadLoraList();
-                self.graph?.setDirtyCanvas(true, true);
-            });
-            this.addWidget("button", "➕ ADD LoRA", "", () => {
-                const w = self.widgets.find(x => x.name === "➕ ADD LoRA");
                 self.showTreeSelector(w);
             });
 
+            const addWidgetDom = this.addDOMWidget("rs_add_btn", "custom", addBtn);
+            addWidgetDom.computeSize = () => [this.width || 200, 30];
+
             updateClipBtn();
             updateClipInputState();
-            self.updateBatchBtn();
 
             const sendOne = async (loraCfg) => {
                 await new Promise(r => setTimeout(r, 300));
@@ -183,35 +170,43 @@ app.registerExtension({
             };
 
             const onBeforeQueue = async (ev) => {
-                if (self.batchState !== STATE_ARMED) return;
+                if (self.batchState === STATE_RUNNING) return;
+                const active = self.loraRows.filter(r => r.enabled && r.name && r.name !== "None");
+                if (!active.length) return;
                 if (ev?.preventDefault) ev.preventDefault();
                 self.batchState = STATE_RUNNING;
-                self.updateBatchBtn();
+                self.batchSnapshot = active.map(r => ({ ...r }));
+                self.sendingDone = false;
                 self.graph?.setDirtyCanvas(true, true);
                 let sent = 0;
                 for (const lora of self.batchSnapshot) {
                     if (await sendOne(lora)) sent++;
                     else showToast(`Failed LoRA ${sent + 1}`, "error", self);
                 }
-                if (sent === 0) { self.batchState = STATE_OFF; self.updateBatchBtn(); self.graph?.setDirtyCanvas(true, true); }
+                self.sendingDone = true;
+                if (sent === 0) { self.batchState = STATE_IDLE; self.graph?.setDirtyCanvas(true, true); }
             };
 
             const qHandler = (e) => onBeforeQueue(e);
             document.addEventListener("comfy:queue:before", qHandler);
             const origQP = app.queuePrompt.bind(app);
             app.queuePrompt = async function(...args) {
-                if (self.batchState === STATE_ARMED) { await onBeforeQueue(null); return; }
+                const active = self.loraRows.filter(r => r.enabled && r.name && r.name !== "None");
+                if (active.length && self.batchState !== STATE_RUNNING) {
+                    await onBeforeQueue(null);
+                    return;
+                }
                 return origQP(...args);
             };
 
             const onStatus = (data) => {
                 if (self.batchState !== STATE_RUNNING) return;
+                if (!self.sendingDone) return;
                 const detail = data?.detail || data || {};
                 const qr = detail.queue_remaining ?? detail.status?.queue_remaining ?? detail.exec_info?.queue_remaining;
                 if (qr === 0) {
-                    self.batchState = STATE_OFF;
+                    self.batchState = STATE_IDLE;
                     self.batchSnapshot = [];
-                    self.updateBatchBtn();
                     self.graph?.setDirtyCanvas(true, true);
                 }
             };
@@ -228,7 +223,8 @@ app.registerExtension({
                 const gp = app.canvas.graph_mouse; if (!gp) return;
                 const ry = gp[1] - self.pos[1];
                 const sy = self.getListStartY();
-                const avail = self.size[1] - sy - 10;
+                const clearY = self.size[1] - CLEAR_BTN_H - CLEAR_BTN_PAD;
+                const avail = clearY - sy - 5;
                 const maxV = Math.max(1, Math.floor(avail / self.rowHeight));
                 if (ry < sy || ry > sy + maxV * self.rowHeight) return;
                 if (self.loraRows.length <= maxV) return;
@@ -256,7 +252,7 @@ app.registerExtension({
             const origResize = this.onResize;
             this.onResize = function(size) {
                 if (size[0] < self.MIN_WIDTH) size[0] = self.MIN_WIDTH;
-                const mh = self.getListStartY() + self.rowHeight + 10;
+                const mh = self.getListStartY() + self.rowHeight + CLEAR_BTN_H + 15;
                 if (size[1] < mh) size[1] = mh;
                 if (!self.isAutoResizing) { self.manual_size = true; self.syncData(); }
                 return origResize ? origResize.apply(this, arguments) : undefined;
@@ -272,37 +268,10 @@ app.registerExtension({
             return result;
         };
 
-        nodeType.prototype.updateBatchBtn = function() {
-            const el = this._batchBtnEl;
-            if (!el) return;
-            switch (this.batchState) {
-                case STATE_ARMED:
-                    el.textContent = `✅ BATCH: ${this.batchTotal} LoRAs`;
-                    el.style.border = "1px solid #4CAF50";
-                    el.style.background = "#1a3a1a";
-                    el.style.color = "#aaffaa";
-                    el.style.cursor = "pointer";
-                    break;
-                case STATE_RUNNING:
-                    el.textContent = "⏳ Batch running...";
-                    el.style.border = "1px solid #FF9800";
-                    el.style.background = "#3a2a1a";
-                    el.style.color = "#ffddaa";
-                    el.style.cursor = "default";
-                    break;
-                default:
-                    el.textContent = "⚙️ LoRA Batch";
-                    el.style.border = "1px solid #555";
-                    el.style.background = "#2a2a2a";
-                    el.style.color = "#ccc";
-                    el.style.cursor = "pointer";
-            }
-        };
-
         nodeType.prototype.getListStartY = function() {
             let y = 10;
             for (const w of this.widgets) {
-                if (w.name === "➕ ADD LoRA") return y + (w.height || 30) + 8;
+                if (w.name === "rs_add_btn") return y + (w.height || 30) + 8;
                 y += w.computeSize ? w.computeSize()[1] + 4 : (w.height || 30) + 4;
             }
             return y + 8;
@@ -312,22 +281,11 @@ app.registerExtension({
             if (this.manual_size) return;
             const sy = this.getListStartY();
             const dv = Math.max(1, Math.min(this.loraRows.length, 10));
-            const calc = sy + dv * this.rowHeight + 10;
+            const calc = sy + dv * this.rowHeight + CLEAR_BTN_H + 15;
             if (Math.abs(this.size[1] - calc) > 1) {
                 this.isAutoResizing = true;
                 this.setSize([this.size[0], calc]);
                 this.isAutoResizing = false;
-                this.graph?.setDirtyCanvas(true, true);
-            }
-        };
-
-        nodeType.prototype.resetBatch = function() {
-            if (this.batchState === STATE_ARMED) {
-                this.batchState = STATE_OFF;
-                this.batchSnapshot = [];
-                this.batchTotal = 0;
-                this.batchRemaining = 0;
-                this.updateBatchBtn();
                 this.graph?.setDirtyCanvas(true, true);
             }
         };
@@ -358,7 +316,7 @@ app.registerExtension({
 
         nodeType.prototype.onConfigure = function(info) {
             this.isRestoring = true;
-            this.batchState = STATE_OFF;
+            this.batchState = STATE_IDLE;
             if (info.properties?.["lora_rows"]) { try { const s = JSON.parse(info.properties["lora_rows"]); if (Array.isArray(s)) this.loraRows = s; } catch(e){} }
             if (info.properties?.["manual_size"] !== undefined) this.manual_size = info.properties["manual_size"];
             if (info.properties?.["scrollOffset"] !== undefined) this.scrollOffset = info.properties["scrollOffset"];
@@ -402,7 +360,6 @@ app.registerExtension({
         };
 
         nodeType.prototype.addRow = function(name) {
-            this.resetBatch();
             this.loraRows.push({ name, strength_model: 1.0, strength_clip: 1.0, enabled: true });
             this.scrollOffset = 0; this.manual_size = false;
             this.syncData();
@@ -467,7 +424,6 @@ app.registerExtension({
             const apply = () => {
                 const val = parseFloat(input.value.replace(",", "."));
                 if (!isNaN(val) && val >= -10 && val <= 10) {
-                    self.resetBatch();
                     self.loraRows[rowIndex].strength_model = val;
                     self.syncData();
                     self.graph?.setDirtyCanvas(true, true);
@@ -501,119 +457,147 @@ app.registerExtension({
             if (!this.manual_size) {
                 const sy = this.getListStartY();
                 const dv = Math.max(1, Math.min(this.loraRows.length, 10));
-                const mr = sy + dv * this.rowHeight + 10;
+                const mr = sy + dv * this.rowHeight + CLEAR_BTN_H + 15;
                 if (this.size[1] < mr) { this.isAutoResizing = true; this.setSize([this.size[0], mr]); this.isAutoResizing = false; }
             }
-            if (!this.loraRows.length) return;
+
             this.clickZones = [];
-            const startY = this.getListStartY();
-            const pad = 10, rpw = 145;
-            const avail = this.size[1] - startY - 10;
-            const maxV = Math.max(1, Math.floor(avail / this.rowHeight));
-            const maxOff = Math.max(0, this.loraRows.length - maxV);
-            if (this.scrollOffset > maxOff) this.scrollOffset = maxOff;
-            const vs = this.scrollOffset, ve = Math.min(vs + maxV, this.loraRows.length);
+            const pad = 10;
+            const clearBtnY = this.size[1] - CLEAR_BTN_H - CLEAR_BTN_PAD;
 
-            for (let i = 0; i < ve - vs; i++) {
-                const di = vs + i, row = this.loraRows[di];
-                if (this.draggingIndex === di) continue;
-                const y = startY + i * this.rowHeight, h = this.rowHeight - 2, ty = y + h / 2;
-                ctx.fillStyle = i % 2 === 0 ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.15)";
-                ctx.fillRect(pad, y, this.size[0] - pad * 2, h);
+            if (this.loraRows.length) {
+                const startY = this.getListStartY();
+                const rpw = 145;
+                const avail = clearBtnY - startY - 5;
+                const maxV = Math.max(1, Math.floor(avail / this.rowHeight));
+                const maxOff = Math.max(0, this.loraRows.length - maxV);
+                if (this.scrollOffset > maxOff) this.scrollOffset = maxOff;
+                const vs = this.scrollOffset, ve = Math.min(vs + maxV, this.loraRows.length);
 
-                this.clickZones.push({ type: "drag", index: di, x: pad, y, w: 20, h });
-                ctx.fillStyle = "#888"; ctx.font = "14px sans-serif"; ctx.fillText("⋮⋮", pad + 2, ty + 5);
+                for (let i = 0; i < ve - vs; i++) {
+                    const di = vs + i, row = this.loraRows[di];
+                    if (this.draggingIndex === di) continue;
+                    const y = startY + i * this.rowHeight, h = this.rowHeight - 2, ty = y + h / 2;
+                    ctx.fillStyle = i % 2 === 0 ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.15)";
+                    ctx.fillRect(pad, y, this.size[0] - pad * 2, h);
 
-                const tx = pad + 20;
-                ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
-                ctx.beginPath(); ctx.arc(tx + 8, ty, 7, 0, Math.PI * 2); ctx.fill();
-                this.clickZones.push({ type: "toggle", index: di, x: tx, y, w: 24, h });
+                    this.clickZones.push({ type: "drag", index: di, x: pad, y, w: 20, h });
+                    ctx.fillStyle = "#888"; ctx.font = "14px sans-serif"; ctx.fillText("⋮⋮", pad + 2, ty + 5);
 
-                const nx = tx + 20, nw = this.size[0] - pad * 2 - 10 - rpw - 25;
-                ctx.fillStyle = row.enabled ? "#fff" : "#777"; ctx.font = "12px sans-serif";
-                let dn = row.name;
-                if (ctx.measureText(dn).width > nw) { while (ctx.measureText(dn + "...").width > nw && dn.length) dn = dn.slice(0, -1); dn += "..."; }
-                ctx.fillText(dn, nx, ty + 4);
-                this.clickZones.push({ type: "name", index: di, x: nx, y, w: nw, h });
+                    const tx = pad + 20;
+                    ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
+                    ctx.beginPath(); ctx.arc(tx + 8, ty, 7, 0, Math.PI * 2); ctx.fill();
+                    this.clickZones.push({ type: "toggle", index: di, x: tx, y, w: 24, h });
 
-                const alx = this.size[0] - rpw + 10;
-                ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
-                ctx.beginPath(); ctx.moveTo(alx + 18, y + 8); ctx.lineTo(alx + 8, ty); ctx.lineTo(alx + 18, y + 22); ctx.fill();
-                this.clickZones.push({ type: "left", index: di, x: alx, y, w: 28, h });
+                    const nx = tx + 20, nw = this.size[0] - pad * 2 - 10 - rpw - 25;
+                    ctx.fillStyle = row.enabled ? "#fff" : "#777"; ctx.font = "12px sans-serif";
+                    let dn = row.name;
+                    if (ctx.measureText(dn).width > nw) { while (ctx.measureText(dn + "...").width > nw && dn.length) dn = dn.slice(0, -1); dn += "..."; }
+                    ctx.fillText(dn, nx, ty + 4);
+                    this.clickZones.push({ type: "name", index: di, x: nx, y, w: nw, h });
 
-                const sx = alx + 25, sw = 50;
-                ctx.fillStyle = "#222"; ctx.fillRect(sx, y + 5, sw, h - 10);
-                ctx.strokeStyle = row.enabled ? "#4CAF50" : "#555"; ctx.strokeRect(sx, y + 5, sw, h - 10);
-                ctx.fillStyle = row.enabled ? "#fff" : "#777"; ctx.textAlign = "center";
-                ctx.fillText(row.strength_model.toFixed(2), sx + sw / 2, ty + 4); ctx.textAlign = "left";
-                this.clickZones.push({ type: "str", index: di, x: sx, y, w: sw, h });
+                    const alx = this.size[0] - rpw + 10;
+                    ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
+                    ctx.beginPath(); ctx.moveTo(alx + 18, y + 8); ctx.lineTo(alx + 8, ty); ctx.lineTo(alx + 18, y + 22); ctx.fill();
+                    this.clickZones.push({ type: "left", index: di, x: alx, y, w: 28, h });
 
-                const arx = sx + sw + 5;
-                ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
-                ctx.beginPath(); ctx.moveTo(arx + 2, y + 8); ctx.lineTo(arx + 12, ty); ctx.lineTo(arx + 2, y + 22); ctx.fill();
-                this.clickZones.push({ type: "right", index: di, x: arx, y, w: 18, h });
+                    const sx = alx + 25, sw = 50;
+                    ctx.fillStyle = "#222"; ctx.fillRect(sx, y + 5, sw, h - 10);
+                    ctx.strokeStyle = row.enabled ? "#4CAF50" : "#555"; ctx.strokeRect(sx, y + 5, sw, h - 10);
+                    ctx.fillStyle = row.enabled ? "#fff" : "#777"; ctx.textAlign = "center";
+                    ctx.fillText(row.strength_model.toFixed(2), sx + sw / 2, ty + 4); ctx.textAlign = "left";
+                    this.clickZones.push({ type: "str", index: di, x: sx, y, w: sw, h });
 
-                const dx = arx + 22;
-                ctx.fillStyle = "#f44336"; ctx.fillText("❌", dx, ty + 4);
-                this.clickZones.push({ type: "delete", index: di, x: dx, y, w: 30, h });
-            }
+                    const arx = sx + sw + 5;
+                    ctx.fillStyle = row.enabled ? "#4CAF50" : "#555";
+                    ctx.beginPath(); ctx.moveTo(arx + 2, y + 8); ctx.lineTo(arx + 12, ty); ctx.lineTo(arx + 2, y + 22); ctx.fill();
+                    this.clickZones.push({ type: "right", index: di, x: arx, y, w: 18, h });
 
-            if (this.draggingIndex !== null && this.dragCurrentY !== null) {
-                const row = this.loraRows[this.draggingIndex];
-                const h = this.rowHeight - 2, y = this.dragCurrentY - h / 2, ty = y + h / 2;
-                ctx.globalAlpha = 0.8; ctx.fillStyle = "#3a5a3a";
-                ctx.fillRect(pad, y, this.size[0] - pad * 2, h);
-                ctx.fillStyle = "#fff"; ctx.font = "14px sans-serif"; ctx.fillText("⋮⋮", pad + 2, ty + 5);
-                ctx.font = "12px sans-serif"; ctx.fillText(row.name, pad + 25, ty + 4);
-                ctx.globalAlpha = 1;
-                let ti = Math.floor((this.dragCurrentY - startY) / this.rowHeight) + this.scrollOffset;
-                ti = Math.max(0, Math.min(ti, this.loraRows.length - 1));
-                if (ti !== this.draggingIndex) {
-                    const tgy = startY + (ti - this.scrollOffset) * this.rowHeight;
-                    ctx.strokeStyle = "#4CAF50"; ctx.lineWidth = 2;
-                    ctx.beginPath(); ctx.moveTo(pad, tgy); ctx.lineTo(this.size[0] - pad, tgy); ctx.stroke(); ctx.lineWidth = 1;
+                    const dx = arx + 22;
+                    ctx.fillStyle = "#f44336"; ctx.fillText("❌", dx, ty + 4);
+                    this.clickZones.push({ type: "delete", index: di, x: dx, y, w: 30, h });
+                }
+
+                if (this.draggingIndex !== null && this.dragCurrentY !== null) {
+                    const row = this.loraRows[this.draggingIndex];
+                    const h = this.rowHeight - 2, y = this.dragCurrentY - h / 2, ty = y + h / 2;
+                    ctx.globalAlpha = 0.8; ctx.fillStyle = "#3a5a3a";
+                    ctx.fillRect(pad, y, this.size[0] - pad * 2, h);
+                    ctx.fillStyle = "#fff"; ctx.font = "14px sans-serif"; ctx.fillText("⋮⋮", pad + 2, ty + 5);
+                    ctx.font = "12px sans-serif"; ctx.fillText(row.name, pad + 25, ty + 4);
+                    ctx.globalAlpha = 1;
+                    let ti = Math.floor((this.dragCurrentY - startY) / this.rowHeight) + this.scrollOffset;
+                    ti = Math.max(0, Math.min(ti, this.loraRows.length - 1));
+                    if (ti !== this.draggingIndex) {
+                        const tgy = startY + (ti - this.scrollOffset) * this.rowHeight;
+                        ctx.strokeStyle = "#4CAF50"; ctx.lineWidth = 2;
+                        ctx.beginPath(); ctx.moveTo(pad, tgy); ctx.lineTo(this.size[0] - pad, tgy); ctx.stroke(); ctx.lineWidth = 1;
+                    }
+                }
+
+                if (this.loraRows.length > maxV) {
+                    if (this.scrollOffset > 0) {
+                        ctx.fillStyle = "rgba(255,215,0,0.6)"; ctx.beginPath();
+                        ctx.moveTo(this.size[0]/2-8, startY-2); ctx.lineTo(this.size[0]/2+8, startY-2); ctx.lineTo(this.size[0]/2, startY-10);
+                        ctx.closePath(); ctx.fill();
+                    }
+                    if (ve < this.loraRows.length) {
+                        const iy = startY + (ve - vs) * this.rowHeight + 2;
+                        ctx.fillStyle = "rgba(255,215,0,0.6)"; ctx.beginPath();
+                        ctx.moveTo(this.size[0]/2-8, iy); ctx.lineTo(this.size[0]/2+8, iy); ctx.lineTo(this.size[0]/2, iy+8);
+                        ctx.closePath(); ctx.fill();
+                    }
                 }
             }
 
-            if (this.loraRows.length > maxV) {
-                if (this.scrollOffset > 0) {
-                    ctx.fillStyle = "rgba(255,215,0,0.6)"; ctx.beginPath();
-                    ctx.moveTo(this.size[0]/2-8, startY-2); ctx.lineTo(this.size[0]/2+8, startY-2); ctx.lineTo(this.size[0]/2, startY-10);
-                    ctx.closePath(); ctx.fill();
-                }
-                if (ve < this.loraRows.length) {
-                    const iy = startY + (ve - vs) * this.rowHeight + 2;
-                    ctx.fillStyle = "rgba(255,215,0,0.6)"; ctx.beginPath();
-                    ctx.moveTo(this.size[0]/2-8, iy); ctx.lineTo(this.size[0]/2+8, iy); ctx.lineTo(this.size[0]/2, iy+8);
-                    ctx.closePath(); ctx.fill();
-                }
-            }
+            const btnW = this.size[0] - pad * 2;
+            const btnH = CLEAR_BTN_H - 2;
+            ctx.fillStyle = "#3a1a1a";
+            ctx.fillRect(pad, clearBtnY, btnW, btnH);
+            ctx.strokeStyle = "#f44336";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(pad + 0.5, clearBtnY + 0.5, btnW - 1, btnH - 1);
+            ctx.fillStyle = "#f44336";
+            ctx.font = "bold 13px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("🗑 CLEAR LoRA LIST", this.size[0] / 2, clearBtnY + btnH / 2 + 1);
+            ctx.textAlign = "left";
+            ctx.textBaseline = "alphabetic";
+            this.clickZones.push({ type: "clear", x: pad, y: clearBtnY, w: btnW, h: CLEAR_BTN_H });
         };
 
         nodeType.prototype.onMouseDown = function(e, pos) {
             if (!this.clickZones?.length) return false;
             for (const z of this.clickZones) {
                 if (pos[0] >= z.x && pos[0] <= z.x + z.w && pos[1] >= z.y && pos[1] <= z.y + z.h) {
-                    if (z.type === "drag") { this.draggingIndex = z.index; this.dragCurrentY = pos[1]; this.graph?.setDirtyCanvas(true, true); return true; }
-                    if (z.type === "toggle") { this.resetBatch(); this.loraRows[z.index].enabled = !this.loraRows[z.index].enabled; this.syncData(); this.graph?.setDirtyCanvas(true, true); return true; }
-                    if (z.type === "str") {
-                        this.showStrengthEditor(z.index, z.x + z.w / 2, z.y + z.h / 2);
+                    if (z.type === "clear") {
+                        this.loraRows = [];
+                        this.scrollOffset = 0;
+                        this.manual_size = false;
+                        this.syncData();
+                        requestAnimationFrame(() => this.safeAutoResize());
+                        this.graph?.setDirtyCanvas(true, true);
                         return true;
                     }
-                    if (z.type === "left") { this.resetBatch(); this.loraRows[z.index].strength_model = Math.max(-10, Math.round((this.loraRows[z.index].strength_model - 0.05) * 20) / 20); this.syncData(); this.graph?.setDirtyCanvas(true, true); return true; }
-                    if (z.type === "right") { this.resetBatch(); this.loraRows[z.index].strength_model = Math.min(10, Math.round((this.loraRows[z.index].strength_model + 0.05) * 20) / 20); this.syncData(); this.graph?.setDirtyCanvas(true, true); return true; }
-                    if (z.type === "delete") { this.resetBatch(); this.loraRows.splice(z.index, 1); this.scrollOffset = 0; this.manual_size = false; this.syncData(); requestAnimationFrame(() => this.safeAutoResize()); return true; }
+                    if (z.type === "drag") { this.draggingIndex = z.index; this.dragCurrentY = pos[1]; this.graph?.setDirtyCanvas(true, true); return true; }
+                    if (z.type === "toggle") { this.loraRows[z.index].enabled = !this.loraRows[z.index].enabled; this.syncData(); this.graph?.setDirtyCanvas(true, true); return true; }
+                    if (z.type === "str") { this.showStrengthEditor(z.index, z.x + z.w / 2, z.y + z.h / 2); return true; }
+                    if (z.type === "left") { this.loraRows[z.index].strength_model = Math.max(-10, Math.round((this.loraRows[z.index].strength_model - 0.05) * 20) / 20); this.syncData(); this.graph?.setDirtyCanvas(true, true); return true; }
+                    if (z.type === "right") { this.loraRows[z.index].strength_model = Math.min(10, Math.round((this.loraRows[z.index].strength_model + 0.05) * 20) / 20); this.syncData(); this.graph?.setDirtyCanvas(true, true); return true; }
+                    if (z.type === "delete") { this.loraRows.splice(z.index, 1); this.scrollOffset = 0; this.manual_size = false; this.syncData(); requestAnimationFrame(() => this.safeAutoResize()); return true; }
                 }
             }
             return false;
         };
+
         nodeType.prototype.onMouseMove = function(e, pos) { if (this.draggingIndex !== null) { this.dragCurrentY = pos[1]; this.graph?.setDirtyCanvas(true, true); return true; } return false; };
         nodeType.prototype.onMouseUp = function() {
             if (this.draggingIndex !== null) {
                 const sy = this.getListStartY();
                 let ti = Math.floor((this.dragCurrentY - sy) / this.rowHeight) + this.scrollOffset;
                 ti = Math.max(0, Math.min(ti, this.loraRows.length - 1));
-                if (ti !== this.draggingIndex) { const item = this.loraRows.splice(this.draggingIndex, 1)[0]; this.loraRows.splice(ti, 0, item); this.resetBatch(); this.syncData(); this.updateUI(); }
+                if (ti !== this.draggingIndex) { const item = this.loraRows.splice(this.draggingIndex, 1)[0]; this.loraRows.splice(ti, 0, item); this.syncData(); this.updateUI(); }
                 this.draggingIndex = null; this.dragCurrentY = null; this.graph?.setDirtyCanvas(true, true); return true;
             }
             return false;
@@ -624,30 +608,30 @@ app.registerExtension({
             const expanded = {};
             this.currentFilter = "";
             const mw = 450, mh = 600;
-            let ml = 100, mt = 100;
-            if (widget && app?.canvas) {
-                const r = app.canvas.canvas.getBoundingClientRect();
-                const s = app.canvas.ds.scale, ox = app.canvas.ds.offset[0], oy = app.canvas.ds.offset[1];
-                let cl = r.left + ((this.pos[0] + this.size[0]) * s) + ox + 10;
-                const ct = r.top + ((this.pos[1] + widget.y) * s) + oy;
-                if (cl + mw > window.innerWidth) cl = r.left + (this.pos[0] * s) + ox - mw - 10;
-                if (cl < 10) cl = 10;
-                mt = Math.max(10, Math.min(ct, window.innerHeight - mh - 10));
-                ml = cl;
-            }
+
             const old = document.getElementById("rs-lora-batch-tree-menu");
             if (old) old.remove();
+
             const menu = document.createElement("div");
             menu.id = "rs-lora-batch-tree-menu";
-            menu.style.cssText = `position:fixed;background:#1a1a1a;border:1px solid #444;border-radius:6px;height:${mh}px;width:${mw}px;overflow-y:auto;overflow-x:hidden;z-index:10000;left:${ml}px;top:${mt}px;box-shadow:0 4px 20px rgba(0,0,0,0.8);display:flex;flex-direction:column;`;
+            menu.style.cssText = `position:fixed;background:#1a1a1a;border:1px solid #444;border-radius:6px;height:${mh}px;width:${mw}px;overflow-y:auto;overflow-x:hidden;z-index:10000;box-shadow:0 4px 20px rgba(0,0,0,0.8);display:flex;flex-direction:column;`;
+
             const hc = document.createElement("div");
             hc.style.cssText = "padding:10px;background:#252525;border-bottom:1px solid #333;display:flex;flex-direction:column;gap:8px;flex-shrink:0;";
-            const title = document.createElement("div"); title.textContent = " Search & Select LoRA"; title.style.cssText = "color:#fff;font-weight:bold;font-size:14px;";
-            const si = document.createElement("input"); si.type = "text"; si.placeholder = "Type to search...";
+            const title = document.createElement("div");
+            title.textContent = " Search & Select LoRA";
+            title.style.cssText = "color:#fff;font-weight:bold;font-size:14px;";
+            const si = document.createElement("input");
+            si.type = "text";
+            si.placeholder = "Type to search...";
             si.style.cssText = "width:100%;padding:8px;background:#333;border:1px solid #555;color:#fff;border-radius:4px;outline:none;font-size:13px;box-sizing:border-box;";
             si.autofocus = true;
-            hc.append(title, si); menu.appendChild(hc);
-            const lc = document.createElement("div"); lc.style.cssText = "padding:5px 0;overflow-y:auto;flex-grow:1;"; menu.appendChild(lc);
+            hc.append(title, si);
+            menu.appendChild(hc);
+
+            const lc = document.createElement("div");
+            lc.style.cssText = "padding:5px 0;overflow-y:auto;flex-grow:1;";
+            menu.appendChild(lc);
             const isAdded = (n) => self.loraRows.some(r => r.name === n);
 
             const render = (filter = "") => {
@@ -661,41 +645,99 @@ app.registerExtension({
                     ni.style.cssText = `padding:10px 12px;cursor:pointer;color:${a?'#4CAF50':'#aaa'};border-bottom:1px solid #333;background:#2a2a2a;font-style:italic;`;
                     ni.onmouseenter = () => ni.style.background = "#3a3a3a";
                     ni.onmouseleave = () => ni.style.background = "#2a2a2a";
-ni.onclick = (e) => { e.stopPropagation(); self.addRow("None"); self.graph?.setDirtyCanvas(true, true); render(filter); };
+                    ni.onclick = (e) => { e.stopPropagation(); self.addRow("None"); self.graph?.setDirtyCanvas(true, true); render(filter); };
                     lc.appendChild(ni);
                 }
                 if (!Object.keys(self.loraTree).length) {
-                    if (!filter) { const em = document.createElement("div"); em.textContent = " Empty (Click UPDATE)"; em.style.cssText = "padding:20px;color:#f44336;text-align:center;"; lc.appendChild(em); }
+                    if (!filter) {
+                        const em = document.createElement("div");
+                        em.textContent = " Empty (Click UPDATE)";
+                        em.style.cssText = "padding:20px;color:#f44336;text-align:center;";
+                        lc.appendChild(em);
+                    }
                     return;
                 }
                 if (lf.length > 0) {
                     const all = getAllPaths(self.loraTree).filter(p => !p.isFolder && p.path.toLowerCase().includes(lf));
-                    if (!all.length) { const nr = document.createElement("div"); nr.textContent = `No results for "${filter}"`; nr.style.cssText = "padding:15px;color:#777;text-align:center;font-style:italic;"; lc.appendChild(nr); }
-                    else all.forEach(it => {
+                    if (!all.length) {
+                        const nr = document.createElement("div");
+                        nr.textContent = `No results for "${filter}"`;
+                        nr.style.cssText = "padding:15px;color:#777;text-align:center;font-style:italic;";
+                        lc.appendChild(nr);
+                    } else all.forEach(it => {
                         const a = isAdded(it.path);
                         const el = document.createElement("div");
                         el.textContent = (a ? "✓ " : " ") + it.path;
                         el.style.cssText = `padding:8px 12px;cursor:pointer;color:${a?'#4CAF50':'#ddd'};font-size:12px;border-bottom:1px solid #2a2a2a;`;
                         el.onmouseenter = () => el.style.background = "#333";
                         el.onmouseleave = () => el.style.background = "transparent";
-el.onclick = (e) => { e.stopPropagation(); self.addRow(it.path); self.graph?.setDirtyCanvas(true, true); render(filter); };
+                        el.onclick = (e) => { e.stopPropagation(); self.addRow(it.path); self.graph?.setDirtyCanvas(true, true); render(filter); };
                         lc.appendChild(el);
                     });
-                } else { renderTree("", self.loraTree, 0, lc, expanded, self, render); }
+                } else {
+                    renderTree("", self.loraTree, 0, lc, expanded, self, render);
+                }
             };
 
             render("");
-            let tid = null;
-            si.addEventListener("input", (e) => { if (tid) clearTimeout(tid); tid = setTimeout(() => render(e.target.value), 50); });
+
             document.body.appendChild(menu);
+
+            const anchorEl = self._addBtnEl;
+            const positionMenu = () => {
+                if (!anchorEl || !menu.parentNode || !anchorEl.isConnected) return false;
+                const r = anchorEl.getBoundingClientRect();
+                let left = r.right + 10;
+                let top = r.top;
+                if (left + mw > window.innerWidth - 10) left = r.left - mw - 10;
+                if (left < 10) left = 10;
+                if (top + mh > window.innerHeight - 10) top = window.innerHeight - mh - 10;
+                if (top < 10) top = 10;
+                menu.style.left = left + "px";
+                menu.style.top = top + "px";
+                return true;
+            };
+
+            positionMenu();
+
+            let rafId = null;
+            const tick = () => {
+                if (!menu.parentNode) { rafId = null; return; }
+                if (!positionMenu()) { close(); return; }
+                rafId = requestAnimationFrame(tick);
+            };
+            rafId = requestAnimationFrame(tick);
+
+            let tid = null;
+            si.addEventListener("input", (e) => {
+                if (tid) clearTimeout(tid);
+                tid = setTimeout(() => render(e.target.value), 50);
+            });
+
             setTimeout(() => si.focus(), 50);
+
             let ct2 = null;
-            const close = () => { if (menu.parentNode) menu.remove(); document.removeEventListener("pointerdown", hoc, true); document.removeEventListener("keydown", hek, true); if (ct2) { clearTimeout(ct2); ct2 = null; } };
+            const close = () => {
+                if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+                if (menu.parentNode) menu.remove();
+                document.removeEventListener("pointerdown", hoc, true);
+                document.removeEventListener("keydown", hek, true);
+                if (ct2) { clearTimeout(ct2); ct2 = null; }
+            };
             const hek = (ev) => { if (ev.key === "Escape") close(); };
-            const hoc = (ev) => { if (menu.contains(ev.target)) { if (ct2) { clearTimeout(ct2); ct2 = null; } return; } close(); };
+            const hoc = (ev) => {
+                if (menu.contains(ev.target)) {
+                    if (ct2) { clearTimeout(ct2); ct2 = null; }
+                    return;
+                }
+                close();
+            };
             menu.addEventListener("mouseleave", () => { ct2 = setTimeout(close, 300); });
             menu.addEventListener("mouseenter", () => { if (ct2) { clearTimeout(ct2); ct2 = null; } });
-            setTimeout(() => { document.addEventListener("pointerdown", hoc, true); document.addEventListener("keydown", hek, true); }, 50);
+            setTimeout(() => {
+                document.addEventListener("pointerdown", hoc, true);
+                document.addEventListener("keydown", hek, true);
+            }, 50);
         };
     }
 });

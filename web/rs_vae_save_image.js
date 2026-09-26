@@ -107,7 +107,12 @@ app.registerExtension({
                 }
             }
 
-            this.rs_data = { save_path: "", file_prefix: "img", format: "png" };
+            this.rs_data = {
+                save_path: "",
+                file_prefix: "img",
+                format: "png",
+                user_confirmed_paths: [],
+            };
             if (!this.rs_data.uuid) {
                 this.rs_data.uuid = this.generateUUID();
             }
@@ -840,7 +845,23 @@ app.registerExtension({
                 document.body.appendChild(pop);
                 setTimeout(() => { inp.focus(); if (cv.length) inp.select(); }, 50);
 
-                const save = () => { self.rs_data.save_path = inp.value; self.persistState(); self.updateUI(); self.closeActivePopup(); };
+                const save = () => {
+                    const newPath = inp.value.trim();
+                    self.rs_data.save_path = newPath;
+
+                    // A path typed by the user in the UI is trusted by definition.
+                    // Paths that arrive via a workflow file are NOT added here.
+                    if (!self.rs_data.user_confirmed_paths) {
+                        self.rs_data.user_confirmed_paths = [];
+                    }
+                    if (newPath && !self.rs_data.user_confirmed_paths.includes(newPath)) {
+                        self.rs_data.user_confirmed_paths.push(newPath);
+                    }
+
+                    self.persistState();
+                    self.updateUI();
+                    self.closeActivePopup();
+                };
                 btn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); save(); };
                 inp.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } };
 

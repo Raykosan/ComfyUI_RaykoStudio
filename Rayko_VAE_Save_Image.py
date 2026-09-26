@@ -55,9 +55,10 @@ class RS_VAE_Decode_Save:
     CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = (
         "Combines native VAE Decode and Save Image into a single node. "
-        "Write boundary: by default only ComfyUI's output directory is "
-        "writable; additional roots can be enabled via the "
-        "RS_EXTRA_OUTPUT_ROOTS environment variable (path-separator-delimited)."
+        "Write boundary: by default only ComfyUI's output directory is writable. "
+        "Paths typed by the user in the node UI are trusted automatically. "
+        "Additional roots can also be enabled via the RS_EXTRA_OUTPUT_ROOTS "
+        "environment variable (path-separator-delimited)."
     )
 
     PNG_COMPRESSION = 1
@@ -65,19 +66,8 @@ class RS_VAE_Decode_Save:
     WEBP_QUALITY = 90
     EMBED_WORKFLOW = True
 
-    # ------------------------------------------------------------------
-    # Path handling / output-directory boundary
-    # ------------------------------------------------------------------
-
     @staticmethod
     def _sanitize_path_component(component: str) -> str:
-        """
-        Convenience sanitizer for *relative* subfolder names.
-
-        This is NOT a security boundary. It only cleans up cosmetic issues
-        (backslashes, redundant "./", filesystem-illegal characters).
-        The actual write-boundary is enforced by `_resolve_target_dir()`.
-        """
         if not isinstance(component, str):
             component = str(component)
         component = component.replace("\\", "/")
@@ -86,14 +76,7 @@ class RS_VAE_Decode_Save:
         component = re.sub(r'[<>:"|?*]', '_', component)
         return component.strip()
 
-    def _get_allowed_roots(self) -> list:
-        """
-        Return the list of directories this node is allowed to write into.
-
-        Always includes ComfyUI's output directory. Additional roots can be
-        enabled at runtime via the RS_EXTRA_OUTPUT_ROOTS environment variable
-        (path-separator-delimited, i.e. os.pathsep) or via comfy.options.
-        """
+    def _get_allowed_roots(self, node_data_raw: str = "") -> list:
         roots = {os.path.realpath(self.output_dir)}
 
         env = os.environ.get("RS_EXTRA_OUTPUT_ROOTS", "")
@@ -103,7 +86,7 @@ class RS_VAE_Decode_Save:
                 roots.add(os.path.realpath(part))
 
         try:
-            import comfy.options  # type: ignore
+            import comfy.options
             extra = getattr(comfy.options, "rs_extra_output_roots", None) or []
             for part in extra:
                 if isinstance(part, str) and part.strip():
@@ -111,36 +94,31 @@ class RS_VAE_Decode_Save:
         except Exception:
             pass
 
+        if node_data_raw:
+            try:
+                data = json.loads(node_data_raw)
+                rs_data = (data or {}).get("rs_data", {}) or {}
+                for p in rs_data.get("user_confirmed_paths", []) or []:
+                    if isinstance(p, str) and p.strip():
+                        roots.add(os.path.realpath(p.strip()))
+            except Exception:
+                pass
+
         return sorted(roots)
 
     @staticmethod
     def _is_within(candidate: str, roots) -> bool:
-        """
-        True if realpath(candidate) lies inside one of the given roots.
-
-        Uses os.path.commonpath, which is the correct containment primitive
-        on both POSIX and Windows (unlike str.startswith, which has
-        prefix-collision bugs such as /out vs /output-evil).
-        """
         real = os.path.realpath(candidate)
         for root in roots:
             try:
                 if os.path.commonpath([real, root]) == root:
                     return True
             except ValueError:
-                # Different drives on Windows.
                 continue
         return False
 
-    def _resolve_target_dir(self, requested: str) -> str:
-        """
-        Resolve the user-provided save path into a safe absolute directory.
-
-        Enforces the write boundary: the resolved path must lie inside one of
-        the roots returned by `_get_allowed_roots()`. Raises PermissionError
-        otherwise.
-        """
-        allowed = self._get_allowed_roots()
+    def _resolve_target_dir(self, requested: str, node_data_raw: str = "") -> str:
+        allowed = self._get_allowed_roots(node_data_raw)
         requested = (requested or "").strip()
 
         is_absolute = os.path.isabs(requested) or (
@@ -162,14 +140,11 @@ class RS_VAE_Decode_Save:
                 f"[RS] Refusing to write outside allowed roots. "
                 f"Requested: {requested!r}. "
                 f"Allowed roots: {allowed}. "
-                f"Set RS_EXTRA_OUTPUT_ROOTS to allow additional locations."
+                f"Type the path in the node UI once to trust it, "
+                f"or set RS_EXTRA_OUTPUT_ROOTS."
             )
 
         return os.path.realpath(candidate)
-
-    # ------------------------------------------------------------------
-    # Image normalization
-    # ------------------------------------------------------------------
 
     @staticmethod
     def _normalize_images(images):
@@ -211,10 +186,6 @@ class RS_VAE_Decode_Save:
         images = torch.clamp(images, 0.0, 1.0)
         return images
 
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
-
     def _get_next_counter(self, directory: str, prefix: str, extension: str) -> int:
         try:
             pattern = re.compile(
@@ -252,10 +223,6 @@ class RS_VAE_Decode_Save:
         except Exception as e:
             print(f"[RS] Cleanup error: {e}")
 
-    # ------------------------------------------------------------------
-    # Main entry point
-    # ------------------------------------------------------------------
-
     def decode_and_save(self, samples, vae, save_path, file_prefix, format, node_data,
                         prompt=None, extra_pnginfo=None):
         images = vae.decode(samples["samples"])
@@ -263,7 +230,7 @@ class RS_VAE_Decode_Save:
 
         self._cleanup_temp()
 
-        target_dir = self._resolve_target_dir(save_path)
+        target_dir = self._resolve_target_dir(save_path, node_data)
 
         try:
             os.makedirs(target_dir, exist_ok=True)

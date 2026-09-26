@@ -3,6 +3,14 @@ node.zip
 __pycache__/
 *.py[cod]
 *$py.class
+preset_colors/
+preset_models/
+presets/
+prompts/
+rayko_lora_data/
+styles/presets/
+ComfyUI-Custom-Node-Manager/
+python
 
 # C extensions
 *.so

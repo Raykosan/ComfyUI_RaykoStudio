@@ -182,7 +182,6 @@ app.registerExtension({
       this._lastHeavyRenderTime = 0;
       this._isHeavyRenderPending = false;
 
-      // BATCH MODE VARIABLES
       this.isBatchMode = false;
       this._batchParams = null;
       this.btnBatchHover = false;
@@ -294,7 +293,6 @@ app.registerExtension({
         this._cleanup();
       });
 
-      // STATUS LISTENER FOR BATCH RESET (moved inside onNodeCreated for correct 'this')
       api.addEventListener("status", (event) => {
         const remaining = event.detail?.exec_info?.queue_remaining;
         console.log(`[RS Adjustments] Status event received. queue_remaining=${remaining}, this.id=${this.id}, isBatchMode=${this.isBatchMode}`);
@@ -333,7 +331,6 @@ app.registerExtension({
           widget.y = 0;
         }
       });
-      this.setSize([this.minWidth, this.minHeight]);
       this.setDirtyCanvas(true);
     };
 
@@ -1111,7 +1108,6 @@ app.registerExtension({
     };
 
     nodeType.prototype._openDeferredEditor = function() {
-      // BATCH MODE: SKIP EDITOR AND AUTO-APPLY SAVED PARAMS
       if (this.isBatchMode && this._batchParams) {
         this.adjustments = JSON.parse(JSON.stringify(this._batchParams));
         this._syncWidgetsFromAdjustments();
@@ -1346,6 +1342,7 @@ app.registerExtension({
     };
 
     nodeType.prototype.onResize = function(size) {
+      if (this.flags?.collapsed) return;
       if (size[0] < this.minWidth) size[0] = this.minWidth;
       const titleH = LiteGraph.NODE_TITLE_HEIGHT || 30;
       const canvasTopPadding = 30;
@@ -1458,6 +1455,7 @@ app.registerExtension({
     };
 
     nodeType.prototype.onDrawForeground = function(ctx) {
+      if (this.flags?.collapsed) return;
       if (this.advancedMode) {
         ctx.clearRect(0, 0, this.size[0], this.size[1]);
         return;
@@ -1588,13 +1586,11 @@ app.registerExtension({
         }
       });
 
-      // THREE BUTTON ROW: BATCH | APPLY | CANCEL
       const buttonsY = slidersY + 5 * (sliderH + gapSlider) + 10;
       const btnH2 = 30;
       const btnGap2 = 8;
       const btnW3 = (this.size[0] - 46) / 3;
 
-      // BATCH BUTTON
       const batchBtnX = 15;
       const isBatchActive = this.isBatchMode;
       ctx.fillStyle = isBatchActive ? "#2196F3" : (this.btnBatchHover ? "#3a3a3a" : "#2a2a2a");
@@ -1609,7 +1605,6 @@ app.registerExtension({
       ctx.textBaseline = "alphabetic";
       ctx.fillText(isBatchActive ? "⚪ BATCH ON" : "️🔘 BATCH OFF", batchBtnX + btnW3/2, buttonsY + btnH2/2 + 4);
 
-      // APPLY BUTTON
       const applyBtnX = batchBtnX + btnW3 + btnGap2;
       ctx.fillStyle = this.btnApplyHover ? "#444" : "#2a2a2a";
       this._roundRect(ctx, applyBtnX, buttonsY, btnW3, btnH2, 6);
@@ -1620,7 +1615,6 @@ app.registerExtension({
       ctx.fillStyle = "#4CAF50";
       ctx.fillText("✔️ APPLY", applyBtnX + btnW3/2, buttonsY + btnH2/2 + 4);
 
-      // CANCEL BUTTON
       const cancelBtnX = applyBtnX + btnW3 + btnGap2;
       ctx.fillStyle = this.btnCancelHover ? "#444" : "#2a2a2a";
       this._roundRect(ctx, cancelBtnX, buttonsY, btnW3, btnH2, 6);
@@ -1633,6 +1627,7 @@ app.registerExtension({
     };
 
     nodeType.prototype.onMouseDown = function(event, pos) {
+      if (this.flags?.collapsed) return false;
       if (!this.advancedMode && pos) {
         const btnW = 140;
         const btnH = 24;
@@ -1695,7 +1690,6 @@ app.registerExtension({
         const btnW3 = (this.size[0] - 46) / 3;
         const buttonsY = this.slidersY + 5 * 38 + 10;
 
-        // BATCH CLICK
         const batchBtnX = 15;
         if (pos[0] >= batchBtnX && pos[0] <= batchBtnX + btnW3 && pos[1] >= buttonsY && pos[1] <= buttonsY + btnH2) {
           this.isBatchMode = !this.isBatchMode;
@@ -1707,7 +1701,6 @@ app.registerExtension({
           return true;
         }
 
-        // APPLY CLICK
         const applyBtnX = batchBtnX + btnW3 + btnGap2;
         if (pos[0] >= applyBtnX && pos[0] <= applyBtnX + btnW3 && pos[1] >= buttonsY && pos[1] <= buttonsY + btnH2) {
           if (this.isBatchMode) {
@@ -1717,7 +1710,6 @@ app.registerExtension({
           return true;
         }
 
-        // CANCEL CLICK
         const cancelBtnX = applyBtnX + btnW3 + btnGap2;
         if (pos[0] >= cancelBtnX && pos[0] <= cancelBtnX + btnW3 && pos[1] >= buttonsY && pos[1] <= buttonsY + btnH2) {
           this.isBatchMode = false;
@@ -1731,6 +1723,7 @@ app.registerExtension({
     };
 
     nodeType.prototype.onMouseMove = function(event, pos) {
+      if (this.flags?.collapsed) return;
       if (this.sliderDragging >= 0 && event && event.buttons === 0) {
         this.sliderDragging = -1;
         this.setDirtyCanvas(true);
@@ -1806,6 +1799,7 @@ app.registerExtension({
     };
 
     nodeType.prototype.onMouseUp = function() {
+      if (this.flags?.collapsed) return;
       if (this.sliderDragging >= 0) {
         this.sliderDragging = -1;
         this.setDirtyCanvas(true);

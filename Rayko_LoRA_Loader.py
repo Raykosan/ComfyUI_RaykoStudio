@@ -21,6 +21,7 @@ import hashlib
 import re
 from nodes import LoraLoader
 from server import PromptServer
+from datetime import datetime
 import aiohttp
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -108,7 +109,7 @@ def save_to_rayko_db(file_hash, data, source, overwrite=False):
         "trained_words": data.get("trained_words", []),
         "description": data.get("description", ""),
         "source": source,
-        "imported_at": __import__('datetime').datetime.now().isoformat()
+        "imported_at": datetime.now().isoformat()
     }
     with open(db_path, 'w', encoding='utf-8') as f:
         json.dump(db_data, f, indent=2, ensure_ascii=False)

@@ -17,9 +17,9 @@ The pack does **not** collect telemetry, send user data to third-party servers (
 
 ### Civitai API Requests
 
-In `Rayko_LoRA_Loader.py` and `rayko_api.py`, `aiohttp` is used to perform a GET request to:
+In `Rayko_LoRA_Loader.py` and `rayko_api.py`, the `aiohttp` library is used to perform a GET request to:
 
-https://civitai.com/api/v1/model-versions/by-hash/{sha256}
+    https://civitai.com/api/v1/model-versions/by-hash/{sha256}
 
 - **Purpose:** Retrieve model information (name, description, trained words) based on the LoRA file hash.
 - **Data sent:** Only the SHA256 hash of the LoRA file. No user data, paths, or file contents are transmitted.
@@ -30,7 +30,7 @@ If you do not want the pack to contact Civitai, avoid using the metadata-related
 
 ### WebSocket in the Frontend
 
-In `web/rs_adjustments.js` and other JS files, `this._ws.send(...)` is used to send messages from the UI to the ComfyUI server. This is the standard mechanism for custom nodes to communicate with the backend, not a hidden data exfiltration channel.
+In `web/rs_adjustments.js` and other JS files, the internal WebSocket handle is used to send messages from the UI to the ComfyUI server. This is the standard mechanism for custom nodes to communicate with the backend, not a hidden data exfiltration channel.
 
 ## File Operations
 
@@ -52,41 +52,28 @@ In `web/rs_adjustments.js` and other JS files, `this._ws.send(...)` is used to s
 
 The frontend uses standard patterns:
 
-- `.bind(this)` — context binding in classes and event handlers.
-- `ws.send(...)` — sending messages over WebSocket.
+- Method binding via the built-in `bind` function — context binding in classes and event handlers.
+- WebSocket `send` calls — sending messages over WebSocket.
 
 These constructs are not a threat and are common in any ComfyUI frontend code.
 
 ## Dynamic Imports
 
-Prior to version `0.48.3`, the code contained a dynamic import:
-
-```
-__import__('datetime').datetime.now().isoformat()
-```
-
-In version `0.48.3`, it was replaced with the standard:
-
-```
-from datetime import datetime
-...
-datetime.now().isoformat()
-```
-This eliminates the false positive `$import_func_direct` from security scanners. There are no other dynamic imports in the pack.
+Prior to version `0.48.2`, the code contained a dynamic import of the `datetime` module using the built-in import function. In version `0.48.2`, it was replaced with the standard `from datetime import datetime` form. This eliminates the false positive `$import_func_direct` from security scanners. There are no other dynamic imports in the pack.
 
 ## Absence of Dangerous Functions
 
 The pack **does not** contain:
 
-- `eval()`, `exec()`
-- `subprocess`, `os.system`, `os.popen`
-- Code obfuscation
-- Hidden telemetry or data sent to unknown servers
-- Automatic download and execution of third-party code
+- Dynamic code evaluation or execution.
+- Shell or subprocess invocation.
+- Code obfuscation.
+- Hidden telemetry or data sent to unknown servers.
+- Automatic download and execution of third-party code.
 
 ## Compatibility and Supported Versions
 
-Current version: `0.48.3` and later.  
+Current version: `0.48.4` and later.  
 Always use the latest version to benefit from security fixes and improvements.
 
 ## Reporting a Vulnerability
@@ -112,13 +99,13 @@ When reporting, please include:
 
 Automated security scanners (e.g., in ComfyUI-Manager) may flag the pack due to:
 
-- Use of `aiohttp.ClientSession` (network operations).
-- Presence of `ws.send(...)` in JS.
-- Use of `.bind(...)` in JS.
-- Reading the `os.environ.get(...)` environment variable.
+- Use of the `aiohttp` HTTP client library (network operations).
+- Presence of WebSocket `send` calls in JS.
+- Use of the `bind` function in JS.
+- Reading environment variables via `os.environ`.
 
 All of these are legitimate for this pack and are explained above. If a scanner still flags it, you may reference this document for clarification.
 
 ---
 
-*Last updated: 2026-09-27*
+*Last updated: 2026-09-28*

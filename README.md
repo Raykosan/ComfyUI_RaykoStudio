@@ -2099,7 +2099,23 @@ If new problem, create new Issue describing:
 
 - ComfyUI and Python versions  
 - Problem description and reproduction steps  
-- Screenshots or error logs (if available)  
+- Screenshots or error logs (if available)
+
+---
+
+## 🔐 Security
+
+This pack includes a documented security policy. It covers:
+
+- Network operations (Civitai API requests for LoRA metadata).
+- File and path handling (allowed output roots).
+- Environment variables used by the pack.
+- Why automated scanners may report `Flagged`, and what it means.
+
+Full details: [SECURITY.md](SECURITY.md)
+
+If you discover a potential security issue, please open an issue on GitHub
+or contact the author directly. We aim to respond within 48 hours.
 
 ---
 

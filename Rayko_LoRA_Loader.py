@@ -67,8 +67,9 @@ def _safe_preset_path(name):
 
 def _http_get_json(url, headers=None, timeout=30):
     req = urllib.request.Request(url, headers=headers or {})
+    opener = urllib.request.build_opener()
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        with opener.open(req, timeout=timeout) as resp:
             raw = resp.read().decode("utf-8", errors="replace")
             try:
                 return resp.status, json.loads(raw)

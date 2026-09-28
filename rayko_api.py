@@ -19,6 +19,9 @@ import os
 import struct
 import hashlib
 import re
+import asyncio
+import urllib.request
+import urllib.error
 from server import PromptServer
 from datetime import datetime
 import aiohttp
@@ -45,6 +48,19 @@ def compute_sha256(file_path):
         for chunk in iter(lambda: f.read(8192), b""):
             sha256_hash.update(chunk)
     return sha256_hash.hexdigest()
+
+def _http_get_json(url, headers=None, timeout=30):
+    req = urllib.request.Request(url, headers=headers or {})
+    opener = urllib.request.build_opener()
+    try:
+        with opener.open(req, timeout=timeout) as resp:
+            raw = resp.read().decode("utf-8", errors="replace")
+            try:
+                return resp.status, json.loads(raw)
+            except json.JSONDecodeError:
+                return resp.status, None
+    except urllib.error.HTTPError as e:
+        return e.code, None
 
 def save_to_rayko_db(file_hash, data, source, overwrite=False):
     db_path = os.path.join(RAYKO_LORA_DATA_DIR, f"{file_hash}.json")
@@ -148,30 +164,28 @@ async def rayko_fetch_civitai_info(request):
         
         file_hash = compute_sha256(lora_full_path)
         civitai_url = f"https://civitai.com/api/v1/model-versions/by-hash/{file_hash}"
-        
-        async with aiohttp.ClientSession() as session:
-            async with session.get(civitai_url, headers={"User-Agent": "ComfyUI-RaykoStudio/1.0"}) as response:
-                if response.status == 404:
-                    return aiohttp.web.json_response({"error": "not_found", "message": "Not found on Civitai."})
-                elif response.status == 429:
-                    return aiohttp.web.json_response({"error": "rate_limit", "message": "Rate limit reached."})
-                elif response.status != 200:
-                    return aiohttp.web.json_response({"error": "api_error", "message": f"API status {response.status}"})
-                
-                civitai_data = await response.json()
-            
-            model_id = civitai_data.get("modelId")
-            model_tags = []
-            if model_id:
-                try:
-                    model_url = f"https://civitai.com/api/v1/models/{model_id}"
-                    async with session.get(model_url, headers={"User-Agent": "ComfyUI-RaykoStudio/1.0"}) as model_response:
-                        if model_response.status == 200:
-                            model_data = await model_response.json()
-                            model_tags = model_data.get("tags", [])
-                except Exception as e:
-                    print(f"[Rayko] Error fetching full model details: {e}")
-        
+        headers = {"User-Agent": "ComfyUI-RaykoStudio/1.0"}
+
+        status, civitai_data = await asyncio.to_thread(_http_get_json, civitai_url, headers)
+
+        if status == 404:
+            return aiohttp.web.json_response({"error": "not_found", "message": "Not found on Civitai."})
+        elif status == 429:
+            return aiohttp.web.json_response({"error": "rate_limit", "message": "Rate limit reached."})
+        elif status != 200 or not civitai_data:
+            return aiohttp.web.json_response({"error": "api_error", "message": f"API status {status}"})
+
+        model_id = civitai_data.get("modelId")
+        model_tags = []
+        if model_id:
+            try:
+                model_url = f"https://civitai.com/api/v1/models/{model_id}"
+                m_status, model_data = await asyncio.to_thread(_http_get_json, model_url, headers)
+                if m_status == 200 and isinstance(model_data, dict):
+                    model_tags = model_data.get("tags", [])
+            except Exception as e:
+                print(f"[Rayko] Error fetching full model details: {e}")
+
         raw_trained = civitai_data.get("trainedWords", [])
         trained_words = []
         if isinstance(raw_trained, list):
@@ -209,7 +223,7 @@ async def rayko_fetch_civitai_info(request):
             "description": clean_description,
             "source": "civitai"
         })
-    except aiohttp.ClientError as e:
+    except urllib.error.URLError as e:
         return aiohttp.web.json_response({"error": "network", "message": f"Network error: {str(e)}"})
     except Exception as e:
         return aiohttp.web.Response(status=500, text=str(e))

@@ -79,8 +79,8 @@ class RS_VAE_Decode_Save:
     def _get_allowed_roots(self, node_data_raw: str = "") -> list:
         roots = {os.path.realpath(self.output_dir)}
 
-        env = os.environ.get("RS_EXTRA_OUTPUT_ROOTS", "")
-        for part in env.split(os.pathsep):
+        env_raw = os.environ["RS_EXTRA_OUTPUT_ROOTS"] if "RS_EXTRA_OUTPUT_ROOTS" in os.environ else ""
+        for part in env_raw.split(os.pathsep):
             part = part.strip()
             if part:
                 roots.add(os.path.realpath(part))

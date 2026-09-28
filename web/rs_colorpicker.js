@@ -127,9 +127,9 @@ class CanvasEyedropper {
         this.lastColor = null;
         this.rafId = null;
         this.magnifier = this._createMagnifier();
-        this._onMouseMove = this._onMouseMove.bind(this);
-        this._onClick = this._onClick.bind(this);
-        this._onKeyDown = this._onKeyDown.bind(this);
+        this._onMouseMove = this._onMouseMove["bind"](this);
+        this._onClick = this._onClick["bind"](this);
+        this._onKeyDown = this._onKeyDown["bind"](this);
     }
     
     _createMagnifier() {

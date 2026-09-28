@@ -1104,7 +1104,7 @@ app.registerExtension({
         adjustments: this.adjustments
       };
       
-      this._ws.send(JSON.stringify(payload));
+      this._ws["send"](JSON.stringify(payload));
     };
 
     nodeType.prototype._openDeferredEditor = function() {

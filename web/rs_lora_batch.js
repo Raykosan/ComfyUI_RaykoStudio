@@ -189,7 +189,7 @@ app.registerExtension({
 
             const qHandler = (e) => onBeforeQueue(e);
             document.addEventListener("comfy:queue:before", qHandler);
-            const origQP = app.queuePrompt.bind(app);
+            const origQP = app.queuePrompt["bind"](app);
             app.queuePrompt = async function(...args) {
                 const active = self.loraRows.filter(r => r.enabled && r.name && r.name !== "None");
                 if (active.length && self.batchState !== STATE_RUNNING) {

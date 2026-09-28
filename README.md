@@ -43,7 +43,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.42.1 - Changes in the interfaces of some nodes
 - v0.43.0 - Added RS Label node
 - v0.44.0 - Added RS Label Image node
-- v0.46.0 - Modification of the Setting Manager extension  
+- v0.46.0 - Modification of the Setting Manager extension
+- v0.48.11 - Reduced outbound HTTP surface to the standard-library opener.
 
 </details>
 

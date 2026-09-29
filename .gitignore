@@ -8,7 +8,7 @@ preset_models/
 presets/
 prompts/
 rayko_lora_data/
-styles/presets/
+styles/
 ComfyUI-Custom-Node-Manager/
 python
 

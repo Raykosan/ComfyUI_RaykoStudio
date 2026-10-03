@@ -29,7 +29,7 @@ class RaykoModelsLoaderPro:
         
         weight_dtype_opts = ["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"]
         clip_type_opts = [
-            "stable_diffusion", "stable_cascade", "sd3", "flux", "flux2", "lumina2", "ideogram4", "qwen_image", "boogu", "krea2", "ltxv", "wan", "minimax", "joyimage", "mage", "ace", "hunyuan_image", "hidream", "chroma", "mochi", "cosmos", "pixart", "kolors", "ultrapix", "omnigen2", "ovis", "longcat_image", "cogvideox", "lens", "pixeldit",
+            "stable_diffusion", "stable_cascade", "stable_audio", "sd3", "flux", "flux2", "lumina2", "ideogram4", "qwen_image", "boogu", "krea2", "ltxv", "wan", "minimax", "yue2", "joyimage", "mage", "ace", "hunyuan_image", "hidream", "chroma", "mochi", "cosmos", "pixart", "kolors", "ultrapix", "omnigen2", "ovis", "longcat_image", "cogvideox", "lens", "pixeldit",
         ]
         device_opts = ["default", "cpu", "cuda"]
 

@@ -46,7 +46,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.46.0 - Modification of the Setting Manager extension
 - v0.48.11 - Reduced outbound HTTP surface to the standard-library opener
 - v0.49.1 - New clip_types have been added to the RS Models Loader and RS Models Loader Pro nodes: stable_audio and yue2
-- v0.50.0 - Added a new RS Split Video/Audio node
+- v0.50.1 - Added a new RS Split Video/Audio node
 
 </details>
 

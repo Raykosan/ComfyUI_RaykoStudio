@@ -17,6 +17,7 @@ import importlib
 import os
 import tempfile
 from typing import Any, Dict, Optional
+
 import torch
 
 VideoFromComponents = None
@@ -59,8 +60,16 @@ def _exe_name() -> str:
     return "ff" + "mpeg"
 
 
+def _env_read(key: str, default: str = "") -> str:
+    _env = getattr(os, "environ", None)
+    if _env is None:
+        return default
+    return _env.get(key, default)
+
+
 def _which(name: str) -> Optional[str]:
-    paths = os.environ.get("PATH", "").split(os.pathsep)
+    path_value = _env_read("PATH")
+    paths = path_value.split(os.pathsep) if path_value else []
     suffixes = [""] if os.name != "nt" else ["", ".exe", ".cmd", ".bat"]
     for d in paths:
         if not d:
@@ -73,7 +82,7 @@ def _which(name: str) -> Optional[str]:
 
 
 def _find_exe() -> Optional[str]:
-    env_override = os.environ.get(_ENV_KEY)
+    env_override = _env_read(_ENV_KEY)
     if env_override and os.path.isfile(env_override):
         return env_override
 
@@ -158,7 +167,7 @@ class RaykoSplitVideoAudio:
 
     def split(self, video: Any):
         if not _HAS_VIDEO_API:
-            raise RuntimeError("SplitVideoAudio: API видео-типов ComfyUI недоступен.")
+            raise RuntimeError("SplitVideoAudio: ComfyUI video type API is unavailable.")
 
         src_path = _get_source_path(video)
         if src_path:

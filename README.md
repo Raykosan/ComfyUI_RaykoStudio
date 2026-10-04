@@ -46,6 +46,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.46.0 - Modification of the Setting Manager extension
 - v0.48.11 - Reduced outbound HTTP surface to the standard-library opener
 - v0.49.1 - New clip_types have been added to the RS Models Loader and RS Models Loader Pro nodes: stable_audio and yue2
+- v0.50.0 - Added a new RS Split Video/Audio node
 
 </details>
 
@@ -53,6 +54,35 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 ---
 
 # NODES
+<details>
+  <summary>🦊 RS Split Video/Audio</summary>
+
+# 🦊 RS Split Video/Audio  
+**Splits the video into a silent track and a separate audio stream.**   
+<br>
+<img width="614" height="250" alt="Screenshot_1" src="https://github.com/user-attachments/assets/4f993117-88d6-4762-9ccf-012682967723" />
+
+**Splits a VIDEO input into two independent streams**:  
+- video_only — the video track with no audio.  
+- audio_only — the audio track as a standalone AUDIO object.
+
+**No audio in source:**  
+If the input video has no audio track, the `audio_only` output returns a silent placeholder (`{"waveform": zeros(1, 2, 1), "sample_rate": 44100}`) rather than `None`, so downstream audio nodes don't break. The node itself never raises for a missing audio track.  
+
+### Inputs
+
+| Name    | Type    | Description                          |
+|---------|---------|--------------------------------------|
+| `video` | `VIDEO` | Source video (e.g. from `Load Video`)|
+
+### Outputs
+
+| Name         | Type    | Description                        |
+|--------------|---------|------------------------------------|
+| `video_only` | `VIDEO` | Video track without audio          |
+| `audio_only` | `AUDIO` | Standalone audio track             |
+
+</details>
 <details>
   <summary>🦊 RS Label</summary>
 

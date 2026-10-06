@@ -82,6 +82,31 @@ If the input video has no audio track, the `audio_only` output returns a silent 
 | `video_only` | `VIDEO` | Video track without audio          |
 | `audio_only` | `AUDIO` | Standalone audio track             |
 
+### FFmpeg discovery
+
+**The fast path looks for ffmpeg in this order**:
+
+    RS_FFMPEG_PATH environment variable — set this to point at a specific binary.
+
+    System PATH — scanned manually (with .exe/.cmd/.bat suffixes on Windows).
+
+    imageio-ffmpeg — if the package is installed, its bundled binary is used.
+
+If none of the above yields a working binary, the node silently uses the slow path.
+
+**To install a system binary**:
+
+    Windows: winget install Gyan.FFmpeg or download from ffmpeg.org and add to PATH.
+
+    Linux: sudo apt install ffmpeg
+
+    macOS: brew install ffmpeg
+
+**Alternatively, in the ComfyUI venv**:
+```
+pip install imageio-ffmpeg
+```
+
 </details>
 <details>
   <summary>🦊 RS Label</summary>

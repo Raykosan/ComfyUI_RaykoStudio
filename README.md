@@ -48,6 +48,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.49.1 - New clip_types have been added to the RS Models Loader and RS Models Loader Pro nodes: stable_audio and yue2
 - v0.50.1 - Added a new RS Split Video/Audio node
 - v0.50.2 - Added flux3
+- v0.50.3 - Added moss_image
 
 </details>
 
@@ -88,9 +89,9 @@ If the input video has no audio track, the `audio_only` output returns a silent 
 **The fast path looks for ffmpeg in this order**:
 
     RS_FFMPEG_PATH environment variable — set this to point at a specific binary.
-
+    
     System PATH — scanned manually (with .exe/.cmd/.bat suffixes on Windows).
-
+    
     imageio-ffmpeg — if the package is installed, its bundled binary is used.
 
 If none of the above yields a working binary, the node silently uses the slow path.
@@ -98,9 +99,9 @@ If none of the above yields a working binary, the node silently uses the slow pa
 **To install a system binary**:
 
     Windows: winget install Gyan.FFmpeg or download from ffmpeg.org and add to PATH.
-
+    
     Linux: sudo apt install ffmpeg
-
+    
     macOS: brew install ffmpeg
 
 **Alternatively, in the ComfyUI venv**:

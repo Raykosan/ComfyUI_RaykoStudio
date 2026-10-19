@@ -49,6 +49,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.50.1 - Added a new RS Split Video/Audio node
 - v0.50.2 - Added flux3
 - v0.50.3 - Added moss_image
+- v0.51.0 - Added the RS Load System Prompt node  
 
 </details>
 
@@ -327,6 +328,45 @@ In any case, you can always paste the path using the keyboard shortcut Ctrl+V.
 | `number_of_files` | INT | The total number of files found matching the filter in the directory. | 
 
 </details>
+
+<details>
+  <summary>🦊 RS Load System Prompt</summary>
+
+# 🦊 RS Load System Prompt  
+**A ComfyUI custom node that loads system prompts from `.txt` files with a searchable tree dropdown, folder hierarchy support, and live file list refresh — no page reload required.**  
+
+<img width="1012" height="588" alt="Screenshot_2" src="https://github.com/user-attachments/assets/a6a97e78-4212-4a43-9025-475d21aed1a1" />
+
+### 🔥 Features  
+**Folder-based prompts** — every `.txt` file inside `system_prompts/` becomes a selectable prompt.  
+**Tree dropdown with subfolders** — nested directories are shown as expandable folders.  
+**Search** — filter by any part of the path (file name or folder).  
+**Live refresh** — the file list is re-scanned every time the dropdown opens. No need to reload ComfyUI after adding a new `.txt`.  
+**Extra prompt textarea** — a multiline input for additional prompt text, passed through as a separate output.  
+**Safe by default** — path traversal protection, `PermissionError` / `UnicodeDecodeError` handling, BOM-aware UTF-8 reading.  
+**Smart caching** — `IS_CHANGED` uses the file's mtime, so editing a prompt re-triggers execution without reloading the workflow.  
+**Compact UI** — no hidden standard combo widget clutter; a clean labeled button with the selected file name.  
+
+### 🪛 Usage  
+- Add the node 🦊 RS Load System Prompt from the 🦊 RaykoStudio category.  
+- Click LOAD SYSTEM PROMPT.  
+- Browse the tree or type into the search field.  
+- Select a .txt file — its path is saved in the workflow.  
+- Optionally fill the prompt textarea with extra text (passed through unchanged).  
+- Connect the outputs:  
+    - system_prompt — contents of the selected .txt file.  
+    - prompt — text from the textarea.  
+
+### 📝 Adding new prompts 
+Drop any .txt file into:  
+`ComfyUI/custom_nodes/ComfyUI_RaykoStudio/system_prompts/`  
+Subfolders are supported. The file list is refreshed automatically every time you open the dropdown — no ComfyUI restart or page reload needed.  
+
+### 💡 Note  
+If the dropdown is already open and you add a file from outside ComfyUI, click 🔄 Refresh inside the dropdown to re-scan.  
+
+</details>
+
 <details>
   <summary>🦊 RS Image-Prompt</summary>
 

@@ -9,6 +9,7 @@ presets/
 prompts/
 rayko_lora_data/
 styles/
+system_prompts/
 ComfyUI-Custom-Node-Manager/
 python
 

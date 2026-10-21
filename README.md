@@ -51,6 +51,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.50.3 - Added moss_image
 - v0.51.0 - Added the RS Load System Prompt node
 - v0.51.1 - Added fibo2
+- v0.51.2 - Modification of the RS Load System Prompt node
 
 </details>
 
@@ -334,37 +335,51 @@ In any case, you can always paste the path using the keyboard shortcut Ctrl+V.
   <summary>🦊 RS Load System Prompt</summary>
 
 # 🦊 RS Load System Prompt  
-**A ComfyUI custom node that loads system prompts from `.txt` files with a searchable tree dropdown, folder hierarchy support, and live file list refresh — no page reload required.**  
+**A ComfyUI custom node that loads, edits, and saves system prompts directly from `.txt` files — with a searchable tree dropdown, folder hierarchy, live file list refresh, and built-in save/delete functionality.**  
 
-<img width="1012" height="588" alt="Screenshot_2" src="https://github.com/user-attachments/assets/a6a97e78-4212-4a43-9025-475d21aed1a1" />
+<img width="630" height="865" alt="Screenshot_1" src="https://github.com/user-attachments/assets/5430770e-5809-4605-b389-fa29a259c9bb" />
 
 ### 🔥 Features  
 **Folder-based prompts** — every `.txt` file inside `system_prompts/` becomes a selectable prompt.  
 **Tree dropdown with subfolders** — nested directories are shown as expandable folders.  
 **Search** — filter by any part of the path (file name or folder).  
 **Live refresh** — the file list is re-scanned every time the dropdown opens. No need to reload ComfyUI after adding a new `.txt`.  
-**Extra prompt textarea** — a multiline input for additional prompt text, passed through as a separate output.  
+**Editable system prompt** — select a file and its contents load into a large textarea where you can edit them.  
+**Save edited prompts** — save your changes back to the existing file or create a new one. `.txt` extension is added automatically.  
+**Delete files** — remove prompt files directly from the dropdown (with a confirmation dialog).  
+**Reload from file** — revert your textarea to the on-disk version if you made a mistake.  
+**User prompt textarea** — a separate multiline input for additional prompt text, passed through as a distinct output.  
+**Unsaved changes indicator** — a `*` appears in the selection button when your textarea differs from the saved file.  
 **Safe by default** — path traversal protection, `PermissionError` / `UnicodeDecodeError` handling, BOM-aware UTF-8 reading.  
-**Smart caching** — `IS_CHANGED` uses the file's mtime, so editing a prompt re-triggers execution without reloading the workflow.  
-**Compact UI** — no hidden standard combo widget clutter; a clean labeled button with the selected file name.  
+**Compact, polished UI** — dark-themed modals for save/confirm, centered labels, and a clean layout.  
 
 ### 🪛 Usage  
 - Add the node 🦊 RS Load System Prompt from the 🦊 RaykoStudio category.  
-- Click LOAD SYSTEM PROMPT.  
+- Click LOAD SYSTEM PROMPT (below the system prompt textarea).  
 - Browse the tree or type into the search field.  
-- Select a .txt file — its path is saved in the workflow.  
-- Optionally fill the prompt textarea with extra text (passed through unchanged).  
+- Select a .txt file — its contents load into the SYSTEM PROMPT textarea.  
+- Edit the text if needed.  
+- Click 💾 to save:  
+    - Keep the same name to overwrite the current file.  
+    - Change the name to save as a new file (the old one stays untouched).  
+- Optionally fill the USER PROMPT textarea with extra text.  
 - Connect the outputs:  
-    - system_prompt — contents of the selected .txt file.  
-    - prompt — text from the textarea.  
+    - system_prompt — the contents of the SYSTEM PROMPT textarea.  
+    - prompt — text from the USER PROMPT textarea.   
 
-### 📝 Adding new prompts 
+### 📝 Adding new prompts  
 Drop any .txt file into:  
 `ComfyUI/custom_nodes/ComfyUI_RaykoStudio/system_prompts/`  
 Subfolders are supported. The file list is refreshed automatically every time you open the dropdown — no ComfyUI restart or page reload needed.  
 
 ### 💡 Note  
 If the dropdown is already open and you add a file from outside ComfyUI, click 🔄 Refresh inside the dropdown to re-scan.  
+
+### 🔘 Buttons  
+⟳	Reload the current file from disk. Asks for confirmation if there are unsaved changes.  
+💾	Open the save dialog. Pre-filled with the current file name (selected). .txt is added automatically if missing.  
+🔄 Refresh (in dropdown)	Re-scan the system_prompts/ folder without closing the dropdown.  
+❌ (in dropdown)	Delete a prompt file (with confirmation).  
 
 </details>
 

@@ -49,7 +49,8 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.50.1 - Added a new RS Split Video/Audio node
 - v0.50.2 - Added flux3
 - v0.50.3 - Added moss_image
-- v0.51.0 - Added the RS Load System Prompt node  
+- v0.51.0 - Added the RS Load System Prompt node
+- v0.51.1 - Added fibo2
 
 </details>
 

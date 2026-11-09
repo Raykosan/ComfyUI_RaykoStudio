@@ -1192,7 +1192,7 @@ Detailed inspection of image differences at various zoom levels
 # 🦊 RS Load Image  
 **A node for load image and creating a spline mask**  
 
-<img width="800" height="715" alt="RS Load Image1" src="https://github.com/user-attachments/assets/c5150b6a-88b6-4e2a-86fa-7cd70346cab8" />
+<img width="1041" height="747" alt="Screenshot_4" src="https://github.com/user-attachments/assets/35f3b53d-d569-443b-b391-5a334625165d" />
 
 ### 🔥 Features  
 The node has the functionality of the native Load Image node, but instead of the native mask editor, a built-in spline editor is used. More accurate selection based on the principle of the Lasso tool from Photoshop.  
@@ -1201,7 +1201,7 @@ The node has the functionality of the native Load Image node, but instead of the
 The node is ready for use immediately after it is added. Images are added using the "🎨 IMAGE" (images from the input folder) and "🖼️ UPLOAD IMAGE" (images from any folder on your PC) buttons. You can scale the node to a convenient size to more accurately place the points of the spline. Incorrectly positioned points can be deleted by left-clicking with the CTRL key held down. To remove all points from the preview area, click the "🔴 CLEAR POINTS" button.  
 
 ### ↔️ Inputs and Outputs:  
-The IMAGE output returns the original image unchanged. The MASK output returns a black and white mask where the white area corresponds to the drawn polygon.  
+The IMAGE output returns the original image unchanged. The MASK output returns a black and white mask where the white area corresponds to the drawn polygon. The WIDTH and HEIGHT output the dimensions of the uploaded image in INT.  
 
 </details> 
 <details>

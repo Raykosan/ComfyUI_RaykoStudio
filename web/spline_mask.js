@@ -17,8 +17,9 @@ app.registerExtension({
                 spline_coords: "[]"
             };
             
+            // Чуть увеличиваем высоту, чтобы вместить 4 слота + виджеты + кнопки
             node.targetWidth = 320;
-            node.setSize([320, 410]);
+            node.setSize([320, 440]);
             
             const imageWidget = node.widgets?.find(w => w.name === "image");
             const coordsWidget = node.widgets?.find(w => w.name === "coordinates");
@@ -48,7 +49,6 @@ app.registerExtension({
             node.buttons = [];
             node.imageList = [];
             
-            // Новая функция для создания полной маски
             node.fillFullMask = function() {
                 if (!node.imageLoaded || !node.image) return;
                 
@@ -494,7 +494,7 @@ app.registerExtension({
                 
                 const padding = 15;
                 const gap = 10;
-                const btnW = (this.size[0] - 2 * padding - 3 * gap) / 4; // Пересчет на 4 кнопки
+                const btnW = (this.size[0] - 2 * padding - 3 * gap) / 4;
                 const btnH = 28;
                 const btnYOffset = 45;
                 
@@ -539,18 +539,21 @@ app.registerExtension({
                 const nodeScreenX = canvasRect.left + ((graphX + ds.offset[0]) * scale);
                 const nodeScreenY = canvasRect.top + ((graphY + ds.offset[1]) * scale);
                 
+                // Считаем высоту абсолютно всех виджетов (даже скрытых)
                 let widgetsHeight = 0;
                 if (node.widgets) {
                     for (const w of node.widgets) {
-                        if (!w.hidden) widgetsHeight += 20;
+                        widgetsHeight += 20;
                     }
                 }
                 
                 const titleBarHeight = LiteGraph.NODE_TITLE_HEIGHT || 30;
+                
+                // Оставляем стандартные отступы, чтобы картинка занимала всю ширину
                 const leftRightPadding = 10;
                 const topPadding = 18;
                 const bottomPadding = 10;
-                const footerHeight = 50;
+                const footerHeight = 60; // Выделяем место под кнопки в самом низу
                 
                 const availableHeight = (node.size[1] * scale) - (titleBarHeight * scale) - (widgetsHeight * scale) - (footerHeight * scale) - (topPadding * scale) - (bottomPadding * scale);
                 const availableWidth = (node.size[0] * scale) - (leftRightPadding * 2 * scale);
@@ -738,7 +741,7 @@ app.registerExtension({
                 let widgetsHeight = 0;
                 if (this.widgets) {
                     for (const w of this.widgets) {
-                        if (!w.hidden) widgetsHeight += 20;
+                        widgetsHeight += 20;
                     }
                 }
                 
@@ -746,11 +749,10 @@ app.registerExtension({
                 const leftRightPadding = 10;
                 const topPadding = 18;
                 const bottomPadding = 10;
-                const footerHeight = 50;
+                const footerHeight = 60; // Выделяем место под кнопки
                 const btnH = 28;
                 const btnY = h - 45;
                 
-                // Пересчет ширины кнопок на 4 элемента
                 const btnPadding = 15;
                 const btnGap = 10;
                 const btnW = (w - 2 * btnPadding - 3 * btnGap) / 4;
@@ -809,10 +811,9 @@ app.registerExtension({
                     const radius = 4;
                     const x = btn.x, y = btn.y, w = btn.w, h = btn.h;
                     
-                    // Ховер для бледной кнопки FULL
                     let fillColor = btn.color;
                     if (btn.label === "✔️ FULL" && btn.hover) {
-                        fillColor = "#4CAF50"; // Полная яркость при наведении
+                        fillColor = "#4CAF50";
                     }
                     
                     ctx.fillStyle = btn.hover ? "#444" : "#2a2a2a";
@@ -867,7 +868,7 @@ app.registerExtension({
             
             node.onResize = function(size) {
                 if (size[0] < 320) size[0] = 320;
-                if (size[1] < 410) size[1] = 410;
+                if (size[1] < 440) size[1] = 440;
                 
                 _lastRect = null;
                 syncPosition();

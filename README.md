@@ -2137,68 +2137,89 @@ The node generates a list of INT values, automatically switching between 10 pres
 <details>
   <summary>🦊 ComfyUI Settings Manager</summary>
 
-# 🦊 ComfyUI Settings Manager  
-**A  user-friendly extension that allows you to easily backup, restore, and manage your interface settings. Never lose your custom UI layout, preferences, or configurations again!**  
+# 🦊 ComfyUI RaykoStudio: Settings & Workflow Preset Manager  
+**A user-friendly extension that allows you to easily manage your interface settings **and** group multiple workflows into "Presets". Never lose your custom UI layout or waste time opening the same 5 workflows again!**  
 
 <img width="217" height="937" alt="Screenshot_1" src="https://github.com/user-attachments/assets/a898ce80-dd21-4245-9228-d8b78ede8cf4" />
-<img width="207" height="136" alt="Screenshot_4" src="https://github.com/user-attachments/assets/13ad352f-295e-4e5e-9fdb-2b55d7f80c37" />
-<img width="580" height="783" alt="Screenshot_3" src="https://github.com/user-attachments/assets/f139e9c5-64d5-44d2-9790-bb266f8bd078" />
-<img width="438" height="54" alt="Screenshot_5" src="https://github.com/user-attachments/assets/ccc1a109-e7bf-4ad1-a537-ffe6b0c3cb33" />
+<img width="239" height="86" alt="Screenshot_1" src="https://github.com/user-attachments/assets/e1829c76-b739-4a07-8ade-3bad3117efbc" />
+<img width="506" height="814" alt="Screenshot_2" src="https://github.com/user-attachments/assets/1dbd5cb1-3a85-43c3-a191-46b9e5cb92d0" />
+<img width="370" height="186" alt="Screenshot_3" src="https://github.com/user-attachments/assets/88b9bb97-6ee2-4828-a776-c51ab3a9be5f" />
 
-### 🔥 Features  
-- **Smart Backups** - Save your current interface settings with custom names. If no name is provided, it automatically uses a timestamp.  
-- **Easy Restore** - Select any previous backup from a clean UI list and restore it in one click.  
-- **Built-in Server Restart** - Restoring settings requires a server restart. The extension provides a dedicated, pulsing **RESTART SERVER** button to make this obvious and safe.  
-- **Auto-Refresh Polling** - After restarting, the extension automatically pings the server and refreshes your browser page the moment ComfyUI is back online.  
-- **Manage Backups** - Delete old or unnecessary backups directly from the interface without leaving ComfyUI.  
-- **Safe Naming** - Automatically sanitizes custom backup names (removes invalid characters) and prevents overwriting by adding suffixes (`_1`, `_2`) if a name collision occurs.
-- You can use common settings for multiple versions or assemblies of ComfyUI.
-- You can create several interface configurations and change them with a couple of clicks, rather than crawling through all the settings tabs.
-- It's also useful for those who mess up the interface settings a lot - you can always roll back to the previous version.
+## 🔥 Features
 
-### 🪛 Usage  
-**Accessing the Manager**  
-Open the **Settings** (gear icon on the sidebar)  
-Open the menu item **RaykoStudio**  
-You can enable/disable the display of the extension icon in the ComfyUI top menu [🖥️]   
-Click **Open Setting Manager**  
+### 📂 Workflow Presets
+*   **Save Workflow Sets:** Save all currently open workflow tabs (e.g., *Base Workflow, Upscaler, Face Detailer*) as a single preset.
+*   **Active Preset Tracking:** The extension remembers which preset you are currently working in.
+*   **Smart Save & Close:** Before closing all tabs or loading a new preset, the extension asks if you want to save your recent changes back to the active preset.
+*   **Instant Update:** Added a new node to a workflow? Just click "Update This Preset" to instantly overwrite the preset file.
+*   **Safe "Close All":** Closes all open tabs safely without breaking ComfyUI's internal state, leaving you with a clean workspace.
+*   **Smart Filtering:** Automatically ignores empty "Unsaved Workflow" tabs when saving, keeping your presets clean.
 
-**Saving Settings (Backup)**  
-1. In the **Save Interface Settings** section, you will see a text field. 
-2. *(Optional)* Enter a custom name for your backup (e.g., `my_favorite_layout`).  
-   - *Note: If you leave it empty, the current date and time will be used.*  
-3. Click the **💾 Save Settings** button.  
-4. A green status message will appear at the bottom confirming the save. If the list of backups is open, the new backup will instantly appear at the top.  
+### ⚙️ Interface Settings Backups
+*   **Smart Backups:** Save your current `comfy.settings.json` with custom names. If no name is provided, it automatically uses a timestamp.
+*   **Easy Restore:** Select any previous backup from a clean UI list and restore it in one click.
+*   **Built-in Server Restart:** The extension provides a dedicated, pulsing `RESTART SERVER` button to make the process obvious and safe.
+*   **Auto-Refresh Polling:** After restarting, the extension automatically pings the server and refreshes your browser the moment ComfyUI is back online.
+*   **Manage Backups:** Delete old or unnecessary backups directly from the interface.
+*   **Safe Naming:** Automatically sanitizes custom backup names and prevents overwriting by adding suffixes (`_1`, `_2`) if a name collision occurs.
 
-**Restoring Settings**  
-1. In the **Restore Interface Settings** section, click **📂 Load Backups**.  
-2. A list of your saved backups will appear.  
-3. Click **✓ Restore** next to the backup you want to load.  
-4. The button will change to **✓ Restored**, and a new, pulsing orange button **🔄 RESTART SERVER** will appear.  
-5. Click **🔄 RESTART SERVER**.  
-6. The extension will automatically wait for the server to come back online and **refresh your browser page** automatically.  
+## 🪛 Usage
 
-**Deleting Backups**  
-1. Load your backups list.  
-2. Click the red **✕** button next to any backup you want to remove.  
-3. The backup is instantly deleted from the UI and the file system.
+### Accessing the Manager
+Since the native ComfyUI settings window often conflicts with custom modals, this extension uses the Topbar:
+1. Go to ComfyUI Settings (`⚙️` icon on the sidebar).
+2. Scroll down to the **RaykoStudio** section.
+3. Check the **"Show icon in top menu"** box.
+4. Look at the top menu (next to the `RUN` button). You will see two new buttons:
+   * 🖥️ **Settings Manager** — Opens the main interface.
+   * 🗑️ **Close All Workflows** — Instantly closes all open tabs (with a confirmation dialog).
 
-### 📁 File Structure
+### 🗂️ Workflow Presets
+1. Open the Settings Manager (🖥️) and click **📂 Show Presets**.
+2. Open the workflow tabs you want to group together.
+3. Type a name (e.g., "Anime Pipeline") in the preset field and click **💾 Save Open Tabs as New Preset**.
+4. A green banner will appear at the top of the manager: *Active Preset: "Anime Pipeline"*.
 
-All backups are stored outside the ComfyUI directory to keep your installation clean. By default, they are saved in your user Documents folder:
+**To update a preset:** 
+If you make changes or add new workflows, just click **💾 Update This Preset** in the green banner. 
 
+**To load a preset:**
+Click **Load** next to any preset. If you have unsaved changes in your current session, a dialog will appear asking to **Save, Discard, or Cancel**.
+
+### 💾 Saving Interface Settings (Backup)
+1. In the **Save Interface Settings** section, enter a custom name for your backup (e.g., `my_favorite_layout`).
+   *(Note: If you leave it empty, the current date and time will be used).*
+2. Click **💾 Save Settings**. A green status message will confirm the save.
+
+### 🔄 Restoring Interface Settings
+1. In the **Restore Interface Settings** section, click **📂 Load Backups**.
+2. Click **✓ Restore** next to the backup you want to load.
+3. A pulsing orange **🔄 RESTART SERVER** button will appear. Click it.
+4. The extension will wait for the server to come back online and automatically refresh your browser page.
+
+## 📁 File Structure
+
+**Workflow Presets** are saved directly inside the extension folder so they can be easily shared:
+```text
+📂 ComfyUI/custom_nodes/ComfyUI_RaykoStudio/
+ └── 📂 presets_workflow/
+      ├── 📄 Anime Pipeline.json
+      └── 📄 Technical Nodes.json
+```
+
+**Interface Backups** are stored outside the ComfyUI directory to keep your installation clean (in your user Documents folder):
 ```text
 📂 Documents/
- ── 📂 ComfyUI_Settings_Backups/
+ └── 📂 ComfyUI_Settings_Backups/
       ├── 📂 2026-06-09_12-40-44/
-      │    ── 📄 comfy.settings.json
-      ├── 📂 my_favorite_layout/
       │    └── 📄 comfy.settings.json
-      ── ...
+      └── 📂 my_favorite_layout/
+           └── 📄 comfy.settings.json
 ```
-###  ⚙️ Technical Notes  
-- **Server Restart** - The extension uses `os.execv` to restart the Python server. If you are using a third-party launcher (like Stability Matrix or Pinokio), the server might close but not automatically reopen. In this case, simply restart your launcher manually.  
-- **Polling** - After a restart, the extension pings the server every 5 seconds (up to 10 times) to detect when it's fully loaded before triggering the page reload.  
+## ⚙️ Technical Notes
+*   **Active Preset Tracking:** The extension uses `sessionStorage` to remember your active preset. Refreshing the page keeps the state, but closing the browser resets it.
+*   **Server Restart:** The extension uses `os.execv` to restart the Python server. If you are using a third-party launcher (like Stability Matrix or Pinokio), the server might close but not automatically reopen. In this case, simply restart your launcher manually.
+*   **Polling:** After a restart, the extension pings the server every 5 seconds (up to 10 times) to detect when it's fully loaded before triggering the page reload. 
 
 </details>
 

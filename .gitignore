@@ -6,6 +6,7 @@ __pycache__/
 preset_colors/
 preset_models/
 presets/
+presets_workflow
 prompts/
 rayko_lora_data/
 styles/

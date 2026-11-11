@@ -1,6 +1,6 @@
 import { app } from "../../../scripts/app.js";
 
-console.log("🦊 Settings Manager JS v4 (preset save logic) loaded at", new Date().toLocaleTimeString());
+console.log("🦊 Settings Manager JS v30 (Hybrid Save) loaded at", new Date().toLocaleTimeString());
 
 const STORAGE_KEY = "RaykoStudio.ShowIcon";
 const ACTIVE_PRESET_KEY = "RaykoStudio.ActivePreset";
@@ -63,6 +63,10 @@ function buildSettingsEntry() {
     return container;
 }
 
+// ============================================================
+//                     TOPBAR INJECTION
+// ============================================================
+
 function waitForActionBar(callback) {
     const existing = document.querySelector(".actionbar-container");
     if (existing) return callback(existing);
@@ -96,7 +100,7 @@ function injectTopbarButton(actionBar) {
 
     const closeAllBtn = document.createElement("button");
     closeAllBtn.className = "sm-topbar-btn";
-    closeAllBtn.title = "Close All Workflows";
+    closeAllBtn.title = "Close All Workflows (Keeps fresh Unsaved)";
     closeAllBtn.innerHTML = `<span class="sm-topbar-icon">🗑️</span>`;
     closeAllBtn.onclick = () => closeAllWorkflowsWithConfirm();
     block.appendChild(closeAllBtn);
@@ -107,8 +111,6 @@ function injectTopbarButton(actionBar) {
     } else {
         actionBar.appendChild(block);
     }
-
-    console.log("🦊 Settings Manager: кнопки добавлены в панель RUN.");
 }
 
 function _startTopbarWatchdog() {
@@ -120,24 +122,25 @@ function _startTopbarWatchdog() {
 
         const block = document.getElementById("sm-topbar-block");
         const bar = document.querySelector(".actionbar-container");
-
         if (!bar) return;
 
         if (!block) {
             injectTopbarButton(bar);
-            return;
-        }
-
-        if (!bar.contains(block)) {
+        } else if (!bar.contains(block)) {
             try { block.remove(); } catch (e) { }
             injectTopbarButton(bar);
-            return;
-        }
-
-        if (!block.classList.contains("sm-topbar-block")) {
-            block.classList.add("sm-topbar-block");
         }
     }, 500);
+}
+
+// ============================================================
+//                    WORKFLOW HELPERS
+// ============================================================
+
+function isUnsavedWorkflow(wf) {
+    if (!wf) return false;
+    const path = wf.path || "";
+    return path === "" || path.includes("Unsaved");
 }
 
 function setActivePreset(name) {
@@ -150,9 +153,175 @@ function setActivePreset(name) {
     updatePresetUI();
 }
 
+async function checkActivePresetValidity() {
+    if (!_activePresetName) return;
+    const wfStore = app.extensionManager?.workflow;
+    if (!wfStore) return;
+
+    try {
+        const res = await fetch(`/rayko_settings_manager/presets/get/${encodeURIComponent(_activePresetName)}`);
+        if (!res.ok) {
+            setActivePreset(null);
+            return;
+        }
+        const data = await res.json();
+        const paths = data.workflows || [];
+        
+        const stringPaths = paths.filter(p => typeof p === "string");
+        if (stringPaths.length === 0) return;
+
+        const openPaths = (wfStore.openWorkflows || []).map(w => w.path).filter(Boolean);
+        const hasOverlap = stringPaths.some(p => openPaths.some(op => op.includes(p)));
+        
+        if (!hasOverlap) {
+            console.log("[Rayko] All preset tabs are closed. Detaching preset.");
+            setActivePreset(null);
+        }
+    } catch (e) {
+        console.warn("[Rayko] Failed to check preset validity", e);
+    }
+}
+
+function getOpenWorkflowPaths() {
+    const result = [];
+    try {
+        const wfStore = app.extensionManager?.workflow;
+        const openWorkflows = wfStore?.openWorkflows;
+
+        if (Array.isArray(openWorkflows) && openWorkflows.length > 0) {
+            for (const wf of openWorkflows) {
+                if (isUnsavedWorkflow(wf)) continue;
+                if (wf.path) {
+                    result.push(wf.path);
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("[Rayko] Workflow store access failed", e);
+    }
+    return result;
+}
+
+async function getWorkflowLookup() {
+    try {
+        const res = await fetch('/api/userdata?dir=workflows&recurse=true');
+        if (!res.ok) return {};
+        const data = await res.json();
+        const map = {};
+        for (const item of data) {
+            const path = typeof item === "string" ? item : item.name;
+            if (!path) continue;
+            const fileName = path.split(/[/\\]/).pop();
+            if (!map[fileName]) map[fileName] = [];
+            map[fileName].push("workflows/" + path);
+        }
+        return map;
+    } catch (e) {
+        console.warn("[Rayko] Failed to build workflow lookup", e);
+        return {};
+    }
+}
+
+// ГИБРИДНОЕ СОХРАНЕНИЕ (НАТИВНОЕ ДЛЯ АКТИВНОЙ, POST ДЛЯ ОСТАЛЬНЫХ)
+async function saveAllModifiedWorkflows() {
+    const wfStore = app.extensionManager?.workflow;
+    if (!wfStore) return;
+
+    const openWfs = wfStore.openWorkflows || [];
+    console.log(`[Rayko] Starting to save ${openWfs.length} open workflows...`);
+    
+    let workflowLookup = null;
+    let savedAny = false;
+
+    for (const wf of openWfs) {
+        let finalPath = wf.path || "";
+        console.log(`[Rayko] Checking workflow: ${finalPath}`);
+        
+        if (finalPath === "" || finalPath.includes("Unsaved")) {
+            console.log(`[Rayko] Skipping unsaved/empty: ${finalPath}`);
+            continue;
+        }
+
+        if (!finalPath.includes("/") && !finalPath.includes("\\")) {
+            if (!workflowLookup) {
+                workflowLookup = await getWorkflowLookup();
+            }
+            if (workflowLookup[finalPath] && workflowLookup[finalPath].length > 0) {
+                finalPath = workflowLookup[finalPath][0];
+            }
+        }
+
+        try {
+            const isActive = (wfStore.activeWorkflow === wf) || (wfStore.activeWorkflow && wfStore.activeWorkflow.path === wf.path);
+            
+            console.log(`[Rayko] Is active: ${isActive}`);
+
+            // 1. Для АКТИВНОЙ вкладки используем нативный saveWorkflow (он точно сохранит новые ноды)
+            if (isActive && typeof wfStore.saveWorkflow === "function") {
+                console.log(`[Rayko] Saving active workflow natively: ${finalPath}`);
+                try {
+                    await wfStore.saveWorkflow(wf);
+                    console.log(`[Rayko] ✅ Natively saved: ${finalPath}`);
+                    savedAny = true;
+                    continue;
+                } catch (e) {
+                    console.warn(`[Rayko] Native save failed, falling back to POST`, e);
+                }
+            }
+
+            // 2. Для НЕАКТИВНЫХ вкладок или при ошибке натива - сохраняем через POST
+            let state = null;
+            if (isActive) {
+                state = app.graph.serialize();
+            } else if (wf.changeTracker && wf.changeTracker.activeState) {
+                state = JSON.parse(JSON.stringify(wf.changeTracker.activeState));
+            } else if (wf.activeState) {
+                try { state = JSON.parse(JSON.stringify(wf.activeState)); } catch(e) {}
+            }
+
+            if (!state || !state.nodes) {
+                console.warn(`[Rayko] No state for ${finalPath}, skipping.`);
+                continue;
+            }
+
+            console.log(`[Rayko] Force saving ${state.nodes.length} nodes via POST: ${finalPath}`);
+            const safePath = encodeURIComponent(finalPath);
+            const res = await fetch(`/api/userdata/${safePath}?overwrite=true`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(state)
+            });
+
+            if (res.ok) {
+                console.log(`[Rayko] ✅ Successfully saved via POST: ${finalPath}`);
+                if (wf.changeTracker) wf.changeTracker.isDirty = false;
+                if (wf.isModified !== undefined) wf.isModified = false;
+                savedAny = true;
+            } else {
+                console.error(`[Rayko] ❌ Failed to save ${finalPath}: HTTP ${res.status}`);
+            }
+        } catch (e) {
+            console.error(`[Rayko] ❌ Exception saving ${finalPath}`, e);
+        }
+    }
+
+    if (savedAny) {
+        try {
+            if (app.extensionManager?.workflow && typeof app.extensionManager.workflow.loadWorkflows === "function") {
+                await app.extensionManager.workflow.loadWorkflows();
+                console.log("[Rayko] Sidebar workflows reloaded.");
+            }
+        } catch(e) {}
+    }
+}
+
 async function saveCurrentStateToActivePreset() {
     if (!_activePresetName) return;
-    const workflows = getOpenWorkflowsData();
+
+    console.log(`[Rayko] Preparing to update preset: ${_activePresetName}`);
+    await saveAllModifiedWorkflows();
+
+    const workflows = getOpenWorkflowPaths();
     if (workflows.length === 0) throw new Error("No valid workflows to save.");
 
     const res = await fetch("/rayko_settings_manager/presets/save", {
@@ -162,7 +331,12 @@ async function saveCurrentStateToActivePreset() {
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error || "Save failed");
+    console.log(`[Rayko] ✅ Preset JSON updated successfully.`);
 }
+
+// ============================================================
+//                    CLOSE ALL LOGIC
+// ============================================================
 
 async function closeAllWorkflowsWithConfirm() {
     const wfStore = app.extensionManager?.workflow;
@@ -175,17 +349,13 @@ async function closeAllWorkflowsWithConfirm() {
         const action = await smConfirmSavePreset(_activePresetName);
         if (action === "cancel") return;
         if (action === "save") {
-            try {
-                await saveCurrentStateToActivePreset();
-            } catch (e) {
-                await smAlert("Save Failed", e.message, true);
-                return;
-            }
+            try { await saveCurrentStateToActivePreset(); }
+            catch (e) { await smAlert("Save Failed", e.message, true); return; }
         }
     } else {
         const confirmed = await smConfirm({
             title: "Close All Workflows",
-            message: `You have ${wfStore.openWorkflows.length} workflow(s) open. Any unsaved changes will be lost. Are you sure?`,
+            message: "All open workflows will be closed. A fresh Unsaved Workflow will be created. Continue?",
             okText: "Close All",
             danger: true
         });
@@ -200,11 +370,26 @@ async function performCloseAll() {
     const wfStore = app.extensionManager?.workflow;
     if (!wfStore) return;
 
-    const activeWf = wfStore.activeWorkflow;
     const allWfs = [...(wfStore.openWorkflows || [])];
+    let freshWf = null;
+
+    try {
+        if (typeof wfStore.createTemporaryWorkflow === "function") {
+            freshWf = await wfStore.createTemporaryWorkflow();
+        } else if (typeof wfStore.createTemporary === "function") {
+            freshWf = await wfStore.createTemporary();
+        }
+
+        if (freshWf) {
+            const emptyState = { nodes: [], links: [], groups: [], config: {}, extra: {}, version: 0.4 };
+            await app.loadGraphData(emptyState, true, true, freshWf);
+        }
+    } catch (e) {
+        console.warn("[Rayko] Failed to create fresh workflow", e);
+    }
 
     for (const wf of allWfs) {
-        if (wf === activeWf) continue;
+        if (wf === freshWf) continue;
         try {
             if (typeof wfStore.closeWorkflow === "function") {
                 await wfStore.closeWorkflow(wf);
@@ -212,42 +397,28 @@ async function performCloseAll() {
                 await wf.unload();
             }
         } catch (e) {
-            console.warn("[Rayko] Failed to close inactive workflow", e);
+            console.warn("[Rayko] Failed to close", wf, e);
         }
     }
 
-    if (activeWf) {
-        try {
-            if (typeof activeWf.load === "function") {
-                await activeWf.load();
-            }
-            const emptyState = {
-                nodes: [], links: [], groups: [], config: {}, extra: {}, version: 0.4
-            };
-            await app.loadGraphData(emptyState, true, true, activeWf);
-            if (typeof wfStore.renameWorkflow === "function") {
-                await wfStore.renameWorkflow(activeWf, "Unsaved Workflow");
-            }
-        } catch (e) {
-            console.warn("[Rayko] Failed to clean active workflow", e);
-            try { app.graph.clear(); } catch (e) {}
-        }
-    }
-
-    if (Array.isArray(wfStore.openWorkflowPaths) && activeWf?.path) {
-        wfStore.openWorkflowPaths = [activeWf.path];
+    if (Array.isArray(wfStore.openWorkflowPaths) && freshWf?.path) {
+        wfStore.openWorkflowPaths = [freshWf.path];
     }
 }
 
-function openSettingsManagerModal() {
+// ============================================================
+//                    SETTINGS MODAL
+// ============================================================
+
+async function openSettingsManagerModal() {
     if (document.getElementById("sm-modal-overlay")) return;
+    
+    try { await checkActivePresetValidity(); } catch (e) {}
 
     const overlay = document.createElement("div");
     overlay.id = "sm-modal-overlay";
     overlay.className = "sm-modal-overlay";
-    overlay.onclick = (e) => {
-        if (e.target === overlay) overlay.remove();
-    };
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
 
     const modal = document.createElement("div");
     modal.className = "sm-modal-content";
@@ -260,6 +431,13 @@ function openSettingsManagerModal() {
     closeBtn.onclick = () => overlay.remove();
 
     renderSettingsPanel(modal);
+    
+    const statusDiv = document.getElementById("sm-status");
+    if (statusDiv) {
+        statusDiv.className = "sm-status";
+        statusDiv.textContent = "";
+    }
+
     modal.appendChild(closeBtn);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
@@ -269,7 +447,6 @@ function openSettingsManagerModal() {
 
 function renderSettingsPanel(container) {
     container.innerHTML = "";
-
     const mainDiv = document.createElement("div");
     mainDiv.className = "sm-container";
 
@@ -278,7 +455,7 @@ function renderSettingsPanel(container) {
     const saveSection = document.createElement("div");
     saveSection.className = "sm-section";
     saveSection.innerHTML = `
-        <div class="sm-title">💾 Save Interface Settings</div>
+        <div class="sm-title">Save Interface Settings</div>
         <div class="sm-description">Backup current interface configuration to Documents folder</div>
         <input type="text" id="sm-backup-name" class="sm-input" placeholder="name backup">
         <div class="sm-hint">If no name is entered, the creation date will be used.</div>
@@ -306,7 +483,6 @@ function renderSettingsPanel(container) {
             if (data.success) {
                 showStatus(`✅ Saved as: ${data.folder}`, "success");
                 if (nameInput) nameInput.value = "";
-
                 if (backupListDiv && !backupListDiv.classList.contains("sm-hidden")) {
                     const newItem = createBackupItem(data.folder, backupListDiv);
                     backupListDiv.insertBefore(newItem, backupListDiv.firstChild);
@@ -317,7 +493,6 @@ function renderSettingsPanel(container) {
         } catch (e) {
             showStatus(`❌ Error: ${e.message}`, "error");
         }
-
         saveBtn.disabled = false;
         saveBtn.textContent = "💾 Save Settings";
     };
@@ -328,7 +503,7 @@ function renderSettingsPanel(container) {
     const restoreSection = document.createElement("div");
     restoreSection.className = "sm-section";
     restoreSection.innerHTML = `
-        <div class="sm-title">🐦‍🔥 Restore Interface Settings</div>
+        <div class="sm-title">Restore Interface Settings</div>
         <div class="sm-description">Load previously saved configuration and restart server</div>
     `;
 
@@ -351,7 +526,6 @@ function renderSettingsPanel(container) {
 
     const statusContainer = document.createElement("div");
     statusContainer.className = "sm-status-container";
-
     const statusDiv = document.createElement("div");
     statusDiv.id = "sm-status";
     statusDiv.className = "sm-status";
@@ -366,7 +540,6 @@ function showStatus(message, type) {
     if (statusDiv) {
         statusDiv.textContent = message;
         statusDiv.className = "sm-status";
-
         if (type === "success") statusDiv.classList.add("sm-success");
         else if (type === "error") statusDiv.classList.add("sm-error");
         else if (type === "info") statusDiv.classList.add("sm-info");
@@ -380,9 +553,12 @@ function showStatus(message, type) {
     }
 }
 
+// ============================================================
+//                    BACKUPS LOGIC
+// ============================================================
+
 async function loadBackups(backupListDiv, loadBtn) {
     showStatus("Loading backups...", "info");
-
     loadBtn.disabled = true;
     loadBtn.textContent = "⏳ Loading...";
     backupListDiv.classList.remove("sm-hidden");
@@ -391,7 +567,6 @@ async function loadBackups(backupListDiv, loadBtn) {
     try {
         const response = await fetch("/rayko_settings_manager/list");
         const data = await response.json();
-
         backupListDiv.innerHTML = "";
 
         if (data.success && data.backups && data.backups.length > 0) {
@@ -408,7 +583,6 @@ async function loadBackups(backupListDiv, loadBtn) {
         backupListDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--descrip-text)">Error loading</div>';
         showStatus(`❌ Error: ${e.message}`, "error");
     }
-
     loadBtn.disabled = false;
     loadBtn.textContent = "🔄 Refresh Backups";
 }
@@ -454,14 +628,9 @@ function createBackupItem(backupName, backupListDiv) {
                     restartBtn.disabled = true;
                     restartBtn.textContent = "⏳ Restarting...";
                     showStatus("Server restarting...", "info");
-
-                    try {
-                        await fetch("/rayko_settings_manager/restart", { method: "POST" });
-                    } catch (e) { }
-
+                    try { await fetch("/rayko_settings_manager/restart", { method: "POST" }); } catch (e) { }
                     startPolling(restartBtn);
                 };
-
                 buttonsDiv.appendChild(restartBtn);
             } else {
                 showStatus(`❌ Error: ${data.error}`, "error");
@@ -485,15 +654,12 @@ function createBackupItem(backupName, backupListDiv) {
         deleteBtn.textContent = "⏳";
 
         try {
-            const res = await fetch(`/rayko_settings_manager/delete/${encodeURIComponent(backupName)}`, {
-                method: "DELETE",
-            });
+            const res = await fetch(`/rayko_settings_manager/delete/${encodeURIComponent(backupName)}`, { method: "DELETE" });
             const data = await res.json();
 
             if (data.success) {
                 item.remove();
                 showStatus(`✅ Deleted: ${backupName}`, "success");
-
                 if (backupListDiv.children.length === 0) {
                     backupListDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--descrip-text)">No backups found</div>';
                 }
@@ -512,40 +678,36 @@ function createBackupItem(backupName, backupListDiv) {
     buttonsDiv.appendChild(restoreBtn);
     buttonsDiv.appendChild(deleteBtn);
     item.appendChild(buttonsDiv);
-
     return item;
 }
 
 function startPolling(restartBtn) {
     let attempts = 0;
-    const maxAttempts = 10;
-    const interval = 5000;
-
     const pollInterval = setInterval(async () => {
         attempts++;
-        showStatus(`Waiting for server... (${attempts}/${maxAttempts})`, "info");
-
+        showStatus(`Waiting for server... (${attempts}/10)`, "info");
         try {
             const res = await fetch("/rayko_settings_manager/ping");
             const data = await res.json();
-
             if (data.status === "ok") {
                 clearInterval(pollInterval);
                 showStatus("✅ Server is ready! Refreshing page...", "success");
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
+                setTimeout(() => window.location.reload(), 2000);
             }
         } catch (e) {
-            if (attempts >= maxAttempts) {
+            if (attempts >= 10) {
                 clearInterval(pollInterval);
                 showStatus("⚠️ Server may not have restarted. Please refresh manually.", "error");
                 restartBtn.disabled = false;
                 restartBtn.textContent = "🔄 RESTART SERVER";
             }
         }
-    }, interval);
+    }, 5000);
 }
+
+// ============================================================
+//                    WORKFLOW PRESETS
+// ============================================================
 
 function renderPresetsSection(mainDiv) {
     const section = document.createElement("div");
@@ -557,34 +719,58 @@ function renderPresetsSection(mainDiv) {
     banner.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <span>Active Preset: <strong id="sm-active-preset-name"></strong></span>
+            <button id="sm-detach-preset" style="background:transparent; border:none; color:var(--descrip-text); cursor:pointer; font-size:16px; padding:0;" title="Detach from this preset (stop tracking)">✕</button>
         </div>
     `;
 
     const updateBtn = document.createElement("button");
     updateBtn.className = "sm-btn sm-btn-primary sm-btn-small";
     updateBtn.textContent = "💾 Update This Preset";
+    
     updateBtn.onclick = async () => {
         if (!_activePresetName) return;
         updateBtn.disabled = true;
         updateBtn.textContent = "⏳ Saving...";
         try {
             await saveCurrentStateToActivePreset();
-            showStatus(`✅ Preset "${_activePresetName}" updated!`, "success");
+            updateBtn.textContent = "✅ Updated!";
+            updateBtn.style.backgroundColor = "#10b981";
+            updateBtn.style.borderColor = "#10b981";
+            setTimeout(() => {
+                if (updateBtn) {
+                    updateBtn.textContent = "💾 Update This Preset";
+                    updateBtn.style.backgroundColor = "";
+                    updateBtn.style.borderColor = "";
+                }
+            }, 2000);
         } catch (e) {
+            updateBtn.textContent = "❌ Failed";
+            updateBtn.style.backgroundColor = "#dc2626";
+            setTimeout(() => {
+                if (updateBtn) {
+                    updateBtn.textContent = "💾 Update This Preset";
+                    updateBtn.style.backgroundColor = "";
+                }
+            }, 2000);
             showStatus(`❌ ${e.message}`, "error");
         }
         updateBtn.disabled = false;
-        updateBtn.textContent = "💾 Update This Preset";
     };
     banner.appendChild(updateBtn);
+
+    banner.querySelector("#sm-detach-preset").onclick = () => {
+        setActivePreset(null);
+        showStatus("Detached from active preset.", "info");
+    };
+
     section.appendChild(banner);
 
     const formDiv = document.createElement("div");
     formDiv.innerHTML = `
-        <div class="sm-title">🖥️ Workflow Presets</div>
-        <div class="sm-description">Save all currently open workflow tabs as a preset, or load a preset to open its workflows as new tabs</div>
+        <div class="sm-title">Workflow Presets</div>
+        <div class="sm-description">Save open workflows (excl. Unsaved) or load a preset. Presets store file paths.</div>
         <input type="text" id="sm-preset-name" class="sm-input" placeholder="preset name">
-        <div class="sm-hint">Presets are stored in custom_nodes/ComfyUI_RaykoStudio/presets_workflow</div>
+        <div class="sm-hint">Stored in custom_nodes/ComfyUI_RaykoStudio/presets_workflow</div>
     `;
     section.appendChild(formDiv);
 
@@ -595,20 +781,16 @@ function renderPresetsSection(mainDiv) {
     saveBtn.onclick = async () => {
         const nameInput = section.querySelector("#sm-preset-name");
         const name = (nameInput?.value || "").trim();
-        if (!name) {
-            showStatus("Enter preset name", "error");
-            return;
-        }
+        if (!name) return showStatus("Enter preset name", "error");
 
-        const workflows = getOpenWorkflowsData();
-        if (workflows.length === 0) {
-            showStatus("No valid open workflows to save (Unsaved filtered)", "error");
-            return;
-        }
+        const workflows = getOpenWorkflowPaths();
+        if (workflows.length === 0) return showStatus("No valid open workflows to save (Unsaved filtered)", "error");
 
         saveBtn.disabled = true;
         saveBtn.textContent = "⏳ Saving...";
         try {
+            await saveAllModifiedWorkflows();
+
             const res = await fetch("/rayko_settings_manager/presets/save", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -620,9 +802,7 @@ function renderPresetsSection(mainDiv) {
                 nameInput.value = "";
                 setActivePreset(data.name);
                 const list = section.querySelector("#sm-preset-list");
-                if (list && !list.classList.contains("sm-hidden")) {
-                    await refreshPresetList(list);
-                }
+                if (list && !list.classList.contains("sm-hidden")) await refreshPresetList(list);
             } else {
                 showStatus(`❌ ${data.error || "Save failed"}`, "error");
             }
@@ -640,9 +820,7 @@ function renderPresetsSection(mainDiv) {
     toggleBtn.onclick = async () => {
         const list = section.querySelector("#sm-preset-list");
         list.classList.toggle("sm-hidden");
-        if (!list.classList.contains("sm-hidden")) {
-            await refreshPresetList(list);
-        }
+        if (!list.classList.contains("sm-hidden")) await refreshPresetList(list);
     };
     section.appendChild(toggleBtn);
 
@@ -668,118 +846,186 @@ function updatePresetUI() {
     }
 }
 
-function getOpenWorkflowsData() {
-    const result = [];
-
-    try {
-        const wfStore = app.extensionManager?.workflow;
-        const openWorkflows = wfStore?.openWorkflows;
-
-        if (Array.isArray(openWorkflows) && openWorkflows.length > 0) {
-            for (const wf of openWorkflows) {
-                try {
-                    if (!wf.changeTracker) continue;
-                    
-                    const wfName = wf.name || "";
-                    const wfPath = wf.path || "";
-                    
-                    if (wfName.includes("Unsaved") || wfPath.includes("Unsaved")) {
-                        continue;
-                    }
-
-                    const state = wf.activeState || (wf.changeTracker && wf.changeTracker.activeState);
-                    if (state && state.nodes) {
-                        result.push({
-                            name: wfName || wfPath || "Workflow",
-                            data: JSON.parse(JSON.stringify(state)),
-                        });
-                    }
-                } catch (e) {
-                    console.warn("[Rayko] Failed to serialize workflow", wf, e);
-                }
-            }
-        }
-    } catch (e) {
-        console.warn("[Rayko] Workflow store access failed", e);
-    }
-
-    return result;
-}
-
 async function loadPresetAsNewTabs(presetName) {
     const wfStore = app.extensionManager?.workflow;
+    if (!wfStore) throw new Error("Workflow store not available");
 
     if (_activePresetName && _activePresetName !== presetName) {
         const action = await smConfirmSavePreset(_activePresetName);
         if (action === "cancel") return 0;
         if (action === "save") {
-            try {
-                await saveCurrentStateToActivePreset();
-            } catch (e) {
-                await smAlert("Save Failed", e.message, true);
-                return 0;
-            }
+            try { await saveCurrentStateToActivePreset(); }
+            catch (e) { await smAlert("Save Failed", e.message, true); return 0; }
         }
     } else if (!_activePresetName) {
         const confirmed = await smConfirm({
             title: "Load Preset",
-            message: `Loading preset "${presetName}" will replace all currently open workflows. Continue?`,
+            message: `Loading preset "${presetName}" will close other tabs (Unsaved tabs are kept). Continue?`,
             okText: "Load & Replace",
             danger: true
         });
         if (!confirmed) return 0;
     }
 
-    await performCloseAll();
-
     const res = await fetch(`/rayko_settings_manager/presets/get/${encodeURIComponent(presetName)}`);
     if (!res.ok) throw new Error("Preset not found");
     const data = await res.json();
     if (!data.workflows || data.workflows.length === 0) throw new Error("Preset is empty");
 
-    const activeWf = wfStore.activeWorkflow;
-    let loaded = 0;
-
-    if (activeWf && data.workflows.length > 0) {
-        const first = data.workflows[0];
-        try {
-            await app.loadGraphData(first.data, true, true, activeWf);
-            if (first.name) {
-                if (typeof wfStore.renameWorkflow === "function") {
-                    await wfStore.renameWorkflow(activeWf, first.name);
-                } else if ("path" in activeWf) {
-                    activeWf.path = first.name;
-                }
+    // --- БЕЗОПАСНОЕ ЗАКРЫТИЕ ВКЛАДОК ---
+    let safeWf = null;
+    try {
+        if (typeof wfStore.createTemporaryWorkflow === "function") {
+            safeWf = await wfStore.createTemporaryWorkflow();
+        } else if (typeof wfStore.createTemporary === "function") {
+            safeWf = await wfStore.createTemporary();
+        }
+        if (safeWf) {
+            const emptyState = { nodes: [], links: [], groups: [], config: {}, extra: {}, version: 0.4 };
+            await app.loadGraphData(emptyState, true, true, safeWf);
+            if (typeof wfStore.openWorkflow === "function") {
+                await wfStore.openWorkflow(safeWf);
             }
-            loaded++;
+        }
+    } catch (e) {
+        console.warn("[Rayko] Failed to create safe workflow", e);
+    }
+
+    const oldWfs = [...(wfStore.openWorkflows || [])];
+    for (const wf of oldWfs) {
+        if (wf === safeWf) continue;
+        if (isUnsavedWorkflow(wf)) continue;
+        if (wfStore.openWorkflows.includes(wf)) {
+            try {
+                await wfStore.closeWorkflow(wf);
+            } catch (e) {
+                console.warn("[Rayko] Failed to close old tab", e);
+            }
+        }
+    }
+    // -----------------------------------
+
+    let loaded = 0;
+    let failed = [];
+    let firstLoadedWf = null;
+    let workflowLookup = null;
+
+    for (const item of data.workflows) {
+        try {
+            let finalPath = item;
+
+            if (typeof item === "string") {
+                if (!item.includes("/") && !item.includes("\\")) {
+                    if (!workflowLookup) {
+                        workflowLookup = await getWorkflowLookup();
+                    }
+                    if (workflowLookup[item] && workflowLookup[item].length > 0) {
+                        finalPath = workflowLookup[item][0];
+                        console.log(`[Rayko] Auto-healed path: ${item} -> ${finalPath}`);
+                    }
+                }
+
+                let currentWf = null;
+
+                // 1. Пытаемся использовать нативный load, но предварительно чистим кэш
+                if (typeof wfStore.load === "function") {
+                    try {
+                        if (wfStore.workflows) {
+                            delete wfStore.workflows[finalPath];
+                            delete wfStore.workflows[finalPath.replace(/^workflows\//, '')];
+                        }
+                        currentWf = await wfStore.load(finalPath);
+                        if (currentWf) {
+                            await wfStore.openWorkflow(currentWf);
+                        }
+                    } catch (e) { 
+                        console.warn("wfStore.load failed", e); 
+                    }
+                }
+
+                // 2. Если нативный метод не сработал, используем fetch + loadGraphData
+                if (!currentWf) {
+                    const safePath = encodeURIComponent(finalPath);
+                    const fileRes = await fetch(`/api/userdata/${safePath}?rand=${Date.now()}`);
+                    if (!fileRes.ok) throw new Error(`HTTP ${fileRes.status}`);
+                    
+                    const textData = await fileRes.text();
+                    let fileData;
+                    try {
+                        fileData = JSON.parse(textData);
+                    } catch (e) {
+                        throw new Error(`Failed to parse workflow JSON: ${e.message}`);
+                    }
+
+                    if (!fileData || typeof fileData !== 'object' || !fileData.nodes) {
+                        throw new Error("Invalid workflow structure (missing nodes)");
+                    }
+
+                    const fileName = finalPath.split(/[/\\]/).pop() || finalPath;
+                    
+                    if (typeof wfStore.createTemporaryWorkflow === "function") {
+                        currentWf = await wfStore.createTemporaryWorkflow(fileName);
+                    } else if (typeof wfStore.createTemporary === "function") {
+                        currentWf = await wfStore.createTemporary();
+                    }
+
+                    if (currentWf) {
+                        currentWf.path = finalPath;
+                        await app.loadGraphData(fileData, true, true, currentWf);
+                        
+                        if (currentWf.changeTracker) {
+                            try { currentWf.changeTracker.activeState = JSON.parse(JSON.stringify(fileData)); } catch(e) {}
+                            currentWf.changeTracker.isDirty = false;
+                        }
+                        if (wfStore.workflows) wfStore.workflows[finalPath] = currentWf;
+                        
+                        if (typeof wfStore.openWorkflow === "function") {
+                            await wfStore.openWorkflow(currentWf);
+                        }
+                    }
+                }
+
+                if (!firstLoadedWf && currentWf) {
+                    firstLoadedWf = currentWf;
+                }
+
+                loaded++;
+            } else if (item && item.data) {
+                let targetWf = null;
+                if (typeof wfStore.createTemporaryWorkflow === "function") {
+                    targetWf = await wfStore.createTemporaryWorkflow(item.name);
+                } else if (typeof wfStore.createTemporary === "function") {
+                    targetWf = await wfStore.createTemporary();
+                }
+                if (targetWf) {
+                    targetWf.path = item.name;
+                    await app.loadGraphData(item.data, true, true, targetWf);
+                    if (targetWf.changeTracker) {
+                        try { targetWf.changeTracker.activeState = JSON.parse(JSON.stringify(item.data)); } catch(e) {}
+                        targetWf.changeTracker.isDirty = false;
+                    }
+                    if (typeof wfStore.openWorkflow === "function") {
+                        await wfStore.openWorkflow(targetWf);
+                    }
+                    
+                    if (!firstLoadedWf) firstLoadedWf = targetWf;
+                }
+                loaded++;
+            }
         } catch (e) {
-            console.error("[Rayko] Failed to load first preset workflow", e);
+            console.error("[Rayko] Failed to load workflow", item, e);
+            failed.push(typeof item === "string" ? item : (item.name || "Unknown"));
         }
     }
 
-    for (let i = 1; i < data.workflows.length; i++) {
-        const item = data.workflows[i];
+    if (safeWf && loaded > 0) {
         try {
-            let targetWf = null;
-            if (typeof wfStore.createTemporaryWorkflow === "function") {
-                targetWf = await wfStore.createTemporaryWorkflow(item.name);
-            } else if (typeof wfStore.createTemporary === "function") {
-                targetWf = await wfStore.createTemporary();
-            }
+            await wfStore.closeWorkflow(safeWf);
+        } catch (e) {}
+    }
 
-            await app.loadGraphData(item.data, true, true, targetWf || undefined);
-
-            if (targetWf) {
-                if (typeof wfStore.renameWorkflow === "function") {
-                    await wfStore.renameWorkflow(targetWf, item.name);
-                } else if ("path" in targetWf) {
-                    targetWf.path = item.name;
-                }
-            }
-            loaded++;
-        } catch (e) {
-            console.error("[Rayko] Failed to load workflow", item.name, e);
-        }
+    if (failed.length > 0) {
+        await smAlert("Some workflows not found", `The following files could not be opened (they may have been moved or deleted):\n\n${failed.join('\n')}`, true);
     }
 
     if (loaded === 0) throw new Error("Failed to load any workflow");
@@ -845,9 +1091,7 @@ async function refreshPresetList(listEl) {
                 if (!confirm(`Delete preset "${p.name}"?`)) return;
                 delBtn.disabled = true;
                 try {
-                    const r = await fetch(`/rayko_settings_manager/presets/delete/${encodeURIComponent(p.name)}`, {
-                        method: "DELETE",
-                    });
+                    const r = await fetch(`/rayko_settings_manager/presets/delete/${encodeURIComponent(p.name)}`, { method: "DELETE" });
                     const d = await r.json();
                     if (d.success) {
                         item.remove();
@@ -870,6 +1114,10 @@ async function refreshPresetList(listEl) {
         listEl.innerHTML = `<div style="color:#ef4444;padding:10px">Error: ${e.message}</div>`;
     }
 }
+
+// ============================================================
+//                        DIALOGS
+// ============================================================
 
 function smConfirmSavePreset(presetName) {
     return new Promise((resolve) => {
@@ -1006,6 +1254,10 @@ function smAlert(titleText, message, danger) {
     });
 }
 
+// ============================================================
+//                        STYLES
+// ============================================================
+
 function injectStyles() {
     if (document.getElementById("sm-styles")) return;
     const style = document.createElement("style");
@@ -1041,21 +1293,10 @@ function injectStyles() {
             font-size: 13px;
             box-sizing: border-box;
         }
-        .sm-topbar-btn:hover:not(:disabled) {
-            background: #52525e;
-        }
-        .sm-topbar-btn:active:not(:disabled) {
-            background: #52525e;
-            filter: brightness(0.92);
-        }
-        .sm-topbar-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .sm-topbar-icon {
-            font-size: 16px;
-            line-height: 1;
-        }
+        .sm-topbar-btn:hover:not(:disabled) { background: #52525e; }
+        .sm-topbar-btn:active:not(:disabled) { background: #52525e; filter: brightness(0.92); }
+        .sm-topbar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .sm-topbar-icon { font-size: 16px; line-height: 1; }
 
         /* ---------- Modal ---------- */
         .sm-modal-overlay {
@@ -1105,10 +1346,7 @@ function injectStyles() {
         .sm-btn-success:hover:not(:disabled) { background-color: #059669; }
         .sm-btn-primary { background-color: #3b82f6; color: white; border-color: #3b82f6; }
         .sm-btn-primary:hover:not(:disabled) { background-color: #2563eb; }
-        .sm-btn-warning {
-            background-color: #f59e0b; color: white; border-color: #f59e0b;
-            animation: smPulse 2s infinite;
-        }
+        .sm-btn-warning { background-color: #f59e0b; color: white; border-color: #f59e0b; animation: smPulse 2s infinite; }
         .sm-btn-warning:hover:not(:disabled) { background-color: #d97706; }
         @keyframes smPulse {
             0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
@@ -1123,24 +1361,15 @@ function injectStyles() {
             border: 1px solid var(--border-color);
             border-radius: 4px; margin-bottom: 8px;
         }
-        .sm-backup-name {
-            flex: 1; color: var(--fg-color); font-size: 13px;
-            word-break: break-all; margin-right: 10px;
-        }
+        .sm-backup-name { flex: 1; color: var(--fg-color); font-size: 13px; word-break: break-all; margin-right: 10px; }
         .sm-btn-small { padding: 5px 10px; font-size: 12px; min-width: 80px; width: auto; }
-        .sm-status-container {
-            margin-top: auto; padding-top: 10px; min-height: 40px;
-            display: flex; align-items: center; justify-content: center;
-        }
+        .sm-status-container { margin-top: auto; padding-top: 10px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
         .sm-status {
             padding: 10px 20px; border-radius: 6px; font-size: 13px;
             text-align: center; display: none; width: 100%;
             animation: smFadeIn 0.3s ease;
         }
-        @keyframes smFadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes smFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .sm-status.sm-success { display: block; background-color: #10b981; color: white; }
         .sm-status.sm-error { display: block; background-color: #ef4444; color: white; }
         .sm-status.sm-info { display: block; background-color: #3b82f6; color: white; }

@@ -2141,6 +2141,8 @@ The node generates a list of INT values, automatically switching between 10 pres
 # 🦊 ComfyUI RaykoStudio: Settings & Workflow Preset Manager  
 **A user-friendly extension that allows you to easily manage your interface settings **and** group multiple workflows into "Presets". Never lose your custom UI layout or waste time opening the same 5 workflows again!**  
 
+[![YouTube](https://img.shields.io/badge/▶_YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/3UNxRto3TTo)
+
 <img width="217" height="937" alt="Screenshot_1" src="https://github.com/user-attachments/assets/a898ce80-dd21-4245-9228-d8b78ede8cf4" />
 <img width="239" height="86" alt="Screenshot_1" src="https://github.com/user-attachments/assets/e1829c76-b739-4a07-8ade-3bad3117efbc" />
 <img width="506" height="814" alt="Screenshot_2" src="https://github.com/user-attachments/assets/1dbd5cb1-3a85-43c3-a191-46b9e5cb92d0" />

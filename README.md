@@ -52,6 +52,7 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.51.0 - Added the RS Load System Prompt node
 - v0.51.1 - Added fibo2
 - v0.51.2 - Modification of the RS Load System Prompt node
+- v0.52.1 - Added the workflow manager to the RS Settings Manager extension 
 
 </details>
 

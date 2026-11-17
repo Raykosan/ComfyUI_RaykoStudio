@@ -87,6 +87,65 @@ function loadNodeState(node) {
     return null;
 }
 
+function parsePresetSize(str) {
+    if (!str) return null;
+    const m = String(str).match(/(\d+)\s*[×x]\s*(\d+)/);
+    if (!m) return null;
+    return { w: parseInt(m[1], 10), h: parseInt(m[2], 10) };
+}
+
+function findMirror(values, w, h) {
+    for (const v of values) {
+        const p = parsePresetSize(v);
+        if (p && p.w === h && p.h === w) return v;
+    }
+    return null;
+}
+
+function handleSwap(node) {
+    const wMode = node.widgets.find(w => w.name === "size_mode");
+    const mode = wMode ? wMode.value : "Preset";
+
+    if (mode === "Preset") {
+        const wActive = node.widgets.find(w => w.name === "active_preset");
+        if (!wActive) return;
+        let activeWidget = null;
+        if (wActive.value === "Standard") activeWidget = node.widgets.find(w => w.name === "preset_standard");
+        else if (wActive.value === "Qwen") activeWidget = node.widgets.find(w => w.name === "preset_qwen");
+        else if (wActive.value === "Krea2") activeWidget = node.widgets.find(w => w.name === "preset_krea2");
+        if (!activeWidget || !activeWidget.options || !activeWidget.options.values) return;
+
+        const p = parsePresetSize(activeWidget.value);
+        if (!p || p.w === p.h) return;
+
+        const mirror = findMirror(activeWidget.options.values, p.w, p.h);
+        if (mirror) {
+            activeWidget.value = mirror;
+            if (node.updatePresetUI) node.updatePresetUI();
+            saveNodeState(node);
+            node.setDirtyCanvas(true, true);
+        }
+    } else if (mode === "Custom") {
+        const wWidth = node.widgets.find(w => w.name === "width");
+        const wHeight = node.widgets.find(w => w.name === "height");
+        if (!wWidth || !wHeight) return;
+        const tmp = wWidth.value;
+        wWidth.value = wHeight.value;
+        wHeight.value = tmp;
+        node.setDirtyCanvas(true, true);
+    } else if (mode === "Megapixels") {
+        const wAspect = node.widgets.find(w => w.name === "aspect_ratio");
+        if (!wAspect || !wAspect.options || !wAspect.options.values) return;
+        const parts = String(wAspect.value).split(":");
+        if (parts.length !== 2 || parts[0] === parts[1]) return;
+        const swapped = `${parts[1]}:${parts[0]}`;
+        if (wAspect.options.values.includes(swapped)) {
+            wAspect.value = swapped;
+            node.setDirtyCanvas(true, true);
+        }
+    }
+}
+
 function initCustomPresets(node) {
     hideSystemWidgets(node);
     
@@ -103,6 +162,13 @@ function initCustomPresets(node) {
         wStd.value = savedState.std;
         wQwen.value = savedState.qwen;
         wKrea.value = savedState.krea;
+    }
+
+    // Legacy migration: Krea2 → Standard (lists identical, zero data loss)
+    if (wActive.value === "Krea2") {
+        wActive.value = "Standard";
+        if (wKrea.value) wStd.value = wKrea.value;
+        saveNodeState(node);
     }
 
     const container = document.createElement("div");
@@ -136,8 +202,7 @@ function initCustomPresets(node) {
 
     const lists = [
         { id: "Standard", w: wStd, label: "STANDARD", color: "#4a9eff" },
-        { id: "Qwen", w: wQwen, label: "QWEN", color: "#ff6b4a" },
-        { id: "Krea2", w: wKrea, label: "KREA2", color: "#4aff9e" }
+        { id: "Qwen", w: wQwen, label: "QWEN", color: "#ff6b4a" }
     ];
 
     let currentOpen = null;
@@ -266,6 +331,51 @@ function initCustomPresets(node) {
         buttonsContainer.appendChild(wrapper);
         buttons.push({ btn, list });
     });
+
+    // SWAP button (third slot, action — not a tab)
+    const swapWrapper = document.createElement("div");
+    swapWrapper.style.flex = "1";
+    swapWrapper.style.position = "relative";
+
+    const swapBtn = document.createElement("button");
+    swapBtn.textContent = "⇄ SWAP";
+    swapBtn.title = "Swap width and height (works in all size modes)";
+    swapBtn.style.width = "100%";
+    swapBtn.style.padding = "6px 4px";
+    swapBtn.style.borderRadius = "4px";
+    swapBtn.style.cursor = "pointer";
+    swapBtn.style.fontSize = "10px";
+    swapBtn.style.textAlign = "center";
+    swapBtn.style.overflow = "hidden";
+    swapBtn.style.textOverflow = "ellipsis";
+    swapBtn.style.whiteSpace = "nowrap";
+    swapBtn.style.transition = "all 0.15s";
+    swapBtn.style.border = "2px solid #4aff9e";
+    swapBtn.style.backgroundColor = "#4aff9e22";
+    swapBtn.style.color = "#fff";
+    swapBtn.style.fontWeight = "bold";
+    swapBtn._flashing = false;
+
+    swapBtn.onmouseenter = () => {
+        if (!swapBtn._flashing) swapBtn.style.backgroundColor = "#4aff9e44";
+    };
+    swapBtn.onmouseleave = () => {
+        if (!swapBtn._flashing) swapBtn.style.backgroundColor = "#4aff9e22";
+    };
+    swapBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (currentOpen) { currentOpen.remove(); currentOpen = null; }
+        handleSwap(node);
+        swapBtn._flashing = true;
+        swapBtn.style.backgroundColor = "#4aff9e77";
+        setTimeout(() => {
+            swapBtn._flashing = false;
+            swapBtn.style.backgroundColor = swapBtn.matches(":hover") ? "#4aff9e44" : "#4aff9e22";
+        }, 150);
+    };
+
+    swapWrapper.appendChild(swapBtn);
+    buttonsContainer.appendChild(swapWrapper);
 
     const updateAllButtons = () => {
         buttons.forEach(({ btn, list }) => {

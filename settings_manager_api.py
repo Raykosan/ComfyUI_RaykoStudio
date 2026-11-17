@@ -33,8 +33,6 @@ PRESETS_DIR = os.path.join(CURRENT_DIR, "presets_workflow")
 
 os.makedirs(BACKUP_DIR, exist_ok=True)
 os.makedirs(PRESETS_DIR, exist_ok=True)
-logger.info("🦊 Settings Manager initialized")
-logger.info(f"🦊 Presets folder: {PRESETS_DIR}")
 
 
 # -------------------- Settings Backups --------------------

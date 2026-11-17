@@ -1,6 +1,6 @@
 import { app } from "../../../scripts/app.js";
 
-console.log("🦊 Settings Manager JS v30 (Hybrid Save) loaded at", new Date().toLocaleTimeString());
+console.log("🦊 Settings Manager JS v33 (PrimeIcons) loaded at", new Date().toLocaleTimeString());
 
 const STORAGE_KEY = "RaykoStudio.ShowIcon";
 const ACTIVE_PRESET_KEY = "RaykoStudio.ActivePreset";
@@ -89,7 +89,6 @@ function injectTopbarButton(actionBar) {
 
     const block = document.createElement("div");
     block.id = "sm-topbar-block";
-    block.className = "sm-topbar-block";
 
     const btn = document.createElement("button");
     btn.className = "sm-topbar-btn";
@@ -235,10 +234,8 @@ async function saveAllModifiedWorkflows() {
 
     for (const wf of openWfs) {
         let finalPath = wf.path || "";
-        console.log(`[Rayko] Checking workflow: ${finalPath}`);
         
         if (finalPath === "" || finalPath.includes("Unsaved")) {
-            console.log(`[Rayko] Skipping unsaved/empty: ${finalPath}`);
             continue;
         }
 
@@ -254,9 +251,7 @@ async function saveAllModifiedWorkflows() {
         try {
             const isActive = (wfStore.activeWorkflow === wf) || (wfStore.activeWorkflow && wfStore.activeWorkflow.path === wf.path);
             
-            console.log(`[Rayko] Is active: ${isActive}`);
-
-            // 1. Для АКТИВНОЙ вкладки используем нативный saveWorkflow (он точно сохранит новые ноды)
+            // 1. Для АКТИВНОЙ вкладки используем нативный saveWorkflow
             if (isActive && typeof wfStore.saveWorkflow === "function") {
                 console.log(`[Rayko] Saving active workflow natively: ${finalPath}`);
                 try {
@@ -455,7 +450,10 @@ function renderSettingsPanel(container) {
     const saveSection = document.createElement("div");
     saveSection.className = "sm-section";
     saveSection.innerHTML = `
-        <div class="sm-title">Save Interface Settings</div>
+        <div class="sm-title">
+            <i class="pi pi-save" style="font-size: 18px;"></i>
+            Save Interface Settings
+        </div>
         <div class="sm-description">Backup current interface configuration to Documents folder</div>
         <input type="text" id="sm-backup-name" class="sm-input" placeholder="name backup">
         <div class="sm-hint">If no name is entered, the creation date will be used.</div>
@@ -503,7 +501,10 @@ function renderSettingsPanel(container) {
     const restoreSection = document.createElement("div");
     restoreSection.className = "sm-section";
     restoreSection.innerHTML = `
-        <div class="sm-title">Restore Interface Settings</div>
+        <div class="sm-title">
+            <i class="pi pi-refresh" style="font-size: 18px;"></i>
+            Restore Interface Settings
+        </div>
         <div class="sm-description">Load previously saved configuration and restart server</div>
     `;
 
@@ -767,7 +768,10 @@ function renderPresetsSection(mainDiv) {
 
     const formDiv = document.createElement("div");
     formDiv.innerHTML = `
-        <div class="sm-title">Workflow Presets</div>
+        <div class="sm-title">
+            <i class="pi pi-folder" style="font-size: 18px;"></i>
+            Workflow Presets
+        </div>
         <div class="sm-description">Save open workflows (excl. Unsaved) or load a preset. Presets store file paths.</div>
         <input type="text" id="sm-preset-name" class="sm-input" placeholder="preset name">
         <div class="sm-hint">Stored in custom_nodes/ComfyUI_RaykoStudio/presets_workflow</div>
@@ -1263,8 +1267,8 @@ function injectStyles() {
     const style = document.createElement("style");
     style.id = "sm-styles";
     style.textContent = `
-        /* ---------- Topbar block ---------- */
-        .sm-topbar-block {
+        /* ---------- Topbar block (заскоуплен по ID) ---------- */
+        #sm-topbar-block {
             display: inline-flex;
             align-items: stretch;
             align-self: center;
@@ -1276,7 +1280,7 @@ function injectStyles() {
             overflow: hidden;
             box-sizing: border-box;
         }
-        .sm-topbar-btn {
+        #sm-topbar-block .sm-topbar-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -1293,19 +1297,19 @@ function injectStyles() {
             font-size: 13px;
             box-sizing: border-box;
         }
-        .sm-topbar-btn:hover:not(:disabled) { background: #52525e; }
-        .sm-topbar-btn:active:not(:disabled) { background: #52525e; filter: brightness(0.92); }
-        .sm-topbar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .sm-topbar-icon { font-size: 16px; line-height: 1; }
+        #sm-topbar-block .sm-topbar-btn:hover:not(:disabled) { background: #52525e; }
+        #sm-topbar-block .sm-topbar-btn:active:not(:disabled) { background: #52525e; filter: brightness(0.92); }
+        #sm-topbar-block .sm-topbar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        #sm-topbar-block .sm-topbar-icon { font-size: 16px; line-height: 1; }
 
-        /* ---------- Modal ---------- */
+        /* ---------- Modal (Всё строго внутри .sm-modal-overlay) ---------- */
         .sm-modal-overlay {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.6);
             display: flex; justify-content: center; align-items: center;
             z-index: 999999;
         }
-        .sm-modal-content {
+        .sm-modal-overlay .sm-modal-content {
             background: var(--comfy-menu-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;
@@ -1315,24 +1319,32 @@ function injectStyles() {
             box-shadow: 0 8px 24px rgba(0,0,0,0.4);
             position: relative;
         }
-        .sm-container { display: flex; flex-direction: column; gap: 20px; min-height: 300px; }
-        .sm-section {
+        .sm-modal-overlay .sm-container { display: flex; flex-direction: column; gap: 20px; min-height: 300px; }
+        .sm-modal-overlay .sm-section {
             background-color: var(--comfy-input-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 15px;
         }
-        .sm-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: var(--fg-color); }
-        .sm-description { font-size: 12px; color: var(--descrip-text); margin-bottom: 15px; }
-        .sm-input {
+        
+        .sm-modal-overlay .sm-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px; font-weight: bold; margin-bottom: 10px; color: var(--fg-color);
+        }
+        
+        .sm-modal-overlay .sm-description { font-size: 12px; color: var(--descrip-text); margin-bottom: 15px; }
+        .sm-modal-overlay .sm-input {
             width: 100%; padding: 8px 12px; margin-bottom: 5px;
             background-color: var(--bg-color);
             border: 1px solid var(--border-color); border-radius: 4px;
             color: var(--fg-color); font-size: 14px; box-sizing: border-box;
         }
-        .sm-input:focus { border-color: var(--primary-color); outline: none; }
-        .sm-hint { font-size: 11px; color: var(--descrip-text); margin-bottom: 15px; font-style: italic; }
-        .sm-btn {
+        .sm-modal-overlay .sm-input:focus { border-color: var(--primary-color); outline: none; }
+        .sm-modal-overlay .sm-hint { font-size: 11px; color: var(--descrip-text); margin-bottom: 15px; font-style: italic; }
+        
+        .sm-modal-overlay .sm-btn {
             padding: 10px 20px;
             background-color: var(--comfy-menu-bg);
             border: 1px solid var(--border-color);
@@ -1340,44 +1352,47 @@ function injectStyles() {
             cursor: pointer; font-size: 14px; width: 100%;
             transition: all 0.3s ease;
         }
-        .sm-btn:hover:not(:disabled) { background-color: var(--comfy-menu-secondary-bg); }
-        .sm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .sm-btn-success { background-color: #10b981; color: white; border-color: #10b981; }
-        .sm-btn-success:hover:not(:disabled) { background-color: #059669; }
-        .sm-btn-primary { background-color: #3b82f6; color: white; border-color: #3b82f6; }
-        .sm-btn-primary:hover:not(:disabled) { background-color: #2563eb; }
-        .sm-btn-warning { background-color: #f59e0b; color: white; border-color: #f59e0b; animation: smPulse 2s infinite; }
-        .sm-btn-warning:hover:not(:disabled) { background-color: #d97706; }
+        .sm-modal-overlay .sm-btn:hover:not(:disabled) { background-color: var(--comfy-menu-secondary-bg); }
+        .sm-modal-overlay .sm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .sm-modal-overlay .sm-btn-success { background-color: #10b981; color: white; border-color: #10b981; }
+        .sm-modal-overlay .sm-btn-success:hover:not(:disabled) { background-color: #059669; }
+        .sm-modal-overlay .sm-btn-primary { background-color: #3b82f6; color: white; border-color: #3b82f6; }
+        .sm-modal-overlay .sm-btn-primary:hover:not(:disabled) { background-color: #2563eb; }
+        .sm-modal-overlay .sm-btn-warning { background-color: #f59e0b; color: white; border-color: #f59e0b; animation: smPulse 2s infinite; }
+        .sm-modal-overlay .sm-btn-warning:hover:not(:disabled) { background-color: #d97706; }
         @keyframes smPulse {
             0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
             50% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
         }
-        .sm-btn-danger { background-color: #dc2626; color: white; border-color: #dc2626; }
-        .sm-btn-danger:hover:not(:disabled) { background-color: #b91c1c; }
-        .sm-backup-item {
+        .sm-modal-overlay .sm-btn-danger { background-color: #dc2626; color: white; border-color: #dc2626; }
+        .sm-modal-overlay .sm-btn-danger:hover:not(:disabled) { background-color: #b91c1c; }
+        
+        .sm-modal-overlay .sm-backup-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px;
             background-color: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: 4px; margin-bottom: 8px;
         }
-        .sm-backup-name { flex: 1; color: var(--fg-color); font-size: 13px; word-break: break-all; margin-right: 10px; }
-        .sm-btn-small { padding: 5px 10px; font-size: 12px; min-width: 80px; width: auto; }
-        .sm-status-container { margin-top: auto; padding-top: 10px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
-        .sm-status {
+        .sm-modal-overlay .sm-backup-name { flex: 1; color: var(--fg-color); font-size: 13px; word-break: break-all; margin-right: 10px; }
+        .sm-modal-overlay .sm-btn-small { padding: 5px 10px; font-size: 12px; min-width: 80px; width: auto; }
+        
+        .sm-modal-overlay .sm-status-container { margin-top: auto; padding-top: 10px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+        .sm-modal-overlay .sm-status {
             padding: 10px 20px; border-radius: 6px; font-size: 13px;
             text-align: center; display: none; width: 100%;
             animation: smFadeIn 0.3s ease;
         }
         @keyframes smFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .sm-status.sm-success { display: block; background-color: #10b981; color: white; }
-        .sm-status.sm-error { display: block; background-color: #ef4444; color: white; }
-        .sm-status.sm-info { display: block; background-color: #3b82f6; color: white; }
+        .sm-modal-overlay .sm-status.sm-success { display: block; background-color: #10b981; color: white; }
+        .sm-modal-overlay .sm-status.sm-error { display: block; background-color: #ef4444; color: white; }
+        .sm-modal-overlay .sm-status.sm-info { display: block; background-color: #3b82f6; color: white; }
+        
         .sm-hidden { display: none; }
-        .sm-restore-container { display: flex; gap: 10px; margin-top: 10px; }
+        .sm-modal-overlay .sm-restore-container { display: flex; gap: 10px; margin-top: 10px; }
 
         /* ---------- Active Preset Banner ---------- */
-        .sm-active-banner {
+        .sm-modal-overlay .sm-active-banner {
             background: rgba(16, 185, 129, 0.15);
             border: 1px solid #10b981;
             border-radius: 8px;

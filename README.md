@@ -1281,26 +1281,27 @@ Click "✔️ ACCEPT" to pass selected images to next nodes. Only selected image
 # 🦊 RS MultiLatent  
 **Universal latent generation node - automatically adapts to any VAE architecture.** 
 
-<img width="445" height="622" alt="Screenshot_3" src="https://github.com/user-attachments/assets/70994d2c-8a64-4f43-84b9-a2eea57df3fb" />
+<img width="415" height="570" alt="Screenshot_1" src="https://github.com/user-attachments/assets/4698e697-b691-4ed3-8e7e-248a148032f3" />
 
 ### 🔥 Features  
 - **Automatic VAE Detection** - reads `latent_channels` and `scale_factor` directly from VAE  
 - **Universal Compatibility** - works with SD1.5, SDXL, Flux, Flux.2, Krea2, QwenImage, and many other models  
-- **Flexible Sizing** - three modes: Preset, Custom, and Megapixels  
+- **Flexible Sizing** - three modes: Preset, Custom, and Megapixels
+- **SWAP** - one-click size inversion  
 - **100+ Presets** - extensive library of ready-to-use resolutions  
 - **Smart Device Handling** - automatically matches VAE device and dtype  
 
 ### 🪛 Usage  
 1. **Connect VAE**: Plug any VAE into the `vae` input  
 2. **Choose size mode**:  
-  - Preset: Select from 100+ predefined resolutions  
-  - Custom: Manually enter width and height  
-  - Megapixels: Specify target resolution in MP with aspect ratio  
+  - Preset: Choose from over 100 predefined permissions. Use the SWAP button to invert the dimensions  
+  - Custom: Manually enter width and height. Use the SWAP button to invert the dimensions  
+  - Megapixels: Specify target resolution in MP with aspect ratio. Use the SWAP button to invert the dimensions  
 3. **Connect to sampler**: Use the `latent` output with KSampler or other nodes  
 
 ### ⚙️ Settings  
 **size_mode**: Size definition mode  
-  - `Preset` - Use predefined resolutions  
+  - `Preset` - Use predefined resolutions. For the QWEN model, use the presets for QWEN, for all other models, use the presets STANDARD  
   - `Custom` - Manual width/height input  
   - `Megapixels` - Target resolution in megapixels  
 

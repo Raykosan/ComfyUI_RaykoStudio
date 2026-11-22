@@ -1,11 +1,14 @@
 import { app } from "../../../scripts/app.js";
 
-console.log("🦊 Settings Manager JS v33 (PrimeIcons) loaded at", new Date().toLocaleTimeString());
+console.log("🦊 Settings Manager JS v34 (Auto-Clean Drafts) loaded at", new Date().toLocaleTimeString());
 
 const STORAGE_KEY = "RaykoStudio.ShowIcon";
 const ACTIVE_PRESET_KEY = "RaykoStudio.ActivePreset";
 
 let _activePresetName = sessionStorage.getItem(ACTIVE_PRESET_KEY) || null;
+
+// Переменная для дебаунса очистки
+let _cleanDraftsTimeout = null;
 
 app.registerExtension({
     name: "RaykoStudio.SettingsManager",
@@ -24,6 +27,9 @@ app.registerExtension({
         }
 
         _startTopbarWatchdog();
+        
+        // === ИНИЦИАЛИЗАЦИЯ СБОРЩИКА МУСОРА ===
+        _setupDraftCleanup();
     },
 });
 
@@ -130,6 +136,113 @@ function _startTopbarWatchdog() {
             injectTopbarButton(bar);
         }
     }, 500);
+}
+
+// ============================================================
+//                    AUTO CLEAN DRAFTS (СБОРЩИК МУСОРА)
+// ============================================================
+
+function _setupDraftCleanup() {
+    // 1. Аварийный триггер: перехват ошибки переполнения localStorage
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = function(key, value) {
+        try {
+            originalSetItem.apply(this, arguments);
+        } catch (e) {
+            if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+                console.warn("[Rayko] localStorage quota exceeded! Triggering emergency cleanup...");
+                _autoCleanDrafts();
+                // Пробуем записать еще раз после очистки
+                try {
+                    originalSetItem.apply(this, arguments);
+                } catch (retryError) {
+                    console.error("[Rayko] Still failed to save to localStorage after cleanup.");
+                }
+            } else {
+                throw e;
+            }
+        }
+    };
+
+    // 2. Профилактический триггер: проверка isDirty раз в 6 секунд
+    setInterval(() => {
+        const activeWf = app.extensionManager?.workflow?.activeWorkflow;
+        if (activeWf && activeWf.changeTracker && activeWf.changeTracker.isDirty) {
+            _debouncedCleanDrafts();
+        }
+    }, 6000);
+}
+
+function _debouncedCleanDrafts() {
+    if (_cleanDraftsTimeout) clearTimeout(_cleanDraftsTimeout);
+    _cleanDraftsTimeout = setTimeout(() => {
+        _autoCleanDrafts();
+        _cleanDraftsTimeout = null;
+    }, 1000);
+}
+
+function _autoCleanDrafts() {
+    try {
+        const wfStore = app.extensionManager?.workflow;
+        if (!wfStore) return;
+
+        // Собираем пути всех реально открытых воркфлоу (включая Unsaved)
+        const openPaths = new Set();
+        for (const wf of (wfStore.openWorkflows || [])) {
+            if (wf.path) openPaths.add(wf.path);
+            if (wf.name && wf.name.includes("Unsaved")) openPaths.add(wf.name);
+        }
+
+        const indexKey = "Comfy.Workflow.DraftIndex.v2";
+        const indexStr = localStorage.getItem(indexKey);
+        if (!indexStr) return;
+
+        let indexData = [];
+        try {
+            indexData = JSON.parse(indexStr);
+        } catch (e) {
+            return; // Если индекс битый, не трогаем
+        }
+
+        let removedCount = 0;
+        const newIndexData = [];
+
+        for (const item of indexData) {
+            const path = typeof item === 'string' ? item : (item.path || item.name || '');
+            
+            if (!path) {
+                newIndexData.push(item);
+                continue;
+            }
+
+            // Проверяем: открыт ли воркфлоу сейчас ИЛИ это черновик Unsaved
+            const isOpen = openPaths.has(path) || Array.from(openPaths).some(p => path.includes(p));
+            const isUnsaved = path.includes("Unsaved");
+
+            if (isOpen || isUnsaved) {
+                newIndexData.push(item);
+            } else {
+                // Удаляем сам черновик из localStorage
+                const draftKey = `Comfy.Workflow.Draft.${path}`;
+                localStorage.removeItem(draftKey);
+                // В некоторых версиях ключ может быть закодирован
+                try {
+                    const encodedKey = `Comfy.Workflow.Draft.${encodeURIComponent(path)}`;
+                    localStorage.removeItem(encodedKey);
+                } catch(e) {}
+                removedCount++;
+            }
+        }
+
+        // Если что-то удалили, обновляем индекс
+        if (removedCount > 0) {
+            localStorage.setItem(indexKey, JSON.stringify(newIndexData));
+            console.log(`[Rayko] ✅ Auto-cleaned ${removedCount} old workflow drafts to free up space.`);
+        }
+
+    } catch (e) {
+        console.warn("[Rayko] Failed to auto-clean drafts", e);
+    }
 }
 
 // ============================================================
@@ -251,8 +364,9 @@ async function saveAllModifiedWorkflows() {
         try {
             const isActive = (wfStore.activeWorkflow === wf) || (wfStore.activeWorkflow && wfStore.activeWorkflow.path === wf.path);
             
-            // 1. Для АКТИВНОЙ вкладки используем нативный saveWorkflow
-            if (isActive && typeof wfStore.saveWorkflow === "function") {
+            // 1. Пытаемся сохранить нативно, но ТОЛЬКО если есть активный стейт
+            //    (это предотвращает появление тоста об ошибке)
+            if (isActive && typeof wfStore.saveWorkflow === "function" && wf.changeTracker?.activeState) {
                 console.log(`[Rayko] Saving active workflow natively: ${finalPath}`);
                 try {
                     await wfStore.saveWorkflow(wf);
@@ -260,11 +374,13 @@ async function saveAllModifiedWorkflows() {
                     savedAny = true;
                     continue;
                 } catch (e) {
+                    // Если нативный метод всё же упал, мы просто логируем это в консоль
+                    // и переходим к fallback, не показывая пользователю лишних уведомлений
                     console.warn(`[Rayko] Native save failed, falling back to POST`, e);
                 }
             }
 
-            // 2. Для НЕАКТИВНЫХ вкладок или при ошибке натива - сохраняем через POST
+            // 2. Fallback: сохраняем через POST (наш проверенный метод)
             let state = null;
             if (isActive) {
                 state = app.graph.serialize();
@@ -714,24 +830,63 @@ function renderPresetsSection(mainDiv) {
     const section = document.createElement("div");
     section.className = "sm-section";
 
+    // ============================================================
+    // БЛОК 1: Текущий (активный) пресет и его обновление
+    // ============================================================
+    const activeBlock = document.createElement("div");
+    activeBlock.style.marginBottom = "20px";
+
     const banner = document.createElement("div");
     banner.id = "sm-active-preset-banner";
     banner.className = "sm-active-banner sm-hidden";
     banner.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
             <span>Active Preset: <strong id="sm-active-preset-name"></strong></span>
             <button id="sm-detach-preset" style="background:transparent; border:none; color:var(--descrip-text); cursor:pointer; font-size:16px; padding:0;" title="Detach from this preset (stop tracking)">✕</button>
         </div>
     `;
+    banner.querySelector("#sm-detach-preset").onclick = () => {
+        setActivePreset(null);
+        showStatus("Detached from active preset.", "info");
+    };
+    activeBlock.appendChild(banner);
 
+    // Кнопка обновления (постоянная, но логически привязана к блоку 1)
     const updateBtn = document.createElement("button");
-    updateBtn.className = "sm-btn sm-btn-primary sm-btn-small";
-    updateBtn.textContent = "💾 Update This Preset";
+    updateBtn.className = "sm-btn sm-btn-primary";
+    updateBtn.textContent = "💾 Update Current Preset";
+    updateBtn.style.marginTop = "10px";
+    updateBtn.style.marginBottom = "5px";
     
     updateBtn.onclick = async () => {
-        if (!_activePresetName) return;
+        let targetName = _activePresetName;
+        
+        // Если нет активного пресета, пробуем взять имя из поля ввода (которое находится в блоке 2)
+        if (!targetName) {
+            const inputEl = document.getElementById("sm-preset-name");
+            const inputName = inputEl ? inputEl.value.trim() : "";
+            
+            if (!inputName) {
+                return showStatus("No active preset. Load a preset or enter its name below to update.", "error");
+            }
+            
+            try {
+                const res = await fetch(`/rayko_settings_manager/presets/get/${encodeURIComponent(inputName)}`);
+                if (!res.ok) {
+                    return showStatus(`Preset "${inputName}" not found. Save as new instead.`, "error");
+                }
+                targetName = inputName;
+            } catch (e) {
+                return showStatus(`❌ ${e.message}`, "error");
+            }
+        }
+
         updateBtn.disabled = true;
         updateBtn.textContent = "⏳ Saving...";
+        
+        const originalActive = _activePresetName;
+        setActivePreset(targetName);
+
         try {
             await saveCurrentStateToActivePreset();
             updateBtn.textContent = "✅ Updated!";
@@ -739,7 +894,7 @@ function renderPresetsSection(mainDiv) {
             updateBtn.style.borderColor = "#10b981";
             setTimeout(() => {
                 if (updateBtn) {
-                    updateBtn.textContent = "💾 Update This Preset";
+                    updateBtn.textContent = "💾 Update Current Preset";
                     updateBtn.style.backgroundColor = "";
                     updateBtn.style.borderColor = "";
                 }
@@ -749,43 +904,50 @@ function renderPresetsSection(mainDiv) {
             updateBtn.style.backgroundColor = "#dc2626";
             setTimeout(() => {
                 if (updateBtn) {
-                    updateBtn.textContent = "💾 Update This Preset";
+                    updateBtn.textContent = "💾 Update Current Preset";
                     updateBtn.style.backgroundColor = "";
                 }
             }, 2000);
             showStatus(`❌ ${e.message}`, "error");
+            if (!originalActive) setActivePreset(null);
         }
         updateBtn.disabled = false;
     };
-    banner.appendChild(updateBtn);
+    activeBlock.appendChild(updateBtn);
 
-    banner.querySelector("#sm-detach-preset").onclick = () => {
-        setActivePreset(null);
-        showStatus("Detached from active preset.", "info");
-    };
+    // Визуальный разделитель между блоками
+    const divider = document.createElement("hr");
+    divider.style.border = "none";
+    divider.style.borderTop = "1px solid var(--border-color)";
+    divider.style.margin = "20px 0";
+    activeBlock.appendChild(divider);
 
-    section.appendChild(banner);
+    section.appendChild(activeBlock);
 
+    // ============================================================
+    // БЛОК 2: Ввод имени, сохранение нового и список всех пресетов
+    // ============================================================
     const formDiv = document.createElement("div");
     formDiv.innerHTML = `
         <div class="sm-title">
             <i class="pi pi-folder" style="font-size: 18px;"></i>
-            Workflow Presets
+            Save New Preset
         </div>
-        <div class="sm-description">Save open workflows (excl. Unsaved) or load a preset. Presets store file paths.</div>
-        <input type="text" id="sm-preset-name" class="sm-input" placeholder="preset name">
+        <div class="sm-description">Save current open workflows as a new preset.</div>
+        <input type="text" id="sm-preset-name" class="sm-input" placeholder="new preset name">
         <div class="sm-hint">Stored in custom_nodes/ComfyUI_RaykoStudio/presets_workflow</div>
     `;
     section.appendChild(formDiv);
 
     const saveBtn = document.createElement("button");
     saveBtn.className = "sm-btn sm-btn-success";
-    saveBtn.textContent = "💾 Save Open Tabs as New Preset";
+    saveBtn.textContent = "💾 Save as New Preset";
     saveBtn.style.marginBottom = "10px";
     saveBtn.onclick = async () => {
         const nameInput = section.querySelector("#sm-preset-name");
         const name = (nameInput?.value || "").trim();
         if (!name) return showStatus("Enter preset name", "error");
+        if (name === _activePresetName) return showStatus("This preset is already active. Use 'Update' instead.", "error");
 
         const workflows = getOpenWorkflowPaths();
         if (workflows.length === 0) return showStatus("No valid open workflows to save (Unsaved filtered)", "error");
@@ -814,7 +976,7 @@ function renderPresetsSection(mainDiv) {
             showStatus(`❌ ${e.message}`, "error");
         }
         saveBtn.disabled = false;
-        saveBtn.textContent = "💾 Save Open Tabs as New Preset";
+        saveBtn.textContent = "💾 Save as New Preset";
     };
     section.appendChild(saveBtn);
 

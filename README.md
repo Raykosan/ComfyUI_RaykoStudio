@@ -1,5 +1,7 @@
 # 🦊 ComfyUI_RaykoStudio  
-Set of custom nodes for ComfyUI providing additional image processing capabilities  
+A set of user nodes for ComfyUI that provides additional image processing capabilities  
+- Compatible with current and latest frontends  
+- Workflow Tab Presets and Workspace Session Manager 
 --- 
 ---
 

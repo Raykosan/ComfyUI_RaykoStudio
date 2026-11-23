@@ -54,7 +54,16 @@ git clone https://github.com/Raykosan/ComfyUI_RaykoStudio.git
 - v0.51.0 - Added the RS Load System Prompt node
 - v0.51.1 - Added fibo2
 - v0.51.2 - Modification of the RS Load System Prompt node
-- v0.52.1 - Added the workflow manager to the RS Settings Manager extension 
+- v0.52.1 - Added the workflow manager to the RS Settings Manager extension
+- v0.54.0 - The Settings Manager extension has been removed. It is released separately.
+
+</details>
+<details>
+  <summary>⚠️ ComfyUI Settings Manager removed</summary>
+
+# 🦊 Settings & Workflow Preset Manager extension has been removed  
+It is released separately.  
+`https://github.com/Raykosan/ComfyUI-RS_WorkspaceManager`
 
 </details>
 
@@ -2136,96 +2145,6 @@ The node generates a list of INT values, automatically switching between 10 pres
 - RS Loop Switch (output) → KSampler (seed)  
 - RS Loop Switch (output) → KSampler (steps)  
 - RS Loop Switch (output) → any INT input  
-
-</details>
-<details>
-  <summary>🦊 ComfyUI Settings Manager</summary>
-
-# 🦊 ComfyUI RaykoStudio: Settings & Workflow Preset Manager  
-**A user-friendly extension that allows you to easily manage your interface settings **and** group multiple workflows into "Presets". Never lose your custom UI layout or waste time opening the same 5 workflows again!**  
-
-[![YouTube](https://img.shields.io/badge/▶_YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/3UNxRto3TTo)
-
-<img width="217" height="937" alt="Screenshot_1" src="https://github.com/user-attachments/assets/a898ce80-dd21-4245-9228-d8b78ede8cf4" />
-<img width="239" height="86" alt="Screenshot_1" src="https://github.com/user-attachments/assets/e1829c76-b739-4a07-8ade-3bad3117efbc" />
-<img width="506" height="814" alt="Screenshot_2" src="https://github.com/user-attachments/assets/1dbd5cb1-3a85-43c3-a191-46b9e5cb92d0" />
-<img width="370" height="186" alt="Screenshot_3" src="https://github.com/user-attachments/assets/88b9bb97-6ee2-4828-a776-c51ab3a9be5f" />
-
-## 🔥 Features
-
-### 📂 Workflow Presets
-*   **Save Workflow Sets:** Save all currently open workflow tabs (e.g., *Base Workflow, Upscaler, Face Detailer*) as a single preset.
-*   **Active Preset Tracking:** The extension remembers which preset you are currently working in.
-*   **Smart Save & Close:** Before closing all tabs or loading a new preset, the extension asks if you want to save your recent changes back to the active preset.
-*   **Instant Update:** Added a new node to a workflow? Just click "Update This Preset" to instantly overwrite the preset file.
-*   **Safe "Close All":** Closes all open tabs safely without breaking ComfyUI's internal state, leaving you with a clean workspace.
-*   **Smart Filtering:** Automatically ignores empty "Unsaved Workflow" tabs when saving, keeping your presets clean.
-
-### ⚙️ Interface Settings Backups
-*   **Smart Backups:** Save your current `comfy.settings.json` with custom names. If no name is provided, it automatically uses a timestamp.
-*   **Easy Restore:** Select any previous backup from a clean UI list and restore it in one click.
-*   **Built-in Server Restart:** The extension provides a dedicated, pulsing `RESTART SERVER` button to make the process obvious and safe.
-*   **Auto-Refresh Polling:** After restarting, the extension automatically pings the server and refreshes your browser the moment ComfyUI is back online.
-*   **Manage Backups:** Delete old or unnecessary backups directly from the interface.
-*   **Safe Naming:** Automatically sanitizes custom backup names and prevents overwriting by adding suffixes (`_1`, `_2`) if a name collision occurs.
-
-## 🪛 Usage
-
-### Accessing the Manager
-Since the native ComfyUI settings window often conflicts with custom modals, this extension uses the Topbar:
-1. Go to ComfyUI Settings (`⚙️` icon on the sidebar).
-2. Scroll down to the **RaykoStudio** section.
-3. Check the **"Show icon in top menu"** box.
-4. Look at the top menu (next to the `RUN` button). You will see two new buttons:
-   * 🖥️ **Settings Manager** — Opens the main interface.
-   * 🗑️ **Close All Workflows** — Instantly closes all open tabs (with a confirmation dialog).
-
-### 🗂️ Workflow Presets
-1. Open the Settings Manager (🖥️) and click **📂 Show Presets**.
-2. Open the workflow tabs you want to group together.
-3. Type a name (e.g., "Anime Pipeline") in the preset field and click **💾 Save Open Tabs as New Preset**.
-4. A green banner will appear at the top of the manager: *Active Preset: "Anime Pipeline"*.
-
-**To update a preset:** 
-If you make changes or add new workflows, just click **💾 Update This Preset** in the green banner. 
-
-**To load a preset:**
-Click **Load** next to any preset. If you have unsaved changes in your current session, a dialog will appear asking to **Save, Discard, or Cancel**.
-
-### 💾 Saving Interface Settings (Backup)
-1. In the **Save Interface Settings** section, enter a custom name for your backup (e.g., `my_favorite_layout`).
-   *(Note: If you leave it empty, the current date and time will be used).*
-2. Click **💾 Save Settings**. A green status message will confirm the save.
-
-### 🔄 Restoring Interface Settings
-1. In the **Restore Interface Settings** section, click **📂 Load Backups**.
-2. Click **✓ Restore** next to the backup you want to load.
-3. A pulsing orange **🔄 RESTART SERVER** button will appear. Click it.
-4. The extension will wait for the server to come back online and automatically refresh your browser page.
-
-## 📁 File Structure
-
-**Workflow Presets** are saved directly inside the extension folder so they can be easily shared:
-```text
-📂 ComfyUI/custom_nodes/ComfyUI_RaykoStudio/
- └── 📂 presets_workflow/
-      ├── 📄 Anime Pipeline.json
-      └── 📄 Technical Nodes.json
-```
-
-**Interface Backups** are stored outside the ComfyUI directory to keep your installation clean (in your user Documents folder):
-```text
-📂 Documents/
- └── 📂 ComfyUI_Settings_Backups/
-      ├── 📂 2026-06-09_12-40-44/
-      │    └── 📄 comfy.settings.json
-      └── 📂 my_favorite_layout/
-           └── 📄 comfy.settings.json
-```
-## ⚙️ Technical Notes
-*   **Active Preset Tracking:** The extension uses `sessionStorage` to remember your active preset. Refreshing the page keeps the state, but closing the browser resets it.
-*   **Server Restart:** The extension uses `os.execv` to restart the Python server. If you are using a third-party launcher (like Stability Matrix or Pinokio), the server might close but not automatically reopen. In this case, simply restart your launcher manually.
-*   **Polling:** After a restart, the extension pings the server every 5 seconds (up to 10 times) to detect when it's fully loaded before triggering the page reload. 
 
 </details>
 

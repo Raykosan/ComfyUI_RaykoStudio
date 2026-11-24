@@ -81,22 +81,96 @@ app.registerExtension({
             let _overlayCanvas = null;
             let _animationId = null;
             let _lastRect = null;
+            let _isOccluded = false;
+            let _lastOcclusionCheck = 0;
+
+            const cleanup = () => {
+                if (_animationId) {
+                    cancelAnimationFrame(_animationId);
+                    _animationId = null;
+                }
+                if (_overlayCanvas) {
+                    _overlayCanvas.remove();
+                    _overlayCanvas = null;
+                }
+                if (_previewContainer) {
+                    _previewContainer.remove();
+                    _previewContainer = null;
+                }
+                const menu = document.querySelector('.spline-image-menu');
+                if (menu) menu.remove();
+                if (_previewTimeout) clearTimeout(_previewTimeout);
+            };
             
+            const checkOcclusion = (throttle = true) => {
+                if (!node.imageLoaded || !app.canvas) { _isOccluded = false; return; }
+                if (throttle) {
+                    const now = performance.now();
+                    if (now - _lastOcclusionCheck < 150) return;
+                    _lastOcclusionCheck = now;
+                }
+                const imgRect = calculateImageRect();
+                if (!imgRect || imgRect.width < 4 || imgRect.height < 4) { _isOccluded = false; return; }
+
+                const graphCanvas = app.canvas.canvas;
+                const pts = [
+                    [imgRect.left + imgRect.width * 0.5, imgRect.top + imgRect.height * 0.5],
+                    [imgRect.left + imgRect.width * 0.1, imgRect.top + imgRect.height * 0.1],
+                    [imgRect.left + imgRect.width * 0.9, imgRect.top + imgRect.height * 0.1],
+                    [imgRect.left + imgRect.width * 0.1, imgRect.top + imgRect.height * 0.9],
+                    [imgRect.left + imgRect.width * 0.9, imgRect.top + imgRect.height * 0.9]
+                ];
+
+                const prevPE = _overlayCanvas ? _overlayCanvas.style.pointerEvents : null;
+                if (_overlayCanvas) _overlayCanvas.style.pointerEvents = 'none';
+
+                let occluded = false;
+                for (const [x, y] of pts) {
+                    if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) continue;
+                    const el = document.elementFromPoint(x, y);
+                    if (!el) continue;
+                    if (el === graphCanvas) continue;
+                    if (el.tagName === 'CANVAS') continue;
+                    if (el === document.body || el === document.documentElement) continue;
+                    occluded = true;
+                    break;
+                }
+
+                if (_overlayCanvas && prevPE !== null) _overlayCanvas.style.pointerEvents = prevPE;
+                _isOccluded = occluded;
+            };
+
             const updateOverlayVisibility = () => {
                 if (!_overlayCanvas) return;
-                
-                const currentGraph = app.canvas.graph || node.graph;
+
+                const activeGraph = app.canvas.graph || app.graph;
+
+                // Если нода принадлежит неактивной вкладке (графу), скрываем оверлей
+                if (node.graph && activeGraph && node.graph !== activeGraph) {
+                    _overlayCanvas.style.zIndex = '-1';
+                    _overlayCanvas.style.display = 'none';
+                    _overlayCanvas.style.pointerEvents = 'none';
+                    return;
+                }
+
+                const currentGraph = activeGraph;
                 const rootGraph = app.graph; 
                 const isInSubgraph = currentGraph !== rootGraph;
-                
-                if (isInSubgraph) {
+
+                if (isInSubgraph || !node.imageLoaded) {
                     _overlayCanvas.style.zIndex = '-1';
                     _overlayCanvas.style.display = 'none';
                     _overlayCanvas.style.pointerEvents = 'none';
                 } else {
-                    _overlayCanvas.style.zIndex = '900';
-                    _overlayCanvas.style.display = node.imageLoaded ? 'block' : 'none';
-                    _overlayCanvas.style.pointerEvents = 'auto';
+                    if (_isOccluded) {
+                        _overlayCanvas.style.zIndex = '100';
+                        _overlayCanvas.style.display = 'none';
+                        _overlayCanvas.style.pointerEvents = 'none';
+                    } else {
+                        _overlayCanvas.style.zIndex = '100';
+                        _overlayCanvas.style.display = 'block';
+                        _overlayCanvas.style.pointerEvents = 'auto';
+                    }
                 }
             };
 
@@ -652,11 +726,11 @@ app.registerExtension({
                 
                 _overlayCanvas.style.cssText = `
                     position: fixed !important;
-                    z-index: 900 !important;
-                    pointer-events: auto !important;
-                    cursor: crosshair !important;
-                    background: transparent !important;
-                    border: 1px dashed #00FF00 !important;
+                    z-index: 100;
+                    pointer-events: auto;
+                    cursor: crosshair;
+                    background: transparent;
+                    border: 1px dashed #00FF00;
                     display: none;
                 `;
                 document.body.appendChild(_overlayCanvas);
@@ -725,10 +799,17 @@ app.registerExtension({
                 
                 const updateLoop = () => {
                     if (!_overlayCanvas) return;
-                    
+
+                    // Если ноды больше нет в графе (принудительно закрыта менеджером), уничтожаем оверлей
+                    if (node.graph && !node.graph.getNodeById(node.id)) {
+                        cleanup();
+                        return;
+                    }
+
+                    checkOcclusion(true);
                     updateOverlayVisibility();
-                    
                     syncPosition();
+
                     _animationId = requestAnimationFrame(updateLoop);
                 };
                 updateLoop();
@@ -891,10 +972,7 @@ app.registerExtension({
             
             const originalOnRemoved = node.onRemoved;
             node.onRemoved = function() {
-                if (_animationId) {
-                    cancelAnimationFrame(_animationId);
-                    _animationId = null;
-                }
+                cleanup();
                 
                 if (node._subgraphListeners) {
                     node._subgraphListeners.forEach(({ event, handler }) => {
@@ -903,15 +981,11 @@ app.registerExtension({
                     node._subgraphListeners = null;
                 }
                 
-                if (_overlayCanvas) _overlayCanvas.remove();
-                if (_previewContainer) _previewContainer.remove();
-                const menu = document.querySelector('.spline-image-menu');
-                if (menu) menu.remove();
-                if (_previewTimeout) clearTimeout(_previewTimeout);
-                
-                app.canvas.canvas.removeEventListener('dragover', handleCanvasDragOver, { capture: true });
-                app.canvas.canvas.removeEventListener('drop', handleCanvasDrop, { capture: true });
-                
+                try {
+                    app.canvas.canvas.removeEventListener('dragover', handleCanvasDragOver, { capture: true });
+                    app.canvas.canvas.removeEventListener('drop', handleCanvasDrop, { capture: true });
+                } catch (e) {}
+
                 if (originalOnRemoved) originalOnRemoved.apply(this, arguments);
             };
             

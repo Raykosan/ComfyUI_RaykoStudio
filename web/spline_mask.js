@@ -17,7 +17,6 @@ app.registerExtension({
                 spline_coords: "[]"
             };
             
-            // Чуть увеличиваем высоту, чтобы вместить 4 слота + виджеты + кнопки
             node.targetWidth = 320;
             node.setSize([320, 440]);
             
@@ -145,7 +144,6 @@ app.registerExtension({
 
                 const activeGraph = app.canvas.graph || app.graph;
 
-                // Если нода принадлежит неактивной вкладке (графу), скрываем оверлей
                 if (node.graph && activeGraph && node.graph !== activeGraph) {
                     _overlayCanvas.style.zIndex = '-1';
                     _overlayCanvas.style.display = 'none';
@@ -613,7 +611,6 @@ app.registerExtension({
                 const nodeScreenX = canvasRect.left + ((graphX + ds.offset[0]) * scale);
                 const nodeScreenY = canvasRect.top + ((graphY + ds.offset[1]) * scale);
                 
-                // Считаем высоту абсолютно всех виджетов (даже скрытых)
                 let widgetsHeight = 0;
                 if (node.widgets) {
                     for (const w of node.widgets) {
@@ -623,11 +620,10 @@ app.registerExtension({
                 
                 const titleBarHeight = LiteGraph.NODE_TITLE_HEIGHT || 30;
                 
-                // Оставляем стандартные отступы, чтобы картинка занимала всю ширину
                 const leftRightPadding = 10;
                 const topPadding = 18;
                 const bottomPadding = 10;
-                const footerHeight = 60; // Выделяем место под кнопки в самом низу
+                const footerHeight = 60;
                 
                 const availableHeight = (node.size[1] * scale) - (titleBarHeight * scale) - (widgetsHeight * scale) - (footerHeight * scale) - (topPadding * scale) - (bottomPadding * scale);
                 const availableWidth = (node.size[0] * scale) - (leftRightPadding * 2 * scale);
@@ -800,7 +796,6 @@ app.registerExtension({
                 const updateLoop = () => {
                     if (!_overlayCanvas) return;
 
-                    // Если ноды больше нет в графе (принудительно закрыта менеджером), уничтожаем оверлей
                     if (node.graph && !node.graph.getNodeById(node.id)) {
                         cleanup();
                         return;
@@ -830,7 +825,7 @@ app.registerExtension({
                 const leftRightPadding = 10;
                 const topPadding = 18;
                 const bottomPadding = 10;
-                const footerHeight = 60; // Выделяем место под кнопки
+                const footerHeight = 60;
                 const btnH = 28;
                 const btnY = h - 45;
                 

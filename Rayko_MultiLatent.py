@@ -23,7 +23,7 @@ class RS_Image_MultiLatent:
             "required": {
                 "vae": ("VAE",),
                 "size_mode": (["Preset", "Custom", "Megapixels"],),
-                "active_preset": (["Standard", "Qwen", "Krea2"], {"default": "Standard"}),
+                "active_preset": (["Standard", "Qwen", "MiniMax", "Krea2"], {"default": "Standard"}),
                 "preset_standard": (
                     [
                         "Square - 512x512 (1:1)", "Square - 640x640 (1:1)", "Square - 768x768 (1:1)",
@@ -73,6 +73,25 @@ class RS_Image_MultiLatent:
                     ],
                     {"default": "Square - 1008x1008 (1:1)"}
                 ),
+                "preset_minimax": (
+                    [
+                        "2K Square - 2048x2048 (1:1)",
+                        "2K Portrait - 1760x2368 (3:4)",
+                        "2K Portrait - 1536x2720 (9:16)",
+                        "2K Portrait - 1184x3552 (1:3)",
+                        "2K Landscape - 2368x1760 (4:3)",
+                        "2K Landscape - 2720x1536 (16:9)",
+                        "2K Landscape - 3552x1184 (3:1)",
+                        "4K Square - 4096x4096 (1:1)",
+                        "4K Portrait - 3552x4736 (3:4)",
+                        "4K Portrait - 3072x5472 (9:16)",
+                        "4K Portrait - 2368x7104 (1:3)",
+                        "4K Landscape - 4736x3552 (4:3)",
+                        "4K Landscape - 5472x3072 (16:9)",
+                        "4K Landscape - 7104x2368 (3:1)",
+                    ],
+                    {"default": "2K Square - 2048x2048 (1:1)"}
+                ),
                 "preset_krea2": (
                     [
                         "Square - 512x512 (1:1)", "Square - 640x640 (1:1)", "Square - 768x768 (1:1)",
@@ -99,10 +118,11 @@ class RS_Image_MultiLatent:
                     ],
                     {"default": "Square - 1024x1024 (1:1)"}
                 ),
-                "width": ("INT", {"default": 1024, "min": 8, "max": 4096, "step": 8}),
-                "height": ("INT", {"default": 1024, "min": 8, "max": 4096, "step": 8}),
-                "megapixels": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 10.0, "step": 0.1}),
-                "aspect_ratio": (["1:1", "3:2", "2:3", "4:3", "3:4", "16:9", "9:16", "21:9", "9:21", "4:5", "5:4"],),
+                "multiple": (["8", "16", "32"], {"default": "8"}),
+                "width": ("INT", {"default": 1024, "min": 8, "max": 8192, "step": 8}),
+                "height": ("INT", {"default": 1024, "min": 8, "max": 8192, "step": 8}),
+                "megapixels": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 25.0, "step": 0.1}),
+                "aspect_ratio": (["1:1", "3:2", "2:3", "4:3", "3:4", "16:9", "9:16", "21:9", "9:21", "3:1", "1:3", "4:5", "5:4"],),
                 "batch_size": ("INT", {"default": 1, "min": 1, "max": 64}),
             }
         }
@@ -113,10 +133,9 @@ class RS_Image_MultiLatent:
     CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = "Universal latent generation node - automatically adapts to any VAE architecture."
 
-    def generate(self, vae, size_mode, active_preset, preset_standard, preset_qwen, preset_krea2, width, height, megapixels, aspect_ratio, batch_size):
+    def generate(self, vae, size_mode, active_preset, preset_standard, preset_qwen, preset_minimax, preset_krea2, multiple, width, height, megapixels, aspect_ratio, batch_size):
         latent_channels = 4
         scale_factor = 8
-        
         if hasattr(vae, 'first_stage_config'):
             config = vae.first_stage_config
             latent_channels = getattr(config, 'latent_channels', 4)
@@ -131,25 +150,27 @@ class RS_Image_MultiLatent:
                     scale_factor = getattr(vae.decoder.config, 'scale_factor', 8)
             except:
                 pass
-        
+
         if latent_channels <= 0 or latent_channels > 256:
             raise ValueError(f"Invalid latent_channels: {latent_channels}")
         if scale_factor <= 0 or scale_factor > 64:
             raise ValueError(f"Invalid scale_factor: {scale_factor}")
-        
+
         print(f"[RS_Image_MultiLatent] VAE: {latent_channels} channels, {scale_factor}x scale. Active: {active_preset}")
-        
+
+        effective_multiple = 8
+
         if size_mode == "Preset":
             if active_preset == "Standard":
                 preset = preset_standard
             elif active_preset == "Qwen":
                 preset = preset_qwen
+            elif active_preset == "MiniMax":
+                preset = preset_minimax
             else:
-                # Legacy "Krea2" — honor user's original choice, lists identical to Standard
                 preset = preset_krea2
-            
+
             size_map = {
-                # Standard & Krea2
                 "Square - 512x512 (1:1)": (512, 512), "Square - 640x640 (1:1)": (640, 640),
                 "Square - 768x768 (1:1)": (768, 768), "Square - 1024x1024 (1:1)": (1024, 1024),
                 "Square - 1280x1280 (1:1)": (1280, 1280), "Square - 1536x1536 (1:1)": (1536, 1536),
@@ -180,7 +201,20 @@ class RS_Image_MultiLatent:
                 "Landscape - 1856x1088 (~16:9)": (1856, 1088), "Landscape - 1920x1280 (3:2)": (1920, 1280),
                 "Landscape - 1920x1080 (16:9)": (1920, 1080), "Landscape - 1920x1024 (15:8)": (1920, 1024),
                 "Landscape - 1920x816 (21:9)": (1920, 816),
-                # Qwen
+                "2K Square - 2048x2048 (1:1)": (2048, 2048),
+                "2K Portrait - 1760x2368 (3:4)": (1760, 2368),
+                "2K Portrait - 1536x2720 (9:16)": (1536, 2720),
+                "2K Portrait - 1184x3552 (1:3)": (1184, 3552),
+                "2K Landscape - 2368x1760 (4:3)": (2368, 1760),
+                "2K Landscape - 2720x1536 (16:9)": (2720, 1536),
+                "2K Landscape - 3552x1184 (3:1)": (3552, 1184),
+                "4K Square - 4096x4096 (1:1)": (4096, 4096),
+                "4K Portrait - 3552x4736 (3:4)": (3552, 4736),
+                "4K Portrait - 3072x5472 (9:16)": (3072, 5472),
+                "4K Portrait - 2368x7104 (1:3)": (2368, 7104),
+                "4K Landscape - 4736x3552 (4:3)": (4736, 3552),
+                "4K Landscape - 5472x3072 (16:9)": (5472, 3072),
+                "4K Landscape - 7104x2368 (3:1)": (7104, 2368),
                 "Square - 1008x1008 (1:1)": (1008, 1008), "Square - 1120x1120 (1:1)": (1120, 1120),
                 "Square - 1344x1344 (1:1)": (1344, 1344), "Square - 1568x1568 (1:1)": (1568, 1568),
                 "Square - 1792x1792 (1:1)": (1792, 1792), "Square - 2016x2016 (1:1)": (2016, 2016),
@@ -210,29 +244,42 @@ class RS_Image_MultiLatent:
             width, height = size_map.get(preset, (1024, 1024))
 
         elif size_mode == "Custom":
-            width = max(8, (width // 8) * 8)
-            height = max(8, (height // 8) * 8)
+            try:
+                parsed = int(str(multiple).strip())
+            except (ValueError, TypeError):
+                parsed = 8
+            m = max(scale_factor, parsed)
+            width = max(m, (width // m) * m)
+            height = max(m, (height // m) * m)
+            effective_multiple = m
 
         elif size_mode == "Megapixels":
+            try:
+                parsed = int(str(multiple).strip())
+            except (ValueError, TypeError):
+                parsed = 8
+            m = max(scale_factor, parsed)
+            effective_multiple = m
+
             w_ratio, h_ratio = map(int, aspect_ratio.split(":"))
             target_pixels = megapixels * 1_000_000
             x = math.sqrt(target_pixels / (w_ratio * h_ratio))
             raw_width = w_ratio * x
             raw_height = h_ratio * x
-            width = round(raw_width / scale_factor) * scale_factor
-            height = round(raw_height / scale_factor) * scale_factor
-            width = max(scale_factor, width)
-            height = max(scale_factor, height)
+            width = round(raw_width / m) * m
+            height = round(raw_height / m) * m
+            width = max(m, width)
+            height = max(m, height)
 
-        width = max(8, (width // 8) * 8)
-        height = max(8, (height // 8) * 8)
+        width = max(effective_multiple, (width // effective_multiple) * effective_multiple)
+        height = max(effective_multiple, (height // effective_multiple) * effective_multiple)
 
         latent_width = width // scale_factor
         latent_height = height // scale_factor
 
         device = vae.device if hasattr(vae, 'device') else torch.device('cpu')
         dtype = vae.dtype if hasattr(vae, 'dtype') else torch.float32
-        
+
         latent = torch.zeros(
             [batch_size, latent_channels, latent_height, latent_width],
             device=device,

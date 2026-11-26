@@ -1292,11 +1292,13 @@ Click "✔️ ACCEPT" to pass selected images to next nodes. Only selected image
 # 🦊 RS MultiLatent  
 **Universal latent generation node - automatically adapts to any VAE architecture.** 
 
-<img width="415" height="570" alt="Screenshot_1" src="https://github.com/user-attachments/assets/4698e697-b691-4ed3-8e7e-248a148032f3" />
+<img width="650" height="751" alt="Screenshot_7" src="https://github.com/user-attachments/assets/38f6a974-2f25-4f15-9cfb-b81de54cc353" />
+<img width="649" height="749" alt="Screenshot_5" src="https://github.com/user-attachments/assets/356d441f-a47e-405a-898e-c8602df997e3" />
+<img width="649" height="744" alt="Screenshot_6" src="https://github.com/user-attachments/assets/54460d2b-301b-4221-8b1b-3d20c14ae1da" />
 
 ### 🔥 Features  
 - **Automatic VAE Detection** - reads `latent_channels` and `scale_factor` directly from VAE  
-- **Universal Compatibility** - works with SD1.5, SDXL, Flux, Flux.2, Krea2, QwenImage, and many other models  
+- **Universal Compatibility** - works with SD1.5, SDXL, Flux, Flux.2, Krea2, QwenImage, Minimax Image and many other models  
 - **Flexible Sizing** - three modes: Preset, Custom, and Megapixels
 - **SWAP** - one-click size inversion  
 - **100+ Presets** - extensive library of ready-to-use resolutions  

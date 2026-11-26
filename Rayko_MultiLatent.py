@@ -16,6 +16,8 @@
 import torch
 import math
 
+VALID_LATENT_CHANNELS = {4, 16, 32}
+
 class RS_Image_MultiLatent:
     @classmethod
     def INPUT_TYPES(cls):
@@ -133,30 +135,67 @@ class RS_Image_MultiLatent:
     CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = "Universal latent generation node - automatically adapts to any VAE architecture."
 
-    def generate(self, vae, size_mode, active_preset, preset_standard, preset_qwen, preset_minimax, preset_krea2, multiple, width, height, megapixels, aspect_ratio, batch_size):
-        latent_channels = 4
-        scale_factor = 8
-        if hasattr(vae, 'first_stage_config'):
-            config = vae.first_stage_config
-            latent_channels = getattr(config, 'latent_channels', 4)
-            scale_factor = getattr(config, 'scale_factor', 8)
-        elif hasattr(vae, 'latent_channels'):
-            latent_channels = vae.latent_channels
-            scale_factor = getattr(vae, 'scale_factor', 8)
-        elif hasattr(vae, 'decoder') and hasattr(vae.decoder, 'conv_in'):
+    def _detect_vae_params(self, vae):
+        detected_channels = None
+        detected_scale = None
+        sources_tried = []
+
+        if hasattr(vae, 'latent_channels'):
+            val = vae.latent_channels
+            sources_tried.append(f"vae.latent_channels={val}")
+            if val in VALID_LATENT_CHANNELS:
+                detected_channels = val
+
+        if detected_channels is None and hasattr(vae, 'first_stage_config'):
             try:
-                if hasattr(vae.decoder, 'config'):
-                    latent_channels = getattr(vae.decoder.config, 'latent_channels', 4)
-                    scale_factor = getattr(vae.decoder.config, 'scale_factor', 8)
+                config = vae.first_stage_config
+                val = getattr(config, 'latent_channels', None)
+                sources_tried.append(f"first_stage_config.latent_channels={val}")
+                if val is not None and val in VALID_LATENT_CHANNELS:
+                    detected_channels = val
+                elif val is not None:
+                    sources_tried.append(f"⚠ first_stage_config.latent_channels={val} (игнорируется, не в whitelist)")
+            except Exception as e:
+                sources_tried.append(f"first_stage_config error: {e}")
+
+        if detected_channels is None and hasattr(vae, 'decoder') and hasattr(vae.decoder, 'config'):
+            try:
+                val = getattr(vae.decoder.config, 'latent_channels', None)
+                sources_tried.append(f"decoder.config.latent_channels={val}")
+                if val is not None and val in VALID_LATENT_CHANNELS:
+                    detected_channels = val
+            except Exception as e:
+                sources_tried.append(f"decoder.config error: {e}")
+
+        if detected_channels is None:
+            detected_channels = 4  # Безопасный дефолт для SD1.5/SDXL
+            sources_tried.append("fallback to default=4")
+
+        if hasattr(vae, 'scale_factor'):
+            val = vae.scale_factor
+            sources_tried.append(f"vae.scale_factor={val}")
+            if isinstance(val, (int, float)) and 0 < val <= 64:
+                detected_scale = int(val)
+
+        if detected_scale is None and hasattr(vae, 'first_stage_config'):
+            try:
+                val = getattr(vae.first_stage_config, 'scale_factor', None)
+                sources_tried.append(f"first_stage_config.scale_factor={val}")
+                if val is not None and isinstance(val, (int, float)) and 0 < val <= 64:
+                    detected_scale = int(val)
             except:
                 pass
 
-        if latent_channels <= 0 or latent_channels > 256:
-            raise ValueError(f"Invalid latent_channels: {latent_channels}")
-        if scale_factor <= 0 or scale_factor > 64:
-            raise ValueError(f"Invalid scale_factor: {scale_factor}")
+        if detected_scale is None:
+            detected_scale = 8
+            sources_tried.append("fallback scale_factor=8")
 
-        print(f"[RS_Image_MultiLatent] VAE: {latent_channels} channels, {scale_factor}x scale. Active: {active_preset}")
+        return detected_channels, detected_scale, "; ".join(sources_tried)
+
+    def generate(self, vae, size_mode, active_preset, preset_standard, preset_qwen, preset_minimax, preset_krea2, multiple, width, height, megapixels, aspect_ratio, batch_size):
+        latent_channels, scale_factor, sources = self._detect_vae_params(vae)
+        print(f"[RS_Image_MultiLatent] VAE detected: {latent_channels} channels, {scale_factor}x scale | Sources: {sources}")
+        print(f"[RS_Image_MultiLatent] Active preset: {active_preset}, Mode: {size_mode}")
 
         effective_multiple = 8
 
@@ -285,6 +324,8 @@ class RS_Image_MultiLatent:
             device=device,
             dtype=dtype
         )
+
+        print(f"[RS_Image_MultiLatent] Output: {width}x{height}px → latent {latent_channels}ch × {latent_height}×{latent_width}")
 
         return ({"samples": latent}, width, height)
 

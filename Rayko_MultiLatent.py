@@ -154,7 +154,7 @@ class RS_Image_MultiLatent:
                 if val is not None and val in VALID_LATENT_CHANNELS:
                     detected_channels = val
                 elif val is not None:
-                    sources_tried.append(f"⚠ first_stage_config.latent_channels={val} (игнорируется, не в whitelist)")
+                    sources_tried.append(f"first_stage_config.latent_channels={val} (игнорируется, не в whitelist)")
             except Exception as e:
                 sources_tried.append(f"first_stage_config error: {e}")
 
@@ -168,7 +168,7 @@ class RS_Image_MultiLatent:
                 sources_tried.append(f"decoder.config error: {e}")
 
         if detected_channels is None:
-            detected_channels = 4  # Безопасный дефолт для SD1.5/SDXL
+            detected_channels = 4
             sources_tried.append("fallback to default=4")
 
         if hasattr(vae, 'scale_factor'):
@@ -183,8 +183,8 @@ class RS_Image_MultiLatent:
                 sources_tried.append(f"first_stage_config.scale_factor={val}")
                 if val is not None and isinstance(val, (int, float)) and 0 < val <= 64:
                     detected_scale = int(val)
-            except:
-                pass
+            except Exception as e:
+                sources_tried.append(f"first_stage_config.scale_factor error: {e}")
 
         if detected_scale is None:
             detected_scale = 8
@@ -288,8 +288,8 @@ class RS_Image_MultiLatent:
             except (ValueError, TypeError):
                 parsed = 8
             m = max(scale_factor, parsed)
-            width = max(m, (width // m) * m)
-            height = max(m, (height // m) * m)
+            width = max(m, int(width / m + 0.5) * m)
+            height = max(m, int(height / m + 0.5) * m)
             effective_multiple = m
 
         elif size_mode == "Megapixels":
@@ -305,13 +305,13 @@ class RS_Image_MultiLatent:
             x = math.sqrt(target_pixels / (w_ratio * h_ratio))
             raw_width = w_ratio * x
             raw_height = h_ratio * x
-            width = round(raw_width / m) * m
-            height = round(raw_height / m) * m
+            width = int(raw_width / m + 0.5) * m
+            height = int(raw_height / m + 0.5) * m
             width = max(m, width)
             height = max(m, height)
 
-        width = max(effective_multiple, (width // effective_multiple) * effective_multiple)
-        height = max(effective_multiple, (height // effective_multiple) * effective_multiple)
+        width = max(effective_multiple, int(width / effective_multiple + 0.5) * effective_multiple)
+        height = max(effective_multiple, int(height / effective_multiple + 0.5) * effective_multiple)
 
         latent_width = width // scale_factor
         latent_height = height // scale_factor

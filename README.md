@@ -359,7 +359,6 @@ All delimiters include a trailing space automatically.
 - **Multiple triggers?** Separate them with commas inside the textarea — e.g. `ohwx woman, 1girl, solo`.  
 - **Empty trigger** — the node gracefully passes through the incoming prompt unchanged.  
 - **Empty incoming prompt** — only the trigger word is emitted.  
-- **Best paired with** any prompt-builder node from the RaykoStudio pack (see below).  
 
 </details>
 <details>

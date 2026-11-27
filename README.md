@@ -301,6 +301,68 @@ You can create a chain of these nodes by connecting the Image output to the Back
 
 </details>
 <details>
+  <summary>🦊 RS Trigger Word</summary>
+
+# 🦊 RS Trigger Word  
+**A minimal and focused ComfyUI node for prepending trigger words (typically for LoRA models) to your prompt with a customizable delimiter.**  
+
+<img width="562" height="360" alt="Screenshot_5" src="https://github.com/user-attachments/assets/d39b1ebd-9ee1-4423-ac16-77af1821f6c8" />
+<img width="562" height="568" alt="Screenshot_6" src="https://github.com/user-attachments/assets/4668c53c-c266-4494-be13-dacc6a2197b9" />
+
+### 🔥 Features  
+- **Single input slot** — accepts a prompt from any upstream text node  
+-  **Dedicated trigger field** — multiline textarea for your LoRA trigger(s)  
+-  **Custom delimiter picker** — choose from 7 preset separators, all with a trailing space  
+- **Resizable** — scales smoothly, textarea grows with the node  
+- **Workflow-safe** — selected delimiter is preserved when saving/loading workflows  
+
+### 🪛 Usage  
+1. Drop **RS Trigger Word** into your workflow.  
+2. Connect any prompt-producing node to the `prompt` input.  
+3. Type your trigger word(s) into the textarea (e.g. `ohwx woman`).  
+4. Click **DELIMITER** and pick a separator.  
+5. Wire the `PROMPT` output into your sampler / CLIP text encode node.  
+
+### Example  
+```
+Trigger:    "ohwx woman"
+Delimiter:  ", "
+Incoming:   "standing in a forest, cinematic lighting"
+─────────────────────────────────────────────────────
+Output:     "ohwx woman, standing in a forest, cinematic lighting"
+```
+
+### 🔌 Inputs & Outputs  
+
+| Port   | Type   | Description                              |
+|--------|--------|------------------------------------------|
+| `prompt` | `STRING` | Incoming prompt (connect from another node) |
+
+| Port   | Type   | Description                              |
+|--------|--------|------------------------------------------|
+| `PROMPT` | `STRING` | Final merged prompt (trigger + delimiter + incoming) |
+
+### 🔤 Available Delimiters  
+All delimiters include a trailing space automatically.  
+
+| Symbol | Label                | Example output                |
+|--------|----------------------|-------------------------------|
+| `. `   | period + space       | `ohwx woman. standing...`     |
+| `, `   | comma + space        | `ohwx woman, standing...`     |
+| `: `   | colon + space        | `ohwx woman: standing...`     |
+| `; `   | semicolon + space    | `ohwx woman; standing...`     |
+| `- `   | dash + space         | `ohwx woman- standing...`     |
+| `_ `   | underscore + space   | `ohwx woman_ standing...`     |
+| `> `   | greater + space      | `ohwx woman> standing...`     |
+
+### 💡 Tips  
+- **Multiple triggers?** Separate them with commas inside the textarea — e.g. `ohwx woman, 1girl, solo`.  
+- **Empty trigger** — the node gracefully passes through the incoming prompt unchanged.  
+- **Empty incoming prompt** — only the trigger word is emitted.  
+- **Best paired with** any prompt-builder node from the RaykoStudio pack (see below).  
+
+</details>
+<details>
   <summary>🦊 RS Load Images From Dir</summary>
 
 # 🦊 RS Load Images From Dir  

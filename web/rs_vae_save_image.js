@@ -2,7 +2,7 @@ import { app } from "../../scripts/app.js";
 
 const NODE_TYPE = "RS_VAE_Decode_Save";
 const MIN_WIDTH = 240;
-const MIN_HEIGHT = 320;
+const MIN_HEIGHT = 340;
 const PREVIEW_GAP = 5;
 const CLOSE_BTN_SIZE = 24;
 const STORAGE_PREFIX = "RS_VAE_Save_images_";
@@ -229,14 +229,27 @@ app.registerExtension({
                 this._abortController = new AbortController();
                 const signal = this._abortController.signal;
 
-                const loadPromises = imageDataArray.map((data) => {
+                const loadPromises = imageDataArray.map((data, idx) => {
                     return new Promise((resolve) => {
+                        const applyDimensions = (img) => {
+                            const stored = this.imageData[idx];
+                            if (
+                                stored &&
+                                (stored.w === undefined || stored.h === undefined) &&
+                                img.naturalWidth > 0
+                            ) {
+                                stored.w = img.naturalWidth;
+                                stored.h = img.naturalHeight;
+                            }
+                        };
+
                         if (data.dataUrl) {
                             const img = new Image();
                             img.onload = () => {
                                 if (this.imgAspect === 1 && img.naturalWidth > 0) {
                                     this.imgAspect = img.naturalWidth / img.naturalHeight;
                                 }
+                                applyDimensions(img);
                                 resolve(img);
                             };
                             img.onerror = () => resolve(null);
@@ -270,6 +283,7 @@ app.registerExtension({
                                         if (this.imgAspect === 1 && img.naturalWidth > 0) {
                                             this.imgAspect = img.naturalWidth / img.naturalHeight;
                                         }
+                                        applyDimensions(img);
                                         resolve(img);
                                     };
                                     img.onerror = () => resolve(null);
@@ -341,9 +355,7 @@ app.registerExtension({
             this._hasNewImages = false;
 
             this.setSize([MIN_WIDTH, MIN_HEIGHT]);
-            // min_size НЕ устанавливаем — иначе нода не сможет свернуться
-
-            // Минимальный размер применяем только к развёрнутой ноде
+            
             this.onResize = function() {
                 if (this.flags?.collapsed) return;
                 let changed = false;
@@ -406,8 +418,12 @@ app.registerExtension({
                         subfolder: img.subfolder || ''
                     }));
 
+                    const imageSizes = message.image_sizes || [];
+
                     const newImageData = [];
-                    for (const imgData of metaOnly) {
+                    for (let i = 0; i < metaOnly.length; i++) {
+                        const imgData = metaOnly[i];
+                        const sizeInfo = imageSizes[i] || {};
                         let url = `/view?filename=${encodeURIComponent(imgData.filename)}&type=${imgData.type}`;
                         if (imgData.subfolder) {
                             url += `&subfolder=${encodeURIComponent(imgData.subfolder)}`;
@@ -425,14 +441,24 @@ app.registerExtension({
                                     filename: imgData.filename,
                                     type: imgData.type,
                                     subfolder: imgData.subfolder || '',
-                                    dataUrl: dataUrl
+                                    dataUrl: dataUrl,
+                                    w: sizeInfo.width,
+                                    h: sizeInfo.height
                                 });
                             } else {
-                                newImageData.push({ ...imgData });
+                                newImageData.push({
+                                    ...imgData,
+                                    w: sizeInfo.width,
+                                    h: sizeInfo.height
+                                });
                             }
                         } catch (error) {
                             console.error("[RS] Failed to load image for dataURL:", imgData.filename, error);
-                            newImageData.push({ ...imgData });
+                            newImageData.push({
+                                ...imgData,
+                                w: sizeInfo.width,
+                                h: sizeInfo.height
+                            });
                         }
                     }
                     this.imageData = newImageData;
@@ -493,7 +519,6 @@ app.registerExtension({
             }
 
             this.onDrawBackground = function(ctx) {
-                // Свёрнутая нода — ничего не рисуем
                 if (this.flags?.collapsed) return;
 
                 ctx.save();
@@ -501,8 +526,8 @@ app.registerExtension({
                     if (this.imgs.length === 0) return;
 
                     const availableW = this.size[0] - this.padding * 2;
-                    const availableH = this.size[1] - this.widgetsHeight - this.padding * 2;
-                    const startY = this.widgetsHeight + this.padding;
+                    const availableH = this.size[1] - this.widgetsHeight - this.padding;
+                    const startY = this.widgetsHeight;
 
                     if (availableW <= 0 || availableH <= 0) return;
 
@@ -591,7 +616,6 @@ app.registerExtension({
 
             const origODF = this.onDrawForeground;
             this.onDrawForeground = function (ctx, vr) {
-                // При сворачивании: чистим зоны кликов, но всё равно даём ComfyUI нарисовать заголовок/порты
                 if (this.flags?.collapsed) {
                     this.clickZones = [];
                     if (origODF) origODF.apply(this, arguments);
@@ -627,6 +651,35 @@ app.registerExtension({
                     this.clickZones.push({ type: "format", x: p + lW, y, w: iW, h: rH });
                     y += rH + 10;
 
+                    const imgArr = this.imageData || [];
+                    let sizeText;
+                    if (imgArr.length === 0) {
+                        sizeText = "— × —";
+                    } else if (this.previewMode === 'view' && imgArr.length >= 2) {
+                        const idx = Math.min(this.imageIndex || 0, imgArr.length - 1);
+                        const d = imgArr[idx];
+                        sizeText = (d && d.w && d.h)
+                            ? `${d.w} × ${d.h} · ${idx + 1} / ${imgArr.length}`
+                            : "…";
+                    } else {
+                        const d = imgArr[0];
+                        if (d && d.w && d.h) {
+                            sizeText = imgArr.length > 1
+                                ? `${d.w} × ${d.h} · ${imgArr.length} imgs`
+                                : `${d.w} × ${d.h}`;
+                        } else {
+                            sizeText = "…";
+                        }
+                    }
+
+                    ctx.fillStyle = (imgArr.length === 0) ? "#666" : "#888";
+                    ctx.font = "15px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "top";
+                    ctx.fillText(sizeText, this.size[0] / 2, y);
+
+                    y += 18;
+                    
                     this.widgetsHeight = y;
                 } finally {
                     ctx.restore();
@@ -681,12 +734,11 @@ app.registerExtension({
             };
 
             this.onMouseDown = function (e, pos, canvas) {
-                // Свёрнутая нода — клики по превью не обрабатываем
                 if (this.flags?.collapsed) return false;
 
                 const availableW = this.size[0] - this.padding * 2;
-                const availableH = this.size[1] - this.widgetsHeight - this.padding * 2;
-                const startY = this.widgetsHeight + this.padding;
+                const availableH = this.size[1] - this.widgetsHeight - this.padding;
+                const startY = this.widgetsHeight;
 
                 for (const z of this.clickZones) {
                     if (pos[0] >= z.x && pos[0] <= z.x + z.w &&
@@ -865,8 +917,6 @@ app.registerExtension({
                     const newPath = inp.value.trim();
                     self.rs_data.save_path = newPath;
 
-                    // A path typed by the user in the UI is trusted by definition.
-                    // Paths that arrive via a workflow file are NOT added here.
                     if (!self.rs_data.user_confirmed_paths) {
                         self.rs_data.user_confirmed_paths = [];
                     }

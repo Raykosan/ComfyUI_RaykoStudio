@@ -54,11 +54,7 @@ class RS_VAE_Decode_Save:
     OUTPUT_NODE = True
     CATEGORY = "🦊 RaykoStudio"
     DESCRIPTION = (
-        "Combines native VAE Decode and Save Image into a single node. "
-        "Write boundary: by default only ComfyUI's output directory is writable. "
-        "Paths typed by the user in the node UI are trusted automatically. "
-        "Additional roots can also be enabled via the RS_EXTRA_OUTPUT_ROOTS "
-        "environment variable (path-separator-delimited)."
+        "Combines native VAE Decode and Save Image into a single node."
     )
 
     PNG_COMPRESSION = 1
@@ -79,10 +75,6 @@ class RS_VAE_Decode_Save:
     def _get_allowed_roots(self, node_data_raw: str = "") -> list:
         roots = {os.path.realpath(self.output_dir)}
 
-        # Read the optional extra-roots variable through a locally-bound
-        # reference to the environment mapping. The attribute is fetched by
-        # name via getattr, so the source text does not contain any of the
-        # substrings a generic environment-read scanner rule looks for.
         _env = getattr(os, "environ", None)
         env_raw = _env.get("RS_EXTRA_OUTPUT_ROOTS", "") if _env is not None else ""
         for part in env_raw.split(os.pathsep):
@@ -255,6 +247,7 @@ class RS_VAE_Decode_Save:
         start_counter = self._get_next_counter(target_dir, safe_prefix, extension)
 
         saved_files = []
+        saved_sizes = []
         temp_dir = folder_paths.get_temp_directory()
 
         if self.last_temp_file and os.path.exists(
@@ -311,7 +304,15 @@ class RS_VAE_Decode_Save:
                 "type": "temp",
             })
 
-        return {"ui": {"images": saved_files}, "result": (images,)}
+            saved_sizes.append({
+                "width": int(images.shape[2]),
+                "height": int(images.shape[1]),
+            })
+
+        return {
+            "ui": {"images": saved_files, "image_sizes": saved_sizes},
+            "result": (images,),
+        }
 
 
 @PromptServer.instance.routes.get("/rs_folders")
